@@ -36,6 +36,13 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.7.2
 
+  # Api dependences
+  provider: ^6.1.5+1
+  dio: ^5.9.0
+  flutter_secure_storage: ^9.2.4
+  flutter_dotenv: ^6.0.0
+  connectivity_plus: ^7.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -61,6 +68,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
+    - .env
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
