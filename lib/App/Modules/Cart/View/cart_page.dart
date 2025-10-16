@@ -58,12 +58,11 @@ class _CartPageState extends State<CartPage> {
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
-            fontSize: 20,
+            fontSize: 18,
           ),
         ),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
-        elevation: 1,
       ),
       backgroundColor: const Color(0xFFF8F8F8),
       body: cartItems.isEmpty
@@ -102,56 +101,146 @@ class _CartPageState extends State<CartPage> {
                                   fit: BoxFit.cover,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 6),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                        Column(
+                                          children: [
+                                            if (product.promotion != null &&
+                                                product.oldPriceCfa !=
+                                                    null) ...[
+                                              Text(
+                                                "${_formatPrice(product.oldPriceCfa!)} CFA",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey.shade600,
+                                                  decoration: TextDecoration
+                                                      .lineThrough,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 2),
+                                            ],
+                                            TextComponent(
+                                              text:
+                                                  "${_formatPrice(product.priceCfa)} CFA",
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                    Text(
-                                      product.boissonType ?? '',
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 13,
-                                      ),
+
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Container(
+                                          margin: const EdgeInsets.only(top: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.amber.shade100,
+                                            borderRadius: BorderRadius.circular(
+                                              30,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            product.category,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        // Afficher le sous total si quantité > 1
+                                        if (quantity > 1) ...[
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            "Sous-total: ${_formatPrice(product.priceCfa * quantity)} CFA",
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    TextComponent(
-                                      text:
-                                          "${_formatPrice(product.priceCfa)} CFA",
+
+                                    const SizedBox(height: 6),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            _qtyButton(Icons.remove, () {
+                                              _updateQuantity(index, -1);
+                                            }),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                  ),
+                                              child: Text(
+                                                "$quantity",
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            ),
+                                            _qtyButton(Icons.add, () {
+                                              _updateQuantity(index, 1);
+                                            }),
+                                          ],
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              cartItems.removeAt(index);
+                                              showMessageComponent(
+                                                context,
+                                                "Article supprimé du panier",
+                                                "Suppression",
+                                                false,
+                                              );
+                                            });
+                                          },
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(6.0),
+                                            child: Text(
+                                              "Supprimer",
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
+
                               // Contrôles de quantité
-                              Row(
-                                children: [
-                                  _qtyButton(Icons.remove, () {
-                                    _updateQuantity(index, -1);
-                                  }),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                    ),
-                                    child: Text(
-                                      "$quantity",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ),
-                                  _qtyButton(Icons.add, () {
-                                    _updateQuantity(index, 1);
-                                  }),
-                                ],
-                              ),
                             ],
                           ),
                         ),

@@ -20,6 +20,19 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet> {
     final product = widget.product;
     final total = product.priceCfa * quantity;
 
+    // 🔢 Vérifie si la promo est du type "Achetez X, recevez 1 offert"
+    int? offerThreshold = _getOfferThreshold(product.promotion);
+    int freeCount = 0;
+    String? congratulationMessage;
+
+    if (offerThreshold != null) {
+      freeCount = (quantity ~/ offerThreshold);
+      if (freeCount >= 1) {
+        congratulationMessage =
+            "🎉 Félicitations ! Vous recevrez $freeCount produit${freeCount > 1 ? 's' : ''} gratuit${freeCount > 1 ? 's' : ''} !";
+      }
+    }
+
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -27,214 +40,227 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet> {
         top: 12,
         bottom: MediaQuery.of(context).viewInsets.bottom + 20,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 50,
-            height: 5,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(4),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Barre du haut
+            Container(
+              width: 50,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          // ---- Header ----
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Détails du produit',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-              InkWell(
-                onTap: () => Navigator.pop(context),
-                borderRadius: BorderRadius.circular(30),
-                child: const Padding(
-                  padding: EdgeInsets.all(6.0),
-                  child: Icon(Icons.close, color: Colors.black),
-                ),
-              ),
-            ],
-          ),
-          // Image du produit
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(40),
+            const SizedBox(height: 16),
+
+            // --- Image centrée ---
+            Center(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
                 child: Image.asset(
                   product.imagepath ?? '',
-                  height: 80,
-                  width: 80,
+                  height: 160,
+                  width: 160,
                   fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    product.boissonType ?? '',
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
+            ),
+            const SizedBox(height: 20),
 
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      product.category,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  // Prix (avec prix barré si promo)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (product.oldPriceCfa != null)
-                        Text(
-                          "${_formatPrice(product.oldPriceCfa!)} CFA",
-                          style: const TextStyle(
-                            color: Colors.grey,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: Colors.grey,
-                            fontSize: 14,
-                          ),
-                        ),
-                      if (product.oldPriceCfa != null) const SizedBox(width: 8),
-                      TextComponent(
-                        text: "${_formatPrice(product.priceCfa)} CFA",
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (product.promotion != null)
+            // --- Nom et catégorie ---
+            Text(
+              product.name,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              product.boissonType ?? '',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+            const SizedBox(height: 10),
+
+            // --- Catégorie badge ---
             Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.amber.shade50,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.amber, width: 1),
+                color: Colors.amber.shade100,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                product.promotion!,
-                textAlign: TextAlign.center,
+                product.category,
                 style: const TextStyle(
-                  color: Colors.black87,
                   fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
               ),
             ),
-          const SizedBox(height: 10),
 
-          // Description (placeholder)
-          Text(
-            "Savourez votre boisson préférée avec une touche unique. Idéale pour vos moments de détente ou de fête.",
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
-          ),
+            const SizedBox(height: 16),
 
-          const SizedBox(height: 24),
-
-          // Sélecteur de quantité
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Quantité",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              Row(
-                children: [
-                  _qtyButton(Icons.remove, () {
-                    if (quantity > 1) {
-                      setState(() => quantity--);
-                    }
-                  }),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    child: Text(
-                      '$quantity',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
+            // --- Prix ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (product.oldPriceCfa != null)
+                  Text(
+                    "${_formatPrice(product.oldPriceCfa!)} CFA",
+                    style: const TextStyle(
+                      color: Colors.grey,
+                      decoration: TextDecoration.lineThrough,
+                      fontSize: 14,
                     ),
                   ),
-                  _qtyButton(Icons.add, () {
-                    setState(() => quantity++);
-                  }),
-                ],
-              ),
-            ],
-          ),
+                if (product.oldPriceCfa != null) const SizedBox(width: 8),
+                TextComponent(text: "${_formatPrice(product.priceCfa)} CFA"),
+              ],
+            ),
 
-          const SizedBox(height: 20),
-          const Divider(),
-          const SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-          // Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Total",
-                style: TextStyle(fontWeight: FontWeight.w600),
+            // --- Promotion ---
+            if (product.promotion != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber, width: 1),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      product.promotion!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              TextComponent(text: "${_formatPrice(total)} CFA"),
-            ],
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 10),
+            if (congratulationMessage != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green, width: 1),
+                ),
+                child: Text(
+                  congratulationMessage,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
 
-          // Bouton Ajouter au panier
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                Navigator.pop(context, quantity);
-              },
-              icon: const Icon(
-                Icons.shopping_cart_outlined,
-                color: Colors.black,
-              ),
-              label: Text(
-                quantity > 1 ? 'Ajouter ($quantity)' : 'Ajouter au panier',
-                style: const TextStyle(color: Colors.black),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 20),
+
+            // --- Description ---
+            Text(
+              "Savourez votre boisson préférée avec une touche unique. Idéale pour vos moments de détente ou de fête.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            ),
+
+            const SizedBox(height: 24),
+
+            // --- Quantité ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Quantité",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Row(
+                  children: [
+                    _qtyButton(Icons.remove, () {
+                      if (quantity > 1) setState(() => quantity--);
+                    }),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        '$quantity',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    _qtyButton(Icons.add, () {
+                      setState(() => quantity++);
+                    }),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 10),
+
+            // --- Total ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Total",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                TextComponent(text: "${_formatPrice(total)} CFA"),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+
+            // --- Bouton Ajouter ---
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context, quantity);
+                },
+                icon: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: Colors.black,
+                ),
+                label: Text(
+                  quantity > 1 ? 'Ajouter ($quantity)' : 'Ajouter au panier',
+                  style: const TextStyle(color: Colors.black),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+  // --- Boutons quantité ---
   Widget _qtyButton(IconData icon, VoidCallback onTap) {
     final isAdd = icon == Icons.add;
     return InkWell(
@@ -252,6 +278,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet> {
     );
   }
 
+  // --- Format prix ---
   String _formatPrice(int price) {
     final s = price.toString();
     final buffer = StringBuffer();
@@ -265,5 +292,16 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet> {
       }
     }
     return buffer.toString().split('').reversed.join('');
+  }
+
+  // --- Analyse la promo et renvoie le nombre à atteindre ---
+  int? _getOfferThreshold(String? promotionText) {
+    if (promotionText == null) return null;
+    final regex = RegExp(r"Achetez\s*(\d+)");
+    final match = regex.firstMatch(promotionText);
+    if (match != null) {
+      return int.tryParse(match.group(1)!);
+    }
+    return null;
   }
 }
