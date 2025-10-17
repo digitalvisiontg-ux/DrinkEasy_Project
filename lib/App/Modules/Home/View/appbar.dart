@@ -8,6 +8,8 @@ Widget buildAppBar(dynamic cartCount) {
   return AppBar(
     backgroundColor: Colors.white,
     centerTitle: false,
+    // Mettre le retour sur false
+    automaticallyImplyLeading: false,
     titleSpacing: 0,
     title: Row(
       children: [

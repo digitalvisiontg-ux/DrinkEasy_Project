@@ -1,5 +1,6 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
+import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Connexion/Controller/controller.dart';
 import 'package:drink_eazy/App/Modules/Connexion/View/inscription.dart';
 import 'package:drink_eazy/App/Modules/Connexion/View/motDePasseOublier.dart';
@@ -81,7 +82,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
+                  children: [
                     Text(
                       'DrinkEazy',
                       textAlign: TextAlign.center,
@@ -97,6 +98,39 @@ class _ConnexionPageState extends State<ConnexionPage> {
                       'Connectez-vous pour commander',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    // Retour à la page de home
+                    Container(
+                      margin: const EdgeInsets.only(top: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: GestureDetector(
+                        onTap: () => Get.to(AccountPage()),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                            SizedBox(width: 6),
+                            Text(
+                              'Retour',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

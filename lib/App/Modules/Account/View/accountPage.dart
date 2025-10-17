@@ -1,6 +1,7 @@
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
 import 'package:drink_eazy/App/Modules/Connexion/View/connexion.dart';
 import 'package:drink_eazy/App/Modules/Connexion/View/inscription.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -12,6 +13,12 @@ class AccountPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Get.to(Home());
+          },
+        ),
         title: const Text(
           "Mon Compte",
           style: TextStyle(

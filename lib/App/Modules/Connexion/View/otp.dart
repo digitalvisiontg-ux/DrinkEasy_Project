@@ -1,5 +1,6 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
+import 'package:drink_eazy/App/Modules/Connexion/View/nouveauMotDePasse.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
@@ -170,7 +171,9 @@ class _OtpPageState extends State<OtpPage> {
 
                     /// Renvoi du code
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        Get.to(NouveauMotDePassePage(email: widget.email));
+                      },
                       child: Center(
                         child: Text.rich(
                           TextSpan(
