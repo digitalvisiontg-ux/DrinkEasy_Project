@@ -11,6 +11,8 @@ Widget buildProductCard({
   required VoidCallback onCartUpdated,
   required Function(int) updateCartCount,
 }) {
+  final double cardHeight = (p.promotion != null) ? 110 : 90;
+
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 16),
     child: GestureDetector(
@@ -37,7 +39,7 @@ Widget buildProductCard({
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Container(
           color: Colors.white,
-          height: 105,
+          height: cardHeight,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
@@ -68,7 +70,7 @@ Widget buildProductCard({
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
 
-                    // promotion
+                    // 🟢 promotion
                     if (p.promotion != null)
                       Container(
                         margin: const EdgeInsets.only(top: 3),
@@ -89,7 +91,7 @@ Widget buildProductCard({
                           ),
                         ),
                       ),
-                    Spacer(),
+                    const Spacer(),
                   ],
                 ),
               ),

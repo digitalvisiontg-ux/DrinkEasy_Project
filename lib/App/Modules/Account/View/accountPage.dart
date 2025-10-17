@@ -1,5 +1,9 @@
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
+import 'package:drink_eazy/App/Modules/Connexion/View/connexion.dart';
+import 'package:drink_eazy/App/Modules/Connexion/View/inscription.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -9,6 +13,12 @@ class AccountPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () {
+            Get.to(Home());
+          },
+        ),
         title: const Text(
           "Mon Compte",
           style: TextStyle(
@@ -72,7 +82,9 @@ class AccountPage extends StatelessWidget {
 
             // BOUTONS : Se connecter / Créer un compte
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Get.to(ConnexionPage());
+              },
               icon: const Icon(Icons.login, color: Colors.black),
               label: const Text(
                 "Se connecter",
@@ -93,7 +105,9 @@ class AccountPage extends StatelessWidget {
             const SizedBox(height: 12),
 
             OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                Get.to(InscriptionPage());
+              },
               icon: const Icon(Icons.person_add_alt_1, color: Colors.black),
               label: const Text(
                 "Créer un compte",

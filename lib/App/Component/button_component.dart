@@ -21,7 +21,7 @@ class ButtonComponent extends StatelessWidget {
           textButton,
           style: TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w500,
             fontSize: 18,
           ),
         ),
