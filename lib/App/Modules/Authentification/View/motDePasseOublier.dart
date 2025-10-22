@@ -1,48 +1,41 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/Controller/controller.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/connexion.dart';
+import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/Utils/form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class NouveauMotDePassePage extends StatefulWidget {
-  final String email;
-
-  const NouveauMotDePassePage({Key? key, required this.email})
-    : super(key: key);
+class MotDePasseOubliePage extends StatefulWidget {
+  const MotDePasseOubliePage({Key? key}) : super(key: key);
 
   @override
-  State<NouveauMotDePassePage> createState() => _NouveauMotDePassePageState();
+  State<MotDePasseOubliePage> createState() => _MotDePasseOubliePageState();
 }
 
-class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
+class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
   final _formKey = GlobalKey<FormState>();
-  final _passwordCtrl = TextEditingController();
-  final _confirmPasswordCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
   bool loading = false;
 
-  Future<void> _handleResetPassword() async {
+  Future<void> _handleReset() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // final newPassword = _passwordCtrl.text.trim();
-
+    final email = _emailCtrl.text.trim();
     setState(() => loading = true);
 
     try {
-      // Simulation d'une requête
+      // Simulation d’un appel API
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
         showMessageComponent(
           context,
-          'Votre mot de passe a été réinitialisé avec succès pour ${widget.email}',
+          'Un lien de réinitialisation a été envoyé à $email',
           'Succès',
           false,
         );
-
-        // Retour à la connexion
-        Get.offAllNamed('/connexion');
+        Get.back();
       }
     } catch (e) {
       if (mounted) {
@@ -56,39 +49,52 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
   }
 
   @override
-  void dispose() {
-    _passwordCtrl.dispose();
-    _confirmPasswordCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          /// Image de fond
+          /// 🔹 Image de fond
           Positioned.fill(
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
 
-          /// Filtre sombre
+          /// 🔹 Filtre sombre transparent
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
 
-          /// Contenu principal
+          /// 🔹 Bouton retour (icône circulaire)
+          Positioned(
+            top: 45,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+
+          /// 🔹 Contenu principal
           Column(
             children: [
               const Spacer(flex: 2),
 
-              // Titre
+              /// 🔸 Titre principal
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Text(
-                      'Nouveau mot de passe',
+                      'Mot de passe oublié',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -99,7 +105,7 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Définissez votre nouveau mot de passe',
+                      'Recevez un lien de réinitialisation',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
@@ -109,7 +115,7 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
 
               const Spacer(flex: 1),
 
-              // Formulaire blanc arrondi
+              /// 🔸 Formulaire (fond blanc)
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -125,53 +131,32 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      /// Champ mot de passe
+                      /// Champ email
                       FormWidget(
-                        controller: _passwordCtrl,
+                        controller: _emailCtrl,
                         prefixIcon: const Icon(
-                          Icons.lock_outline,
+                          Icons.email_outlined,
                           color: Colors.black54,
                         ),
-                        hintText: "Nouveau mot de passe",
-                        obscureText: true,
-                        validator: validatePassword,
-                      ),
-                      const SizedBox(height: 16),
-
-                      /// Champ confirmation
-                      FormWidget(
-                        controller: _confirmPasswordCtrl,
-                        prefixIcon: const Icon(
-                          Icons.lock_reset_outlined,
-                          color: Colors.black54,
-                        ),
-                        hintText: "Confirmer le mot de passe",
-                        obscureText: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Veuillez confirmer le mot de passe';
-                          } else if (value != _passwordCtrl.text) {
-                            return 'Les mots de passe ne correspondent pas';
-                          }
-                          return null;
-                        },
+                        hintText: "Adresse e-mail",
+                        obscureText: false,
+                        validator: validateEmail,
                       ),
                       const SizedBox(height: 28),
 
-                      /// Bouton validation
+                      /// Bouton d’envoi
                       GestureDetector(
-                        onTap: loading ? null : _handleResetPassword,
+                        onTap: loading ? null : _handleReset,
                         child: ButtonComponent(
-                          textButton: loading
-                              ? 'Mise à jour en cours...'
-                              : 'Réinitialiser le mot de passe',
+                          textButton: loading ? 'Envoi en cours...' : 'Envoyer',
                         ),
                       ),
                       const SizedBox(height: 16),
 
-                      /// Lien retour
+                      /// Lien retour à la connexion
                       GestureDetector(
-                        onTap: () => Get.offAll(ConnexionPage()),
+                        onTap: () =>
+                            Get.to(OtpPage(email: _emailCtrl.text.trim())),
                         child: Center(
                           child: Text.rich(
                             TextSpan(

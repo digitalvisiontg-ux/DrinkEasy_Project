@@ -1,6 +1,6 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/nouveauMotDePasse.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/nouveauMotDePasse.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
@@ -26,7 +26,7 @@ class _OtpPageState extends State<OtpPage> {
 
     setState(() => loading = true);
     try {
-      // Simulation de la vérification OTP
+      // Simulation de vérification OTP
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
@@ -36,7 +36,9 @@ class _OtpPageState extends State<OtpPage> {
           "Succès",
           false,
         );
-        Get.offAllNamed("/home"); // Redirige vers la page principale
+
+        // 🔹 Redirige vers la création du nouveau mot de passe
+        Get.to(() => NouveauMotDePassePage(email: widget.email));
       }
     } catch (e) {
       if (mounted) {
@@ -82,12 +84,32 @@ class _OtpPageState extends State<OtpPage> {
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
 
+          /// 🔹 Bouton retour
+          Positioned(
+            top: 45,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+
           /// 🔹 Contenu principal
           Column(
             children: [
               const Spacer(flex: 2),
 
-              /// Titre principal
+              /// 🔸 Titre principal
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -117,7 +139,7 @@ class _OtpPageState extends State<OtpPage> {
 
               const Spacer(flex: 1),
 
-              /// Bloc blanc
+              /// 🔸 Bloc blanc
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -169,10 +191,12 @@ class _OtpPageState extends State<OtpPage> {
 
                     const SizedBox(height: 16),
 
-                    /// Renvoi du code
+                    /// Lien de renvoi
                     GestureDetector(
                       onTap: () {
-                        Get.to(NouveauMotDePassePage(email: widget.email));
+                        Get.to(
+                          () => NouveauMotDePassePage(email: widget.email),
+                        );
                       },
                       child: Center(
                         child: Text.rich(

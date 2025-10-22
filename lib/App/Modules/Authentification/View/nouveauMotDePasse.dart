@@ -1,42 +1,43 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/Controller/controller.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/otp.dart';
+import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
 import 'package:drink_eazy/Utils/form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class MotDePasseOubliePage extends StatefulWidget {
-  const MotDePasseOubliePage({Key? key}) : super(key: key);
+class NouveauMotDePassePage extends StatefulWidget {
+  final String email;
+
+  const NouveauMotDePassePage({Key? key, required this.email})
+    : super(key: key);
 
   @override
-  State<MotDePasseOubliePage> createState() => _MotDePasseOubliePageState();
+  State<NouveauMotDePassePage> createState() => _NouveauMotDePassePageState();
 }
 
-class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
+class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
   final _formKey = GlobalKey<FormState>();
-  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  final _confirmPasswordCtrl = TextEditingController();
   bool loading = false;
 
-  Future<void> _handleReset() async {
-    final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
+  Future<void> _handleResetPassword() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    final email = _emailCtrl.text.trim();
     setState(() => loading = true);
 
     try {
-      // Simule une requête API
       await Future.delayed(const Duration(seconds: 2));
 
       if (mounted) {
         showMessageComponent(
           context,
-          'Un lien de réinitialisation a été envoyé à $email',
+          'Votre mot de passe a été réinitialisé avec succès pour ${widget.email}',
           'Succès',
           false,
         );
-        Get.back(); // Retour à la page précédente
+        Get.offAllNamed('/connexion');
       }
     } catch (e) {
       if (mounted) {
@@ -50,6 +51,13 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
   }
 
   @override
+  void dispose() {
+    _passwordCtrl.dispose();
+    _confirmPasswordCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -59,9 +67,37 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
 
-          /// 🔹 Filtre sombre transparent
+          /// 🔹 Filtre sombre
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
+          ),
+
+          /// 🔹 Bouton retour cohérent avec le reste de l’app
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Get.back(),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        onPressed: () => Get.back(),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
 
           /// 🔹 Contenu principal
@@ -69,13 +105,13 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
             children: [
               const Spacer(flex: 2),
 
-              /// Titre principal
+              // 🔸 Titre principal
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: const [
                     Text(
-                      'Mot de passe oublié',
+                      'Nouveau mot de passe',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -86,7 +122,7 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Recevez un lien de réinitialisation',
+                      'Définissez votre nouveau mot de passe',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
@@ -96,7 +132,7 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
 
               const Spacer(flex: 1),
 
-              /// Formulaire (fond blanc)
+              // 🔸 Bloc formulaire blanc
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -112,31 +148,54 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      /// Champ mot de passe
                       FormWidget(
-                        controller: _emailCtrl,
+                        controller: _passwordCtrl,
                         prefixIcon: const Icon(
-                          Icons.email_outlined,
+                          Icons.lock_outline,
                           color: Colors.black54,
                         ),
-                        hintText: "Adresse e-mail",
-                        obscureText: false,
-                        validator: validateEmail,
-                      ),
-                      const SizedBox(height: 28),
-
-                      /// Bouton d’envoi
-                      GestureDetector(
-                        onTap: loading ? null : _handleReset,
-                        child: ButtonComponent(
-                          textButton: loading ? 'Envoi en cours...' : 'Envoyer',
-                        ),
+                        hintText: "Nouveau mot de passe",
+                        obscureText: true,
+                        validator: validatePassword,
                       ),
                       const SizedBox(height: 16),
 
-                      /// Lien retour
+                      /// Champ confirmation
+                      FormWidget(
+                        controller: _confirmPasswordCtrl,
+                        prefixIcon: const Icon(
+                          Icons.lock_reset_outlined,
+                          color: Colors.black54,
+                        ),
+                        hintText: "Confirmer le mot de passe",
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez confirmer le mot de passe';
+                          } else if (value != _passwordCtrl.text) {
+                            return 'Les mots de passe ne correspondent pas';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 28),
+
+                      /// Bouton de validation
                       GestureDetector(
-                        onTap: () =>
-                            Get.to(OtpPage(email: _emailCtrl.text.trim())),
+                        onTap: loading ? null : _handleResetPassword,
+                        child: ButtonComponent(
+                          textButton: loading
+                              ? 'Mise à jour en cours...'
+                              : 'Réinitialiser le mot de passe',
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      /// Lien retour vers la connexion
+                      GestureDetector(
+                        onTap: () => Get.offAll(ConnexionPage()),
                         child: Center(
                           child: Text.rich(
                             TextSpan(
