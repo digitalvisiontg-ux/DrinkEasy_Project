@@ -62,7 +62,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
                         final response = await auth.verifyOtp(widget.login, otp);
 
-                        if (response != null) {
+                        if (response) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('OTP vérifié avec succès')),
                           );

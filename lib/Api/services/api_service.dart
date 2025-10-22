@@ -15,6 +15,7 @@ class ApiService {
       headers: {
         'Accept': 'application/json',
       },
+      contentType: Headers.jsonContentType,
     ));
 
     dio.interceptors.add(InterceptorsWrapper(

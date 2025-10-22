@@ -38,7 +38,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                       final success = await auth.forgotPassword(login);
 
-                      if (success) {
+                      if (success != null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('OTP envoyé avec succès')),
                         );

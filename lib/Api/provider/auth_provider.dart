@@ -1,13 +1,13 @@
-import 'package:drink_eazy/Api/core/secure_storage.dart';
-import 'package:drink_eazy/Api/services/auth_api.dart';
 import 'package:flutter/material.dart';
+import 'package:drink_eazy/Api/services/auth_api.dart';
+import 'package:drink_eazy/Api/core/secure_storage.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthApi _authApi = AuthApi();
 
   bool _isLoading = false;
   String? _errorMessage;
-  Map<String, dynamic>? _user; // 👤 Infos de l'utilisateur connecté
+  Map<String, dynamic>? _user;
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -34,10 +34,17 @@ class AuthProvider extends ChangeNotifier {
     _setError(null);
     try {
       final data = await _authApi.login(login, password);
-      await SecureStorage.writeToken(data['token']);
-      _setUser(data['user']); // ✅ Stocke les infos utilisateur
+
+      final token = data['token'];
+      final user = data['user'];
+
+      if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
+      if (user is Map<String, dynamic>) _setUser(user);
+
+      final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>);
+
       _setLoading(false);
-      return true;
+      return ok;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -50,9 +57,18 @@ class AuthProvider extends ChangeNotifier {
     _setLoading(true);
     _setError(null);
     try {
-      await _authApi.register(userData);
+      final data = await _authApi.register(userData);
+
+      final token = data['token'];
+      final user = data['user'];
+
+      if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
+      if (user is Map<String, dynamic>) _setUser(user);
+
+      final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>);
+
       _setLoading(false);
-      return true;
+      return ok;
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -60,14 +76,22 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 🔹 FORGOT PASSWORD (envoi OTP)
+  // 🔹 FORGOT PASSWORD (send OTP)
   Future<bool> forgotPassword(String login) async {
     _setLoading(true);
     _setError(null);
     try {
-      await _authApi.forgotPassword(login);
-      _setLoading(false);
-      return true;
+      final response = await _authApi.forgotPassword(login);
+
+      // backend doit renvoyer success ou message
+      if (response['success'] == true) {
+        _setLoading(false);
+        return true;
+      } else {
+        _setError(response['message'] ?? 'Erreur lors de l’envoi de l’OTP');
+        _setLoading(false);
+        return false;
+      }
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -76,39 +100,23 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // 🔹 VERIFY OTP
-  Future<Map<String, dynamic>?> verifyOtp(String login, String otp) async {
+  Future<bool> verifyOtp(String login, String otp) async {
     _setLoading(true);
     _setError(null);
     try {
       final response = await _authApi.verifyOtp(login, otp);
-      _setUser(response['user']); // ✅ Stocke aussi le user après vérif OTP
-      _setLoading(false);
-      return response;
-    } catch (e) {
-      _setError(e.toString());
-      _setLoading(false);
-      return null;
-    }
-  }
 
-  // 🔹 RESET PASSWORD avec OTP
-  Future<bool> resetPassword(
-    String login,
-    String otp,
-    String password,
-    String passwordConfirmation,
-  ) async {
-    _setLoading(true);
-    _setError(null);
-    try {
-      await _authApi.resetPassword({
-        'login': login,
-        'otp': otp,
-        'password': password,
-        'password_confirmation': passwordConfirmation,
-      });
-      _setLoading(false);
-      return true;
+      if (response['success'] == true) {
+        if (response['user'] != null && response['user'] is Map<String, dynamic>) {
+          _setUser(response['user']);
+        }
+        _setLoading(false);
+        return true;
+      } else {
+        _setError(response['message'] ?? 'Code OTP invalide');
+        _setLoading(false);
+        return false;
+      }
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);
@@ -116,24 +124,26 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 🔹 RESET PASSWORD avec Token (après OTP validé)
-  Future<bool> resetPasswordWithToken(
-    String login,
-    String password,
-    String confirm,
-    String token,
-  ) async {
+  // 🔹 RESET PASSWORD avec OTP
+  Future<bool> resetPassword(String login, String otp, String password, String confirm) async {
     _setLoading(true);
     _setError(null);
     try {
-      await _authApi.resetPassword({
+      final response = await _authApi.resetPassword({
         'login': login,
+        'otp': otp,
         'password': password,
         'password_confirmation': confirm,
-        'token': token, // token de vérification OTP
       });
-      _setLoading(false);
-      return true;
+
+      if (response['success'] == true) {
+        _setLoading(false);
+        return true;
+      } else {
+        _setError(response['message'] ?? 'Erreur lors de la réinitialisation');
+        _setLoading(false);
+        return false;
+      }
     } catch (e) {
       _setError(e.toString());
       _setLoading(false);

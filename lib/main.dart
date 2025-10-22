@@ -1,6 +1,6 @@
-import 'package:drink_eazy/Api/debug/auth/home_page.dart';
-import 'package:drink_eazy/Api/debug/test_api.dart';
-import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
+// import 'package:drink_eazy/Api/debug/auth/home_page.dart';
+// import 'package:drink_eazy/Api/debug/test_api.dart';
+// import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:flutter/material.dart';
@@ -31,9 +31,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      // home: SplashPage(),
+      home: SplashPage(),
       // home: BarTestPage(),
-      home: HomePage(),
+      // home: HomePage(),
     );
   }
 }
+
+

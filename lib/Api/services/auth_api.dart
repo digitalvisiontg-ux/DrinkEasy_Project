@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/config/api_constants.dart';
 import 'package:drink_eazy/Api/services/api_service.dart';
-import 'package:drink_eazy/Api/models/user_model.dart';
 
 class AuthApi {
   final ApiService _apiService;
@@ -34,45 +33,20 @@ class AuthApi {
     }
   }
 
-  /// Forgot password (send OTP)
-  /// data: {login}
   Future<Map<String, dynamic>> forgotPassword(String login) async {
-    try {
-      final response = await _apiService.post(ApiConstants.authForgotPassword, {
-        'login': login,
-      });
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('Erreur forgotPassword: ${_extractError(e)}');
-    }
-  }
+  final response = await _apiService.post(ApiConstants.authForgotPassword, {'login': login});
+  return response.data;
+}
 
-  /// Vérifier OTP avant reset
-  Future<Map<String, dynamic>> verifyOtp(String login, String otp) async {
-    try {
-      final response = await _apiService.post(
-        '${ApiConstants.authBase}/verify-otp', // ou ApiConstants.authVerifyOtp si tu veux l'ajouter
-        {'login': login, 'otp': otp},
-      );
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('Erreur verifyOtp: ${_extractError(e)}');
-    }
-  }
+Future<Map<String, dynamic>> verifyOtp(String login, String otp) async {
+  final response = await _apiService.post('${ApiConstants.authBase}/verify-otp', {'login': login, 'otp': otp});
+  return response.data;
+}
 
-  /// Reset password
-  /// data: {login, otp, password, password_confirmation}
-  Future<Map<String, dynamic>> resetPassword(Map<String, dynamic> data) async {
-    try {
-      final response = await _apiService.post(
-        ApiConstants.authResetPassword,
-        data,
-      );
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('Erreur resetPassword: ${_extractError(e)}');
-    }
-  }
+Future<Map<String, dynamic>> resetPassword(Map<String, dynamic> data) async {
+  final response = await _apiService.post(ApiConstants.authResetPassword, data);
+  return response.data;
+}
 
   /// Delete account (requires token — ApiService injecte Authorization)
   Future<Map<String, dynamic>> deleteAccount() async {

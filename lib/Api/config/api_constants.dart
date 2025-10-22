@@ -12,4 +12,5 @@ class ApiConstants {
   static String get authForgotPassword => "$authBase/forgot-password";
   static String get authResetPassword => "$authBase/reset-password";
   static String get authDeleteAccount => "$authBase/delete-account";
+static String get authVerifyOtp => "$authBase/verify-otp";
 }

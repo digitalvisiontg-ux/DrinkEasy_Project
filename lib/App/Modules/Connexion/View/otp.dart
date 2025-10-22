@@ -4,11 +4,13 @@ import 'package:drink_eazy/App/Modules/Connexion/View/nouveauMotDePasse.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
 class OtpPage extends StatefulWidget {
-  final String email;
+  final String login; // email ou phone
 
-  const OtpPage({Key? key, required this.email}) : super(key: key);
+  const OtpPage({Key? key, required this.login}) : super(key: key);
 
   @override
   State<OtpPage> createState() => _OtpPageState();
@@ -25,30 +27,35 @@ class _OtpPageState extends State<OtpPage> {
     }
 
     setState(() => loading = true);
-    try {
-      // Simulation de la vérification OTP
-      await Future.delayed(const Duration(seconds: 2));
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final success = await auth.verifyOtp(
+      widget.login,
+      _otpController.text.trim(),
+    );
 
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Vérification réussie ✅",
-          "Succès",
-          false,
-        );
-        Get.offAllNamed("/home"); // Redirige vers la page principale
-      }
-    } catch (e) {
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Une erreur s'est produite : ${e.toString()}",
-          "Erreur",
-          true,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
+    setState(() => loading = false);
+
+    if (success == true) {
+      // ← Utiliser success == true
+      showMessageComponent(
+        context,
+        "OTP vérifié avec succès ✅",
+        "Succès",
+        false,
+      );
+      Get.to(
+        () => NouveauMotDePassePage(
+          login: widget.login,
+          otp: _otpController.text.trim(),
+        ),
+      );
+    } else {
+      showMessageComponent(
+        context,
+        auth.errorMessage ?? "Code OTP invalide",
+        "Erreur",
+        true,
+      );
     }
   }
 
@@ -72,22 +79,15 @@ class _OtpPageState extends State<OtpPage> {
     return Scaffold(
       body: Stack(
         children: [
-          /// 🔹 Image de fond
           Positioned.fill(
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
-
-          /// 🔹 Filtre sombre transparent
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
-
-          /// 🔹 Contenu principal
           Column(
             children: [
               const Spacer(flex: 2),
-
-              /// Titre principal
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -104,7 +104,7 @@ class _OtpPageState extends State<OtpPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Code envoyé à ${widget.email}',
+                      'Code envoyé à ${widget.login}',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: Colors.white70,
@@ -114,10 +114,7 @@ class _OtpPageState extends State<OtpPage> {
                   ],
                 ),
               ),
-
               const Spacer(flex: 1),
-
-              /// Bloc blanc
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -132,13 +129,11 @@ class _OtpPageState extends State<OtpPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text(
-                      "Entrez le code à 6 chiffres reçu par e-mail",
+                      "Entrez le code à 6 chiffres reçu",
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.black87, fontSize: 16),
                     ),
                     const SizedBox(height: 24),
-
-                    /// Champ OTP
                     Center(
                       child: Pinput(
                         controller: _otpController,
@@ -154,10 +149,7 @@ class _OtpPageState extends State<OtpPage> {
                         showCursor: true,
                       ),
                     ),
-
                     const SizedBox(height: 28),
-
-                    /// Bouton de vérification
                     GestureDetector(
                       onTap: loading ? null : _verifyOtp,
                       child: ButtonComponent(
@@ -166,33 +158,6 @@ class _OtpPageState extends State<OtpPage> {
                             : "Vérifier le code",
                       ),
                     ),
-
-                    const SizedBox(height: 16),
-
-                    /// Renvoi du code
-                    GestureDetector(
-                      onTap: () {
-                        Get.to(NouveauMotDePassePage(email: widget.email));
-                      },
-                      child: Center(
-                        child: Text.rich(
-                          TextSpan(
-                            text: "Vous n’avez pas reçu de code ? ",
-                            style: TextStyle(color: Colors.grey.shade600),
-                            children: [
-                              TextSpan(
-                                text: "Renvoyer",
-                                style: TextStyle(
-                                  color: Colors.red.shade800,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                   ],
                 ),
               ),
