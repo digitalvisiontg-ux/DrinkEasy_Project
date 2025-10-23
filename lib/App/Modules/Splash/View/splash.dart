@@ -2,9 +2,35 @@ import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
-class SplashPage extends StatelessWidget {
+class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
+
+  @override
+  State<SplashPage> createState() => _SplashPageState();
+}
+
+class _SplashPageState extends State<SplashPage> {
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkSession();
+  }
+
+  Future<void> _checkSession() async {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    await auth.restoreSession();
+    if (auth.user != null) {
+      // Utilisateur déjà connecté, on saute le splash
+      Get.offAll(() => const Home());
+    } else {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +41,8 @@ class SplashPage extends StatelessWidget {
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
           Positioned.fill(
-            // ignore: deprecated_member_use
             child: Container(color: Colors.black.withOpacity(0.4)),
           ),
-
-          // Contenu principal
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -46,16 +69,16 @@ class SplashPage extends StatelessWidget {
                       ),
                     ],
                   ),
-
-                  // Section du bas : bouton
                   Padding(
-                    padding: EdgeInsets.only(bottom: 20),
-                    child: GestureDetector(
-                      onTap: () {
-                        Get.offAll(Home());
-                      },
-                      child: ButtonComponent(textButton: 'Commencer'),
-                    ),
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: _loading
+                        ? const CircularProgressIndicator(color: Colors.amber)
+                        : GestureDetector(
+                            onTap: () {
+                              Get.offAll(() => const Home());
+                            },
+                            child: ButtonComponent(textButton: 'Commencer'),
+                          ),
                   ),
                 ],
               ),

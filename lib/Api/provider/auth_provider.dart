@@ -2,7 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:drink_eazy/Api/services/auth_api.dart';
 import 'package:drink_eazy/Api/core/secure_storage.dart';
 
+
+
 class AuthProvider extends ChangeNotifier {
+  /// Indique si un utilisateur est connecté
+  bool get isAuthenticated => _user != null;
+
+  /// Structure attendue pour _user :
+  /// {
+  ///   'id': int,
+  ///   'name': String,
+  ///   'email': String,
+  ///   ...
+  /// }
+
+  // 🔹 RESTORE SESSION (auto-login)
+  Future<void> restoreSession() async {
+    final token = await SecureStorage.readToken();
+    if (token != null && token.isNotEmpty) {
+      try {
+        final data = await _authApi.getMe();
+        if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+          _setUser(data['user']);
+        }
+      } catch (e) {
+        await SecureStorage.deleteToken();
+        _setUser(null);
+      }
+    } else {
+      _setUser(null);
+    }
+  }
+
+  // 🔹 REGISTER
+  Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    _setLoading(true);
+    _setError(null);
+    try {
+      final data = await _authApi.register(userData);
+
+      final token = data['token'];
+      final user = data['user'];
+
+      if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
+      if (user is Map<String, dynamic>) _setUser(user);
+
+      final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>) || (data['message'] != null && data['message'].toString().isNotEmpty);
+
+      _setLoading(false);
+      return {
+        'success': ok,
+        'message': data['message'],
+        'error': ok ? null : _errorMessage,
+      };
+    } catch (e) {
+      _setError(e.toString());
+      _setLoading(false);
+      return {
+        'success': false,
+        'message': null,
+        'error': _errorMessage,
+      };
+    }
+  }
   final AuthApi _authApi = AuthApi();
 
   bool _isLoading = false;
@@ -19,7 +81,33 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _setError(String? message) {
-    _errorMessage = message;
+    // Gestion professionnelle des erreurs pour l'utilisateur final
+    if (message == null) {
+      _errorMessage = null;
+    } else if (message.contains('email') && message.contains('invalide')) {
+      _errorMessage = "L'adresse e-mail est invalide.";
+    } else if (message.contains('mot de passe') && message.contains('incorrect')) {
+      _errorMessage = "Le mot de passe est incorrect.";
+    } else if (message.contains('already') || message.contains('existe déjà') || message.contains('existe deja')) {
+      _errorMessage = "Ce numéro ou e-mail est déjà inscrit.";
+    } else if (message.contains('not found') || message.contains('introuvable')) {
+      _errorMessage = "Aucun compte trouvé avec ces informations.";
+    } else if (message.contains('token')) {
+      _errorMessage = "Session expirée, veuillez vous reconnecter.";
+    } else if (message.contains('OTP') || message.contains('otp')) {
+      _errorMessage = "Le code reçu est invalide ou expiré.";
+    } else if (message.contains('register')) {
+      _errorMessage = "Votre inscription n'a pas pu aboutir. Veuillez vérifier vos informations.";
+    } else if (message.contains('login')) {
+      _errorMessage = "Connexion impossible. Vérifiez vos identifiants ou réessayez.";
+    } else if (message.contains('Erreur inconnue') || message.contains('Exception')) {
+      _errorMessage = "Une erreur est survenue. Veuillez réessayer.";
+    } else if (message.toLowerCase().contains('server') || message.toLowerCase().contains('500')) {
+      _errorMessage = "Le serveur ne répond pas. Veuillez réessayer plus tard.";
+    } else {
+      // Message générique si non reconnu
+      _errorMessage = "Une erreur est survenue. Veuillez recommencer.";
+    }
     notifyListeners();
   }
 
@@ -45,32 +133,8 @@ class AuthProvider extends ChangeNotifier {
 
       _setLoading(false);
       return ok;
-    } catch (e) {
-      _setError(e.toString());
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  // 🔹 REGISTER
-  Future<bool> register(Map<String, dynamic> userData) async {
-    _setLoading(true);
-    _setError(null);
-    try {
-      final data = await _authApi.register(userData);
-
-      final token = data['token'];
-      final user = data['user'];
-
-      if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
-      if (user is Map<String, dynamic>) _setUser(user);
-
-      final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>);
-
-      _setLoading(false);
-      return ok;
-    } catch (e) {
-      _setError(e.toString());
+    } catch (error) {
+      _setError(error.toString());
       _setLoading(false);
       return false;
     }
@@ -153,6 +217,11 @@ class AuthProvider extends ChangeNotifier {
 
   // 🔹 LOGOUT
   Future<void> logout() async {
+    try {
+      await _authApi.logout();
+    } catch (_) {
+      // On ignore l'erreur pour garantir la déconnexion locale
+    }
     await SecureStorage.deleteToken();
     _setUser(null);
     notifyListeners();

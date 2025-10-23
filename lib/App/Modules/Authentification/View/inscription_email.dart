@@ -1,6 +1,9 @@
-import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+// import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:get/get.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
@@ -35,28 +38,32 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
     }
 
     setState(() => loading = true);
-    try {
-      await Future.delayed(const Duration(seconds: 1));
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Inscription réussie 🎉",
-          "Succès",
-          false,
-        );
-        Get.back();
-      }
-    } catch (e) {
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Erreur: ${e.toString()}",
-          "Erreur",
-          true,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final userData = {
+      'name': _usernameCtrl.text.trim(),
+      'email': _emailCtrl.text.trim(),
+      'password': _passwordCtrl.text,
+      'password_confirmation': _confirmCtrl.text,
+    };
+    final result = await auth.register(userData);
+    setState(() => loading = false);
+
+    if (result['success'] == true) {
+      showMessageComponent(
+        context,
+        result['message'] ?? "Inscription réussie 🎉",
+        "Succès",
+        false,
+      );
+      await Future.delayed(const Duration(milliseconds: 800));
+      Get.offAll(() => const Home());
+    } else {
+      showMessageComponent(
+        context,
+        result['error'] ?? "Erreur lors de l'inscription",
+        "Erreur",
+        true,
+      );
     }
   }
 
@@ -213,12 +220,15 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
                           const SizedBox(height: 28),
 
                           /// --- Bouton inscription ---
-                          GestureDetector(
-                            onTap: loading ? null : _handleRegister,
-                            child: ButtonComponent(
-                              textButton: loading
-                                  ? "Création en cours..."
-                                  : "Créer un compte",
+                          AbsorbPointer(
+                            absorbing: loading,
+                            child: GestureDetector(
+                              onTap: loading ? null : _handleRegister,
+                              child: ButtonComponent(
+                                textButton: loading
+                                    ? "Création en cours..."
+                                    : "Créer un compte",
+                              ),
                             ),
                           ),
                           const SizedBox(height: 18),

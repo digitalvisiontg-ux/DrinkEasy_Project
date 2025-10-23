@@ -1,5 +1,28 @@
 import 'package:flutter/material.dart';
 
+// Validation email
+String? validateEmail(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Veuillez entrer votre e-mail';
+  }
+  final emailRegex = RegExp(r'^\S+@\S+\.\S+$');
+  if (!emailRegex.hasMatch(value)) {
+    return 'E-mail invalide';
+  }
+  return null;
+}
+
+// Validation mot de passe (min 6 caractères)
+String? validatePassword(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Veuillez entrer un mot de passe';
+  }
+  if (value.length < 6) {
+    return 'Le mot de passe doit contenir au moins 6 caractères';
+  }
+  return null;
+}
+
 class FormWidget extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;

@@ -1,10 +1,14 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+// import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
-import 'package:drink_eazy/Utils/form.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
+import 'package:drink_eazy/Utils/form.dart' hide validatePassword;
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
 class InscriptionPhonePage extends StatefulWidget {
   final Future<void> Function(String phone, String password, String username)?
@@ -38,36 +42,33 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
       return;
     }
 
-    final phone = _phoneCtrl.text.trim();
-    final password = _passwordCtrl.text;
-    final username = _usernameCtrl.text.trim();
-
     setState(() => loading = true);
-    try {
-      if (widget.onRegister != null) {
-        await widget.onRegister!(phone, password, username);
-      } else {
-        await Future.delayed(const Duration(seconds: 1));
-        debugPrint('Register (phone): $username / $phone');
-      }
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final userData = {
+      'name': _usernameCtrl.text.trim(),
+      'phone': _phoneCtrl.text.trim(),
+      'password': _passwordCtrl.text,
+      'password_confirmation': _confirmCtrl.text,
+    };
+    final result = await auth.register(userData);
+    setState(() => loading = false);
 
-      if (mounted) {
-        showMessageComponent(
-          context,
-          'Inscription réussie 🎉',
-          'Succès',
-          false,
-        );
-        Get.back(); // Retour à la page précédente
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
+    if (result['success'] == true) {
+      showMessageComponent(
+        context,
+        result['message'] ?? 'Inscription réussie 🎉',
+        'Succès',
+        false,
+      );
+      await Future.delayed(const Duration(milliseconds: 800));
+      Get.offAll(() => Home());
+    } else {
+      showMessageComponent(
+        context,
+        result['error'] ?? 'Erreur lors de l\'inscription',
+        'Erreur',
+        true,
+      );
     }
   }
 
@@ -230,10 +231,15 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
                           const SizedBox(height: 16),
 
                           /// Bouton d'inscription
-                          GestureDetector(
-                            onTap: loading ? null : () => _handleRegister(),
-                            child: ButtonComponent(
-                              textButton: 'Créer un compte',
+                          AbsorbPointer(
+                            absorbing: loading,
+                            child: GestureDetector(
+                              onTap: loading ? null : () => _handleRegister(),
+                              child: ButtonComponent(
+                                textButton: loading
+                                    ? "Création en cours..."
+                                    : "Créer un compte",
+                              ),
                             ),
                           ),
                           const SizedBox(height: 16),

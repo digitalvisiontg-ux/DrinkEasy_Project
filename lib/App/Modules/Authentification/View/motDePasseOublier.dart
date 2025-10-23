@@ -1,11 +1,6 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
-import 'package:drink_eazy/App/Modules/Connexion/View/otp.dart';
-=======
-import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
->>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
 import 'package:drink_eazy/Utils/form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,55 +20,44 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
   bool loading = false;
 
   Future<void> _handleReset() async {
+    print("1");
     if (!_formKey.currentState!.validate()) return;
+    print("12");
 
     final login = _loginCtrl.text.trim();
+    print("13");
     setState(() => loading = true);
-
-<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
+    print("1");
     final auth = Provider.of<AuthProvider>(context, listen: false);
+    print("14");
     final success = await auth.forgotPassword(login);
-
+    print("15");
     setState(() => loading = false);
+    print("16");
 
     if (success == true) {
+    print("17");
+    print("18");
       showMessageComponent(
         context,
-        'Un OTP a été envoyé à $login',
+        auth.errorMessage ?? 'Un OTP a été envoyé à $login',
         'Succès',
         false,
       );
+    print("19");
+      await Future.delayed(const Duration(milliseconds: 800));
+    print("100");
       Get.to(() => OtpPage(login: login));
+    print("11");
     } else {
+    print("122");
       showMessageComponent(
         context,
         auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP',
         'Erreur',
         true,
       );
-=======
-    try {
-      // Simulation d’un appel API
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (mounted) {
-        showMessageComponent(
-          context,
-          'Un lien de réinitialisation a été envoyé à $email',
-          'Succès',
-          false,
-        );
-        Get.back();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
->>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
+    print("133");
     }
   }
 
@@ -88,11 +72,6 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
-<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
-          Column(
-            children: [
-              const Spacer(flex: 2),
-=======
 
           /// 🔹 Bouton retour (icône circulaire)
           Positioned(
@@ -120,7 +99,6 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
               const Spacer(flex: 2),
 
               /// 🔸 Titre principal
->>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -137,7 +115,7 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Recevez un lien de réinitialisation',
+                      'Recevez un code de réinitialisation',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
@@ -145,11 +123,6 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                 ),
               ),
               const Spacer(flex: 1),
-<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
-=======
-
-              /// 🔸 Formulaire (fond blanc)
->>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 decoration: const BoxDecoration(
@@ -169,45 +142,21 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                         hintText: "Email ou Téléphone",
                         obscureText: false,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Veuillez saisir votre login';
+                          if (v == null || v.trim().isEmpty) return 'Veuillez saisir votre email ou nueméro de téléphone';
                           return null;
                         },
                       ),
                       const SizedBox(height: 28),
-                      GestureDetector(
-                        onTap: loading ? null : _handleReset,
-                        child: ButtonComponent(
-                          textButton: loading ? 'Envoi en cours...' : 'Envoyer',
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
-=======
-
-                      /// Lien retour à la connexion
-                      GestureDetector(
-                        onTap: () =>
-                            Get.to(OtpPage(email: _emailCtrl.text.trim())),
-                        child: Center(
-                          child: Text.rich(
-                            TextSpan(
-                              text: "Revenir à la ",
-                              style: TextStyle(color: Colors.grey.shade600),
-                              children: [
-                                TextSpan(
-                                  text: "connexion",
-                                  style: TextStyle(
-                                    color: Colors.red.shade800,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      AbsorbPointer(
+                        absorbing: loading,
+                        child: GestureDetector(
+                          onTap: loading ? null : _handleReset,
+                          child: ButtonComponent(
+                            textButton: loading ? 'Envoi en cours...' : 'Envoyer',
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
->>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),

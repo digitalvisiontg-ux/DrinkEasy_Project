@@ -3,17 +3,17 @@ import 'package:get/get.dart';
 
 void showMessageComponent(
   BuildContext context,
-  String message,
+  String? message,
   String title,
   bool isError,
 ) {
   Get.snackbar(
     title,
-    message,
+    message ?? '',
     snackPosition: SnackPosition.TOP,
     backgroundColor: isError ? Colors.red : Colors.green,
     colorText: Colors.white,
     margin: const EdgeInsets.all(16),
-    duration: const Duration(seconds: 2),
+    duration: const Duration(seconds: 1),
   );
 }

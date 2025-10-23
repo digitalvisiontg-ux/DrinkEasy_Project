@@ -8,12 +8,16 @@ import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart'
 import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    final user = auth.user;
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -33,7 +37,6 @@ class AccountPage extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -53,7 +56,6 @@ class AccountPage extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  // Avatar circulaire jaune
                   CircleAvatar(
                     radius: 36,
                     backgroundColor: Colors.amber,
@@ -64,74 +66,96 @@ class AccountPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Titre "Mode invité"
-                  const Text(
-                    "Mode invité",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Sous-texte explicatif
-                  Text(
-                    "Connectez-vous pour accéder à tous les avantages",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  ),
+                  if (user != null) ...[
+                    Text(
+                      user['name']?.toString() ?? 'Utilisateur',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user['email']?.toString() ?? user['phone']?.toString() ?? '',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ] else ...[
+                    const Text(
+                      "Mode invité",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Connectez-vous pour accéder à tous les avantages",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
                 ],
               ),
             ),
-
             const SizedBox(height: 20),
-
-            // BOUTONS : Se connecter / Créer un compte
-            ElevatedButton.icon(
-              onPressed: () {
-                Get.to(ConnexionPage());
-              },
-              icon: const Icon(Icons.login, color: Colors.black),
-              label: const Text(
-                "Se connecter",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
+            if (user == null) ...[
+              ElevatedButton.icon(
+                onPressed: () {
+                  Get.to(ConnexionPage());
+                },
+                icon: const Icon(Icons.login, color: Colors.black),
+                label: const Text(
+                  "Se connecter",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amber,
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: () {
+                  Get.to(InscriptionChoicePage());
+                },
+                icon: const Icon(Icons.person_add_alt_1, color: Colors.black),
+                label: const Text(
+                  "Créer un compte",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.grey.shade300, width: 1),
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 12),
-
-            OutlinedButton.icon(
-              onPressed: () {
-                Get.to(InscriptionChoicePage());
-              },
-              icon: const Icon(Icons.person_add_alt_1, color: Colors.black),
-              label: const Text(
-                "Créer un compte",
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
+            ] else ...[
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await auth.logout();
+                  Get.offAllNamed('/connexion');
+                },
+                icon: const Icon(Icons.logout, color: Colors.white),
+                label: const Text(
+                  "Déconnexion",
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
               ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.grey.shade300, width: 1),
-                minimumSize: const Size.fromHeight(50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-
+            ],
             const SizedBox(height: 24),
-
-            // LISTE : Options du compte
+            // ...existing code for listTileComponent, programme fidélité, footer...
             listTileComponent(
               icon: Icons.history,
               title: "Historique des commandes",
@@ -139,7 +163,6 @@ class AccountPage extends StatelessWidget {
                 Get.to(const HistoriqueCommandesPage());
               },
             ),
-
             listTileComponent(
               icon: Icons.card_giftcard,
               title: "Offres spéciales",
@@ -161,10 +184,7 @@ class AccountPage extends StatelessWidget {
                 Get.to(SupportClientPage());
               },
             ),
-
-            SizedBox(height: 24),
-
-            // SECTION : Programme de fidélité
+            const SizedBox(height: 24),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -206,10 +226,7 @@ class AccountPage extends StatelessWidget {
                 ],
               ),
             ),
-
             const SizedBox(height: 24),
-
-            // FOOTER : Version de l’application
             Column(
               children: [
                 Text(

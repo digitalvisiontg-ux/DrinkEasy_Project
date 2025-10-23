@@ -69,20 +69,20 @@ class _RegisterTestPageState extends State<RegisterTestPage> {
                           'password_confirmation': passwordConfirm,
                         });
 
-                        if (success) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Inscription réussie')),
-                          );
-                          // 🔹 Redirection vers HomePage après inscription
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (_) => const HomePage()),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(auth.errorMessage ?? 'Erreur inscription')),
-                          );
-                        }
+                        // if (success) {
+                        //   ScaffoldMessenger.of(context).showSnackBar(
+                        //     const SnackBar(content: Text('Inscription réussie')),
+                        //   );
+                        //   // 🔹 Redirection vers HomePage après inscription
+                        //   Navigator.pushReplacement(
+                        //     context,
+                        //     MaterialPageRoute(builder: (_) => const HomePage()),
+                        //   );
+                        // } else {
+                        //   ScaffoldMessenger.of(context).showSnackBar(
+                        //     SnackBar(content: Text(auth.errorMessage ?? 'Erreur inscription')),
+                        //   );
+                        // }
                       },
                       child: const Text("S'inscrire"),
                     ),

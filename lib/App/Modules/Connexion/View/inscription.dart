@@ -1,8 +1,8 @@
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
-import 'package:drink_eazy/Utils/form.dart';
+import 'package:drink_eazy/Utils/form.dart' hide validateEmail, validatePassword;
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:provider/provider.dart';

@@ -1,10 +1,10 @@
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/motDePasseOublier.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Connexion/View/inscription.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/motDePasseOublier.dart';
-import 'package:drink_eazy/Utils/form.dart';
+import 'package:drink_eazy/Utils/form.dart' hide validatePassword;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';

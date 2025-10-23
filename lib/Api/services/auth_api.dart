@@ -1,37 +1,42 @@
+
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/config/api_constants.dart';
 import 'package:drink_eazy/Api/services/api_service.dart';
 
 class AuthApi {
+
+  /// Déconnexion utilisateur (logout)
+  Future<void> logout() async {
+    await _apiService.post(ApiConstants.authLogout, {});
+  }
+
+  /// Inscription utilisateur (register)
+  Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    final response = await _apiService.post(
+      ApiConstants.authRegister,
+      userData,
+    );
+    return response.data;
+  }
+
+  /// Connexion utilisateur (login)
+  Future<Map<String, dynamic>> login(String login, String password) async {
+    final response = await _apiService.post(
+      ApiConstants.authLogin,
+      {'login': login, 'password': password},
+    );
+    return response.data;
+  }
   final ApiService _apiService;
 
   AuthApi({ApiService? apiService}) : _apiService = apiService ?? ApiService();
 
-  /// Register
-  /// data: {name?, email?, phone?, password, password_confirmation}
-  Future<Map<String, dynamic>> register(Map<String, dynamic> data) async {
-    try {
-      final response = await _apiService.post(ApiConstants.authRegister, data);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('Erreur register: ${_extractError(e)}');
-    }
+  /// Get current user (auto-login)
+  Future<Map<String, dynamic>> getMe() async {
+    final response = await _apiService.get(ApiConstants.authMe);
+    return response.data;
   }
 
-  /// Login
-  /// data: {login, password}
-  /// Expected response: { message, token, user }
-  Future<Map<String, dynamic>> login(String login, String password) async {
-    try {
-      final response = await _apiService.post(ApiConstants.authLogin, {
-        'login': login,
-        'password': password,
-      });
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception('Erreur login: ${_extractError(e)}');
-    }
-  }
 
   Future<Map<String, dynamic>> forgotPassword(String login) async {
   final response = await _apiService.post(ApiConstants.authForgotPassword, {'login': login});

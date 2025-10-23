@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
 class ParametresPage extends StatefulWidget {
   const ParametresPage({super.key});
@@ -38,11 +40,25 @@ class _ParametresPageState extends State<ParametresPage> {
         children: [
           const SizedBox(height: 12),
           _buildSectionTitle("Compte"),
-          _buildSettingTile(
-            icon: Icons.person_outline,
-            title: "Mon profil",
-            subtitle: "Voir et modifier vos informations personnelles",
-            onTap: () => Get.snackbar("Profil", "Ouverture du profil..."),
+          Builder(
+            builder: (context) {
+              final user = Provider.of<AuthProvider>(context).user;
+              if (user != null) {
+                return _buildSettingTile(
+                  icon: Icons.person_outline,
+                  title: user['name']?.toString() ?? 'Utilisateur',
+                  subtitle: user['email']?.toString() ?? user['phone']?.toString() ?? 'Profil utilisateur',
+                  onTap: () => Get.snackbar("Profil", "Ouverture du profil..."),
+                );
+              } else {
+                return _buildSettingTile(
+                  icon: Icons.person_outline,
+                  title: "Mode invité",
+                  subtitle: "Connectez-vous pour gérer votre profil",
+                  onTap: () => Get.snackbar("Profil", "Veuillez vous connecter pour accéder à votre profil"),
+                );
+              }
+            },
           ),
           _buildSettingTile(
             icon: Icons.lock_outline,
@@ -117,7 +133,9 @@ class _ParametresPageState extends State<ParametresPage> {
                   textConfirm: "Oui",
                   textCancel: "Annuler",
                   confirmTextColor: Colors.white,
-                  onConfirm: () {
+                  onConfirm: () async {
+                    final auth = Provider.of<AuthProvider>(context, listen: false);
+                    await auth.logout();
                     Get.back(); // fermer le dialogue
                     Get.offAllNamed("/connexion"); // rediriger vers connexion
                   },

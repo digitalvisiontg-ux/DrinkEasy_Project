@@ -1,13 +1,14 @@
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+import 'package:provider/provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
-import 'package:drink_eazy/App/Modules/Authentification/View/inscription_email.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/motDePasseOublier.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/Utils/form.dart';
+import 'package:drink_eazy/Utils/form.dart' hide validateEmail, validatePassword;
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 
 class ConnexionPage extends StatefulWidget {
@@ -28,32 +29,27 @@ class _ConnexionPageState extends State<ConnexionPage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => loading = true);
-
-    final email = _emailCtrl.text.trim();
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final login = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
+    final success = await auth.login(login, password);
+    setState(() => loading = false);
 
-    try {
-      await Future.delayed(const Duration(seconds: 1)); // Simulation
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Connexion réussie 🎉",
-          "Bienvenue sur DrinkEazy",
-          false,
-        );
-        Get.offAll(() => const Home());
-      }
-    } catch (e) {
-      if (mounted) {
-        showMessageComponent(
-          context,
-          "Erreur lors de la connexion ❌",
-          "Vérifiez vos identifiants",
-          true,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => loading = false);
+    if (success == true) {
+      showMessageComponent(
+        context,
+        "Connexion réussie 🎉",
+        "Bienvenue sur DrinkEazy",
+        false,
+      );
+      Get.offAll(() => const Home());
+    } else {
+      showMessageComponent(
+        context,
+        "",
+        auth.errorMessage ?? 'Erreur lors de la connexion. Vérifiez vos identifiants.',
+        true,
+      );
     }
   }
 
@@ -194,9 +190,16 @@ class _ConnexionPageState extends State<ConnexionPage> {
                           const SizedBox(height: 28),
 
                           /// --- Bouton connexion
-                          GestureDetector(
-                            onTap: loading ? null : _handleLogin,
-                            child: ButtonComponent(textButton: "Se connecter"),
+                          AbsorbPointer(
+                            absorbing: loading,
+                            child: GestureDetector(
+                              onTap: loading ? null : _handleLogin,
+                              child: ButtonComponent(
+                                textButton: loading
+                                    ? "Connexion en cours..."
+                                    : "Se connecter",
+                              ),
+                            ),
                           ),
 
                           const SizedBox(height: 16),

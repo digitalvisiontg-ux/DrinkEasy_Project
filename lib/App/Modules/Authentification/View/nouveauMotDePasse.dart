@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
-import 'package:drink_eazy/Utils/form.dart';
+import 'package:drink_eazy/Utils/form.dart' hide validatePassword;
 
 class NouveauMotDePassePage extends StatefulWidget {
   final String login;
@@ -35,7 +35,8 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
     setState(() => loading = false);
 
     if (success == true) {
-      showMessageComponent(context, 'Votre mot de passe a été réinitialisé avec succès pour ${widget.login}', 'Succès', false);
+      showMessageComponent(context, auth.errorMessage ?? 'Votre mot de passe a été réinitialisé avec succès pour ${widget.login}', 'Succès', false);
+      await Future.delayed(const Duration(milliseconds: 800));
       Get.offAll(() => ConnexionPage());
     } else {
       showMessageComponent(context, auth.errorMessage ?? 'Erreur lors de la réinitialisation', 'Erreur', true);
@@ -130,9 +131,12 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
                       const SizedBox(height: 28),
 
                       /// Bouton de validation
-                      GestureDetector(
-                        onTap: loading ? null : _handleResetPassword,
-                        child: ButtonComponent(textButton: loading ? 'Mise à jour en cours...' : 'Réinitialiser le mot de passe'),
+                      AbsorbPointer(
+                        absorbing: loading,
+                        child: GestureDetector(
+                          onTap: loading ? null : _handleResetPassword,
+                          child: ButtonComponent(textButton: loading ? 'Mise à jour en cours...' : 'Réinitialiser le mot de passe'),
+                        ),
                       ),
 
                       const SizedBox(height: 16),
