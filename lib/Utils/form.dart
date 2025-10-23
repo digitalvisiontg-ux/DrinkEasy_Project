@@ -6,10 +6,11 @@ class FormWidget extends StatefulWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType textInputType;
-  // J'aimerai ajouter une icone en prefixe
   final Widget? prefixIcon;
+  final TextInputType? keyboardType;
 
   const FormWidget({
+    this.keyboardType,
     this.prefixIcon,
     super.key,
     required this.controller,

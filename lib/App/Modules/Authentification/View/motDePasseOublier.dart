@@ -1,6 +1,11 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
 import 'package:drink_eazy/App/Modules/Connexion/View/otp.dart';
+=======
+import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
+>>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
 import 'package:drink_eazy/Utils/form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -20,12 +25,12 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
   bool loading = false;
 
   Future<void> _handleReset() async {
-    final form = _formKey.currentState;
-    if (form == null || !form.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
     final login = _loginCtrl.text.trim();
     setState(() => loading = true);
 
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final success = await auth.forgotPassword(login);
 
@@ -46,6 +51,29 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
         'Erreur',
         true,
       );
+=======
+    try {
+      // Simulation d’un appel API
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        showMessageComponent(
+          context,
+          'Un lien de réinitialisation a été envoyé à $email',
+          'Succès',
+          false,
+        );
+        Get.back();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) setState(() => loading = false);
+>>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
     }
   }
 
@@ -60,9 +88,39 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
           Column(
             children: [
               const Spacer(flex: 2),
+=======
+
+          /// 🔹 Bouton retour (icône circulaire)
+          Positioned(
+            top: 45,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+
+          /// 🔹 Contenu principal
+          Column(
+            children: [
+              const Spacer(flex: 2),
+
+              /// 🔸 Titre principal
+>>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -87,6 +145,11 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                 ),
               ),
               const Spacer(flex: 1),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
+=======
+
+              /// 🔸 Formulaire (fond blanc)
+>>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
                 decoration: const BoxDecoration(
@@ -99,6 +162,7 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      /// Champ email
                       FormWidget(
                         controller: _loginCtrl,
                         prefixIcon: const Icon(Icons.person_outlined, color: Colors.black54),
@@ -117,6 +181,33 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                         ),
                       ),
                       const SizedBox(height: 16),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/motDePasseOublier.dart
+=======
+
+                      /// Lien retour à la connexion
+                      GestureDetector(
+                        onTap: () =>
+                            Get.to(OtpPage(email: _emailCtrl.text.trim())),
+                        child: Center(
+                          child: Text.rich(
+                            TextSpan(
+                              text: "Revenir à la ",
+                              style: TextStyle(color: Colors.grey.shade600),
+                              children: [
+                                TextSpan(
+                                  text: "connexion",
+                                  style: TextStyle(
+                                    color: Colors.red.shade800,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+>>>>>>> main:lib/App/Modules/Authentification/View/motDePasseOublier.dart
                     ],
                   ),
                 ),

@@ -1,6 +1,6 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/nouveauMotDePasse.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/nouveauMotDePasse.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
@@ -27,6 +27,7 @@ class _OtpPageState extends State<OtpPage> {
     }
 
     setState(() => loading = true);
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/otp.dart
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final success = await auth.verifyOtp(
       widget.login,
@@ -56,6 +57,34 @@ class _OtpPageState extends State<OtpPage> {
         "Erreur",
         true,
       );
+=======
+    try {
+      // Simulation de vérification OTP
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        showMessageComponent(
+          context,
+          "Vérification réussie ✅",
+          "Succès",
+          false,
+        );
+
+        // 🔹 Redirige vers la création du nouveau mot de passe
+        Get.to(() => NouveauMotDePassePage(email: widget.email));
+      }
+    } catch (e) {
+      if (mounted) {
+        showMessageComponent(
+          context,
+          "Une erreur s'est produite : ${e.toString()}",
+          "Erreur",
+          true,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => loading = false);
+>>>>>>> main:lib/App/Modules/Authentification/View/otp.dart
     }
   }
 
@@ -85,9 +114,39 @@ class _OtpPageState extends State<OtpPage> {
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.5)),
           ),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/otp.dart
           Column(
             children: [
               const Spacer(flex: 2),
+=======
+
+          /// 🔹 Bouton retour
+          Positioned(
+            top: 45,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
+
+          /// 🔹 Contenu principal
+          Column(
+            children: [
+              const Spacer(flex: 2),
+
+              /// 🔸 Titre principal
+>>>>>>> main:lib/App/Modules/Authentification/View/otp.dart
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -115,6 +174,11 @@ class _OtpPageState extends State<OtpPage> {
                 ),
               ),
               const Spacer(flex: 1),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/otp.dart
+=======
+
+              /// 🔸 Bloc blanc
+>>>>>>> main:lib/App/Modules/Authentification/View/otp.dart
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -158,6 +222,38 @@ class _OtpPageState extends State<OtpPage> {
                             : "Vérifier le code",
                       ),
                     ),
+<<<<<<< HEAD:lib/App/Modules/Connexion/View/otp.dart
+=======
+
+                    const SizedBox(height: 16),
+
+                    /// Lien de renvoi
+                    GestureDetector(
+                      onTap: () {
+                        Get.to(
+                          () => NouveauMotDePassePage(email: widget.email),
+                        );
+                      },
+                      child: Center(
+                        child: Text.rich(
+                          TextSpan(
+                            text: "Vous n’avez pas reçu de code ? ",
+                            style: TextStyle(color: Colors.grey.shade600),
+                            children: [
+                              TextSpan(
+                                text: "Renvoyer",
+                                style: TextStyle(
+                                  color: Colors.red.shade800,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+>>>>>>> main:lib/App/Modules/Authentification/View/otp.dart
                   ],
                 ),
               ),

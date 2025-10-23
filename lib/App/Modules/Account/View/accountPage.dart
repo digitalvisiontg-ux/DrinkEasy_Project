@@ -1,7 +1,11 @@
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/connexion.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/inscription.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
+import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
+import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
+import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -106,7 +110,7 @@ class AccountPage extends StatelessWidget {
 
             OutlinedButton.icon(
               onPressed: () {
-                Get.to(InscriptionPage());
+                Get.to(InscriptionChoicePage());
               },
               icon: const Icon(Icons.person_add_alt_1, color: Colors.black),
               label: const Text(
@@ -131,27 +135,31 @@ class AccountPage extends StatelessWidget {
             listTileComponent(
               icon: Icons.history,
               title: "Historique des commandes",
-              onTap: () {},
+              onTap: () {
+                Get.to(const HistoriqueCommandesPage());
+              },
             ),
-            listTileComponent(
-              icon: Icons.favorite_border,
-              title: "Mes favoris",
-              onTap: () {},
-            ),
+
             listTileComponent(
               icon: Icons.card_giftcard,
               title: "Offres spéciales",
-              onTap: () {},
+              onTap: () {
+                Get.to(OffresSpecialesPage());
+              },
             ),
             listTileComponent(
               icon: Icons.settings,
               title: "Paramètres",
-              onTap: () {},
+              onTap: () {
+                Get.to(ParametresPage());
+              },
             ),
             listTileComponent(
               icon: Icons.headset_mic_outlined,
               title: "Support client",
-              onTap: () {},
+              onTap: () {
+                Get.to(SupportClientPage());
+              },
             ),
 
             SizedBox(height: 24),
