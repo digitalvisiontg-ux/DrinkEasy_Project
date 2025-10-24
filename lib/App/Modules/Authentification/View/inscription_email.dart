@@ -222,13 +222,11 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
                           /// --- Bouton inscription ---
                           AbsorbPointer(
                             absorbing: loading,
-                            child: GestureDetector(
-                              onTap: loading ? null : _handleRegister,
-                              child: ButtonComponent(
-                                textButton: loading
-                                    ? "Création en cours..."
-                                    : "Créer un compte",
-                              ),
+                            child: ButtonComponent(
+                              textButton: loading
+                                  ? "Inscription en cours..."
+                                  : "S'inscrire",
+                              onPressed: loading ? null : _handleRegister,
                             ),
                           ),
                           const SizedBox(height: 18),

@@ -1,3 +1,4 @@
+import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
 import 'package:flutter/material.dart';
 
 class QrScannerModal extends StatelessWidget {
@@ -61,14 +62,21 @@ class QrScannerModal extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Ouverture du scanner (démo)'),
-                      duration: Duration(seconds: 1),
-                    ),
+                onPressed: () async {
+                  Navigator.pop(context); // Ferme le modal
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const QrScannerPage()),
                   );
+
+                  if (result != null && context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('QR détecté : $result'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
                 icon: const Icon(
                   Icons.camera_alt_outlined,

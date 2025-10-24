@@ -3,26 +3,33 @@ import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
 class ButtonComponent extends StatelessWidget {
-  ButtonComponent({required this.textButton, super.key});
-  String textButton;
+  final String textButton;
+  final VoidCallback? onPressed;
+
+  const ButtonComponent({super.key, required this.textButton, this.onPressed});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 50,
-      width: MediaQuery.of(context).size.width,
-
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(50),
-        color: primary,
-      ),
-      child: Center(
+    return SizedBox(
+      width: double.infinity,
+      height: 45,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(50),
+          ),
+          elevation: 1,
+          splashFactory: InkRipple.splashFactory,
+        ),
         child: Text(
           textButton,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.black,
-            fontWeight: FontWeight.w500,
-            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
         ),
       ),

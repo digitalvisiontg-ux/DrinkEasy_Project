@@ -8,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
-import 'package:drink_eazy/Utils/form.dart' hide validateEmail, validatePassword;
+import 'package:drink_eazy/Utils/form.dart'
+    hide validateEmail, validatePassword;
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 
 class ConnexionPage extends StatefulWidget {
@@ -47,7 +48,8 @@ class _ConnexionPageState extends State<ConnexionPage> {
       showMessageComponent(
         context,
         "",
-        auth.errorMessage ?? 'Erreur lors de la connexion. Vérifiez vos identifiants.',
+        auth.errorMessage ??
+            'Erreur lors de la connexion. Vérifiez vos identifiants.',
         true,
       );
     }
@@ -192,13 +194,11 @@ class _ConnexionPageState extends State<ConnexionPage> {
                           /// --- Bouton connexion
                           AbsorbPointer(
                             absorbing: loading,
-                            child: GestureDetector(
-                              onTap: loading ? null : _handleLogin,
-                              child: ButtonComponent(
-                                textButton: loading
-                                    ? "Connexion en cours..."
-                                    : "Se connecter",
-                              ),
+                            child: ButtonComponent(
+                              textButton: loading
+                                  ? "Connexion en cours..."
+                                  : "Se connecter",
+                              onPressed: loading ? null : _handleLogin,
                             ),
                           ),
 

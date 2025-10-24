@@ -179,13 +179,11 @@ class _OtpPageState extends State<OtpPage> {
                     const SizedBox(height: 28),
                     AbsorbPointer(
                       absorbing: loading,
-                      child: GestureDetector(
-                        onTap: loading ? null : _verifyOtp,
-                        child: ButtonComponent(
-                          textButton: loading
-                              ? "Vérification..."
-                              : "Vérifier le code",
-                        ),
+                      child: ButtonComponent(
+                        textButton: loading
+                            ? "Vérification en cours..."
+                            : "Vérifier le code",
+                        onPressed: loading ? null : _verifyOtp,
                       ),
                     ),
                   ],

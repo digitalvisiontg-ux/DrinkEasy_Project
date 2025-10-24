@@ -23,12 +23,12 @@ Future<int?> showProductDetailBottomSheet(
   BuildContext context,
   Product product,
 ) {
-  return showModalBottomSheet<int>(
+  return showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.white,
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (context) => ProductDetailBottomSheet(product: product),
   );

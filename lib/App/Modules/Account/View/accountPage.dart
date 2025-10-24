@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
@@ -9,22 +10,45 @@ import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.d
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
-class AccountPage extends StatelessWidget {
+class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
+
+  @override
+  State<AccountPage> createState() => _AccountPageState();
+}
+
+class _AccountPageState extends State<AccountPage> {
+  File? _profileImage;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
+    if (image != null) {
+      setState(() {
+        _profileImage = File(image.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
     final user = auth.user;
+
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Get.to(Home());
+            Get.to(const Home());
           },
         ),
         title: const Text(
@@ -35,154 +59,255 @@ class AccountPage extends StatelessWidget {
             fontSize: 18,
           ),
         ),
-        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
+            // --- Mode invité ---
+            if (user == null)
+              Column(
                 children: [
-                  CircleAvatar(
-                    radius: 36,
-                    backgroundColor: Colors.amber,
-                    child: const Icon(
-                      Icons.person_2_outlined,
-                      color: Colors.black,
-                      size: 36,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        const CircleAvatar(
+                          radius: 36,
+                          backgroundColor: Colors.amber,
+                          child: Icon(
+                            Icons.person_2_outlined,
+                            color: Colors.black,
+                            size: 36,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          "Mode invité",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Connectez-vous pour accéder à tous les avantages",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () => Get.to(const ConnexionPage()),
+                    icon: const Icon(Icons.login, color: Colors.black),
+                    label: const Text(
+                      "Se connecter",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber,
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  if (user != null) ...[
-                    Text(
-                      user['name']?.toString() ?? 'Utilisateur',
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                  OutlinedButton.icon(
+                    onPressed: () => Get.to(const InscriptionChoicePage()),
+                    icon: const Icon(
+                      Icons.person_add_alt_1,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user['email']?.toString() ?? user['phone']?.toString() ?? '',
-                      style: TextStyle(color: Colors.grey.shade600),
+                    label: const Text(
+                      "Créer un compte",
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ] else ...[
-                    const Text(
-                      "Mode invité",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.grey.shade300),
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Connectez-vous pour accéder à tous les avantages",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ],
+              )
+            else
+              // --- Mode connecté ---
+              Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFE9B0), Color(0xFFFFF8E1)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: _pickImage,
+                          child: Stack(
+                            alignment: Alignment.bottomRight,
+                            children: [
+                              CircleAvatar(
+                                radius: 45,
+                                backgroundColor: Colors.amber,
+                                backgroundImage: _profileImage != null
+                                    ? FileImage(_profileImage!)
+                                    : null,
+                                child: _profileImage == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.black,
+                                        size: 42,
+                                      )
+                                    : null,
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black87,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          user['name']?.toString() ?? 'Utilisateur',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          user['email']?.toString() ??
+                              user['phone']?.toString() ??
+                              '',
+                          style: TextStyle(color: Colors.grey.shade700),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade100,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: const Text(
+                            "⭐ 230 points de fidélité",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => Get.to(const ParametresPage()),
+                          icon: const Icon(
+                            Icons.manage_accounts_outlined,
+                            color: Colors.black,
+                          ),
+                          label: const Text(
+                            "Gérer mon compte",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 40,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      await auth.logout();
+                      Get.offAllNamed('/connexion');
+                    },
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text(
+                      "Déconnexion",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade700,
+                      minimumSize: const Size.fromHeight(50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            if (user == null) ...[
-              ElevatedButton.icon(
-                onPressed: () {
-                  Get.to(ConnexionPage());
-                },
-                icon: const Icon(Icons.login, color: Colors.black),
-                label: const Text(
-                  "Se connecter",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () {
-                  Get.to(InscriptionChoicePage());
-                },
-                icon: const Icon(Icons.person_add_alt_1, color: Colors.black),
-                label: const Text(
-                  "Créer un compte",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: Colors.grey.shade300, width: 1),
-                  minimumSize: const Size.fromHeight(50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ] else ...[
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await auth.logout();
-                  Get.offAllNamed('/connexion');
-                },
-                icon: const Icon(Icons.logout, color: Colors.white),
-                label: const Text(
-                  "Déconnexion",
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade700,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ],
+
             const SizedBox(height: 24),
-            // ...existing code for listTileComponent, programme fidélité, footer...
             listTileComponent(
               icon: Icons.history,
               title: "Historique des commandes",
-              onTap: () {
-                Get.to(const HistoriqueCommandesPage());
-              },
+              onTap: () => Get.to(const HistoriqueCommandesPage()),
             ),
             listTileComponent(
               icon: Icons.card_giftcard,
               title: "Offres spéciales",
-              onTap: () {
-                Get.to(OffresSpecialesPage());
-              },
-            ),
-            listTileComponent(
-              icon: Icons.settings,
-              title: "Paramètres",
-              onTap: () {
-                Get.to(ParametresPage());
-              },
+              onTap: () => Get.to(const OffresSpecialesPage()),
             ),
             listTileComponent(
               icon: Icons.headset_mic_outlined,
               title: "Support client",
-              onTap: () {
-                Get.to(SupportClientPage());
-              },
+              onTap: () => Get.to(const SupportClientPage()),
             ),
             const SizedBox(height: 24),
             Container(
@@ -201,7 +326,7 @@ class AccountPage extends StatelessWidget {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     "⭐ Programme de fidélité",
                     style: TextStyle(
@@ -227,21 +352,17 @@ class AccountPage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            Column(
-              children: [
-                Text(
-                  "DrinkEasy v1.0",
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "Votre bar digital préféré",
-                  style: TextStyle(color: Colors.grey.shade500),
-                ),
-              ],
+            Text(
+              "DrinkEasy v1.0",
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Votre bar digital préféré",
+              style: TextStyle(color: Colors.grey.shade500),
             ),
             const SizedBox(height: 30),
           ],

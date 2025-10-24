@@ -12,20 +12,47 @@ class SplashPage extends StatefulWidget {
   State<SplashPage> createState() => _SplashPageState();
 }
 
-class _SplashPageState extends State<SplashPage> {
+class _SplashPageState extends State<SplashPage>
+    with SingleTickerProviderStateMixin {
   bool _loading = true;
+  late AnimationController _controller;
+  late Animation<double> _logoOpacity;
+  late Animation<double> _logoScale;
+  late Animation<double> _textOpacity;
 
   @override
   void initState() {
     super.initState();
+    _initAnimations();
     _checkSession();
+  }
+
+  void _initAnimations() {
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.1, 0.6)),
+    );
+
+    _logoScale = Tween<double>(
+      begin: 0.85,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+    _textOpacity = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: const Interval(0.5, 1.0)),
+    );
+
+    _controller.forward();
   }
 
   Future<void> _checkSession() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     await auth.restoreSession();
     if (auth.user != null) {
-      // Utilisateur déjà connecté, on saute le splash
       Get.offAll(() => const Home());
     } else {
       setState(() => _loading = false);
@@ -33,16 +60,47 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
+          // --- Background ---
           Positioned.fill(
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
+          // --- Overlay ---
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.4)),
           ),
+
+          // --- Animated Glass Overlay (subtle moving light effect) ---
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (_, __) => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(
+                        0.03 + (0.02 * (1 - _controller.value)),
+                      ),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // --- Content ---
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -50,35 +108,68 @@ class _SplashPageState extends State<SplashPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(height: 20),
-                  Column(
-                    children: const [
-                      Text(
-                        'DrinkEazy',
-                        style: TextStyle(
-                          fontSize: 40,
-                          color: Colors.white,
-                          fontFamily: 'Agbalumo',
-                        ),
+
+                  // --- Animated logo + text ---
+                  FadeTransition(
+                    opacity: _logoOpacity,
+                    child: ScaleTransition(
+                      scale: _logoScale,
+                      child: Column(
+                        children: [
+                          const Text(
+                            'DrinkEazy',
+                            style: TextStyle(
+                              fontSize: 42,
+                              color: Colors.white,
+                              fontFamily: 'Agbalumo',
+                              letterSpacing: 1.5,
+                              shadows: [
+                                Shadow(
+                                  offset: Offset(0, 2),
+                                  blurRadius: 8,
+                                  color: Colors.black38,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          FadeTransition(
+                            opacity: _textOpacity,
+                            child: const Text(
+                              'Commandez en toute simplicité',
+                              style: TextStyle(
+                                color: Color.fromARGB(255, 232, 232, 232),
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'Commandez en toute simplicité',
-                        style: TextStyle(
-                          color: Color.fromARGB(255, 232, 232, 232),
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+
+                  // --- Animated Button / Loader ---
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
-                    child: _loading
-                        ? const CircularProgressIndicator(color: Colors.amber)
-                        : GestureDetector(
-                            onTap: () {
-                              Get.offAll(() => const Home());
-                            },
-                            child: ButtonComponent(textButton: 'Commencer'),
-                          ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 600),
+                      transitionBuilder: (child, anim) =>
+                          ScaleTransition(scale: anim, child: child),
+                      child: _loading
+                          ? const CircularProgressIndicator(
+                              key: ValueKey('loader'),
+                              color: Colors.amber,
+                              strokeWidth: 3,
+                            )
+                          : ButtonComponent(
+                              textButton: 'Commencer',
+                              onPressed: () {
+                                Get.offAll(() => const Home());
+                              },
+                            ),
+                    ),
                   ),
                 ],
               ),

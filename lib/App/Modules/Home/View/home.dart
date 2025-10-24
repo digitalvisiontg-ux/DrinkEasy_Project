@@ -31,26 +31,30 @@ class _HomeState extends State<Home> {
   // --- Barre de recherche ---
   Widget _buildSearchField() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (_) => setState(() {}),
-        decoration: InputDecoration(
-          hintText: 'Rechercher une boisson...',
-          prefixIcon: const Icon(Icons.search, color: Colors.grey),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(28),
-            borderSide: const BorderSide(color: Colors.amber, width: 1),
+      padding: const EdgeInsets.symmetric(horizontal: 13.0),
+      child: SizedBox(
+        height: 45,
+        child: TextField(
+          style: const TextStyle(fontSize: 14),
+          controller: _searchController,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Rechercher une boisson...',
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(28),
+              borderSide: const BorderSide(color: Colors.amber, width: 1),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(28),
+              borderSide: const BorderSide(color: Colors.amber, width: 1.8),
+            ),
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(28),
-            borderSide: const BorderSide(color: Colors.amber, width: 2),
-          ),
+          textInputAction: TextInputAction.search,
         ),
-        textInputAction: TextInputAction.search,
       ),
     );
   }
@@ -149,11 +153,11 @@ class _HomeState extends State<Home> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(30),
               ),
-              elevation: 2,
+              elevation: 0.5,
             ),
             child: const Text(
               'Scanner',
@@ -212,7 +216,7 @@ class _HomeState extends State<Home> {
                             setState(() => cartCount += qty),
                       );
                     },
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemCount: items.length,
                   ),
           ),

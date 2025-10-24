@@ -15,7 +15,7 @@ class _TextComponentState extends State<TextComponent> {
       widget.text,
       style: TextStyle(
         color: Colors.red.shade800,
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: FontWeight.bold,
       ),
       textAlign: TextAlign.center,

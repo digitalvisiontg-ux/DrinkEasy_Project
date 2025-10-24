@@ -36,28 +36,28 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
     print("16");
 
     if (success == true) {
-    print("17");
-    print("18");
+      print("17");
+      print("18");
       showMessageComponent(
         context,
         auth.errorMessage ?? 'Un OTP a été envoyé à $login',
         'Succès',
         false,
       );
-    print("19");
+      print("19");
       await Future.delayed(const Duration(milliseconds: 800));
-    print("100");
+      print("100");
       Get.to(() => OtpPage(login: login));
-    print("11");
+      print("11");
     } else {
-    print("122");
+      print("122");
       showMessageComponent(
         context,
         auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP',
         'Erreur',
         true,
       );
-    print("133");
+      print("133");
     }
   }
 
@@ -124,7 +124,10 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
               ),
               const Spacer(flex: 1),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 28,
+                ),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -138,22 +141,26 @@ class _MotDePasseOubliePageState extends State<MotDePasseOubliePage> {
                       /// Champ email
                       FormWidget(
                         controller: _loginCtrl,
-                        prefixIcon: const Icon(Icons.person_outlined, color: Colors.black54),
+                        prefixIcon: const Icon(
+                          Icons.person_outlined,
+                          color: Colors.black54,
+                        ),
                         hintText: "Email ou Téléphone",
                         obscureText: false,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Veuillez saisir votre email ou nueméro de téléphone';
+                          if (v == null || v.trim().isEmpty)
+                            return 'Veuillez saisir votre email ou nueméro de téléphone';
                           return null;
                         },
                       ),
                       const SizedBox(height: 28),
                       AbsorbPointer(
                         absorbing: loading,
-                        child: GestureDetector(
-                          onTap: loading ? null : _handleReset,
-                          child: ButtonComponent(
-                            textButton: loading ? 'Envoi en cours...' : 'Envoyer',
-                          ),
+                        child: ButtonComponent(
+                          textButton: loading
+                              ? "Envoi en cours..."
+                              : "Envoyer le code",
+                          onPressed: loading ? null : _handleReset,
                         ),
                       ),
                       const SizedBox(height: 16),

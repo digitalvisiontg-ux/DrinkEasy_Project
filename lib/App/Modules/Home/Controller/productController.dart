@@ -68,7 +68,7 @@ final List<Product> products = [
     priceCfa: 1500,
     oldPriceCfa: 1800,
     boissonType: 'Soda',
-    promotion: 'Achetez 3,\n recevez 1 offert',
+    promotion: 'Achetez 3, recevez 1 offert',
     imagepath: 'assets/images/boisson7.jpg',
   ),
   Product(
@@ -86,7 +86,7 @@ final List<Product> products = [
     priceCfa: 1000,
     oldPriceCfa: 1200,
     boissonType: 'Soda',
-    promotion: 'Achetez 2,\n recevez 1 offert',
+    promotion: 'Achetez 2, recevez 1 offert',
     imagepath: 'assets/images/boisson2.jpg',
   ),
 ];
