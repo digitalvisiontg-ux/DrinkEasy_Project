@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_email.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_phone.dart';
@@ -12,9 +13,12 @@ class InscriptionChoicePage extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
+          // --- Image de fond ---
           Positioned.fill(
             child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
           ),
+
+          // --- Superposition sombre ---
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.6)),
           ),
@@ -33,7 +37,7 @@ class InscriptionChoicePage extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      onPressed: () => Get.to(AccountPage()),
+                      onPressed: () => Get.toNamed('/account'),
                       icon: const Icon(
                         Icons.arrow_back,
                         color: Colors.white,
@@ -78,26 +82,23 @@ class InscriptionChoicePage extends StatelessWidget {
                       _ChoiceButton(
                         icon: Icons.email_outlined,
                         title: "S'inscrire avec l'e-mail",
-                        subtitle: "Utilisez votre adresse e-mail",
                         color: Colors.amber.shade700,
                         onTap: () {
-                          Get.to(InscriptionEmailPage());
+                          Get.toNamed('/inscription_email');
                         },
                       ),
                       const SizedBox(height: 16),
                       _ChoiceButton(
                         icon: Icons.phone_android,
                         title: "S'inscrire avec le numéro",
-                        subtitle: "Utilisez votre numéro de téléphone",
                         color: Colors.blue.shade600,
                         onTap: () {
-                          Get.to(InscriptionPhonePage());
+                          Get.toNamed('/inscription_phone');
                         },
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 40),
               ],
             ),
@@ -112,7 +113,6 @@ class InscriptionChoicePage extends StatelessWidget {
 class _ChoiceButton extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
   final Color color;
   final VoidCallback onTap;
 
@@ -120,7 +120,6 @@ class _ChoiceButton extends StatelessWidget {
     Key? key,
     required this.icon,
     required this.title,
-    required this.subtitle,
     required this.color,
     required this.onTap,
   }) : super(key: key);
@@ -130,26 +129,27 @@ class _ChoiceButton extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white24, width: 1),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: color.withOpacity(0.2),
-              child: Icon(icon, color: color, size: 26),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1), // légère transparence
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white24, width: 1),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 26,
+                  backgroundColor: color.withOpacity(0.2),
+                  child: Icon(icon, color: color, size: 26),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
                     title,
                     style: const TextStyle(
                       color: Colors.white,
@@ -157,16 +157,15 @@ class _ChoiceButton extends StatelessWidget {
                       fontSize: 17,
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white54,
+                  size: 20,
+                ),
+              ],
             ),
-            Icon(Icons.arrow_forward_ios, color: Colors.white54, size: 18),
-          ],
+          ),
         ),
       ),
     );
