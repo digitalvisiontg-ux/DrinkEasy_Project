@@ -2,6 +2,7 @@
 // import 'package:drink_eazy/Api/debug/test_api.dart';
 // import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_email.dart';
@@ -22,9 +23,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
+  // Créer le provider et attendre la restauration de session AVANT runApp
+  final auth = AuthProvider();
+  await auth.restoreSession();
+
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        // Fournir l'instance déjà initialisée
+        ChangeNotifierProvider.value(value: auth),
+      ],
       child: const MyApp(),
     ),
   );
@@ -35,6 +43,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
+    final Widget initial = (auth.user != null) ? const Home() : const SplashPage();
+
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       getPages: [
@@ -56,7 +67,7 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(name: '/account', page: () => const AccountPage()),
       ],
-      home: SplashPage(),
+  home: initial,
       // home: BarTestPage(),
       // home: HomePage(),
     );

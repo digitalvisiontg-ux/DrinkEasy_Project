@@ -51,11 +51,18 @@ class _SplashPageState extends State<SplashPage>
 
   Future<void> _checkSession() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    await auth.restoreSession();
+    // La restauration de session est maintenant lancée à l'initialisation du provider
+    // (dans main). Ici on vérifie simplement si l'utilisateur est déjà chargé.
     if (auth.user != null) {
       Get.offAll(() => const Home());
     } else {
-      setState(() => _loading = false);
+      // Donnons un petit délai pour laisser la restauration asynchrone démarrer
+      await Future.delayed(const Duration(milliseconds: 200));
+      if (auth.user != null) {
+        Get.offAll(() => const Home());
+      } else {
+        setState(() => _loading = false);
+      }
     }
   }
 

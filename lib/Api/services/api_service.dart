@@ -30,8 +30,15 @@ class ApiService {
         return handler.next(options);
       },
       onResponse: (response, handler) => handler.next(response),
-      onError: (e, handler) {
-        // optionnel : log ou normaliser erreurs
+      onError: (e, handler) async {
+        // Si le backend renvoie 401/403, supprimer le token local (token invalide/expiré)
+        try {
+          final status = e.response?.statusCode;
+          if (status == 401 || status == 403) {
+            await SecureStorage.deleteToken();
+            await SecureStorage.deleteUser();
+          }
+        } catch (_) {}
         return handler.next(e);
       },
     ));

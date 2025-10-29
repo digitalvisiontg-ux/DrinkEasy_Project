@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/services/auth_api.dart';
 import 'package:drink_eazy/Api/core/secure_storage.dart';
 
@@ -20,17 +21,40 @@ class AuthProvider extends ChangeNotifier {
   Future<void> restoreSession() async {
     final token = await SecureStorage.readToken();
     if (token != null && token.isNotEmpty) {
-      try {
-        final data = await _authApi.getMe();
-        if (data['user'] != null && data['user'] is Map<String, dynamic>) {
-          _setUser(data['user']);
-        }
-      } catch (e) {
-        await SecureStorage.deleteToken();
-        _setUser(null);
+      // 1) Restaurer l'utilisateur localement si disponible (permet affichage immédiat)
+      final localUser = await SecureStorage.readUser();
+      if (localUser != null) {
+        _setUser(localUser);
       }
+
+      // 2) Valider le token en arrière-plan (ne pas bloquer l'UI)
+      Future.microtask(() async {
+        try {
+          final data = await _authApi.getMe();
+          if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+            _setUser(data['user']);
+            // Mettre à jour le user stocké localement
+            await SecureStorage.writeUser(Map<String, dynamic>.from(data['user']));
+          } else {
+            // backend ne retourne pas d'user — conserver local jusqu'à confirmation explicite
+          }
+        } on DioException catch (e) {
+          final status = e.response?.statusCode;
+          if (status == 401 || status == 403) {
+            // token invalide : supprimer token et user local
+            await SecureStorage.deleteToken();
+            await SecureStorage.deleteUser();
+            _setUser(null);
+          } else {
+            // erreur réseau : ne pas supprimer le token/localUser, on reste connecté localement
+          }
+        } catch (_) {
+          // parsing ou autre erreur : ne rien supprimer, on garde le user local
+        }
+      });
     } else {
       _setUser(null);
+      await SecureStorage.deleteUser();
     }
   }
 
@@ -45,7 +69,10 @@ class AuthProvider extends ChangeNotifier {
       final user = data['user'];
 
       if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
-      if (user is Map<String, dynamic>) _setUser(user);
+      if (user is Map<String, dynamic>) {
+        _setUser(user);
+        await SecureStorage.writeUser(Map<String, dynamic>.from(user));
+      }
 
       final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>) || (data['message'] != null && data['message'].toString().isNotEmpty);
 
@@ -127,7 +154,10 @@ class AuthProvider extends ChangeNotifier {
       final user = data['user'];
 
       if (token is String && token.isNotEmpty) await SecureStorage.writeToken(token);
-      if (user is Map<String, dynamic>) _setUser(user);
+      if (user is Map<String, dynamic>) {
+        _setUser(user);
+        await SecureStorage.writeUser(Map<String, dynamic>.from(user));
+      }
 
       final ok = (token is String && token.isNotEmpty) || (user is Map<String, dynamic>);
 
@@ -173,6 +203,7 @@ class AuthProvider extends ChangeNotifier {
       if (response['success'] == true) {
         if (response['user'] != null && response['user'] is Map<String, dynamic>) {
           _setUser(response['user']);
+          await SecureStorage.writeUser(Map<String, dynamic>.from(response['user']));
         }
         _setLoading(false);
         return true;
