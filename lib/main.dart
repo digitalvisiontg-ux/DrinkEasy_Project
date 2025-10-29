@@ -2,7 +2,6 @@
 // import 'package:drink_eazy/Api/debug/test_api.dart';
 // import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
-import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_email.dart';
@@ -10,6 +9,7 @@ import 'package:drink_eazy/App/Modules/Authentification/View/inscription_phone.d
 import 'package:drink_eazy/App/Modules/Authentification/View/motDePasseOublier.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
@@ -22,6 +22,19 @@ import 'package:provider/provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+
+  // Make app draw edge-to-edge so the splash image can extend under
+  // the status/navigation bars. Also set transparent bars so the image
+  // shows through (helps avoid visible bars with a different background).
+  try {
+    await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ));
+  } catch (_) {}
 
   // Créer le provider et attendre la restauration de session AVANT runApp
   final auth = AuthProvider();
@@ -43,9 +56,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    final Widget initial = (auth.user != null) ? const Home() : const SplashPage();
-
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       getPages: [
@@ -67,7 +77,9 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(name: '/account', page: () => const AccountPage()),
       ],
-  home: initial,
+  // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
+  // si l'utilisateur est déjà connecté (comportement souhaité).
+  home: const SplashPage(),
       // home: BarTestPage(),
       // home: HomePage(),
     );

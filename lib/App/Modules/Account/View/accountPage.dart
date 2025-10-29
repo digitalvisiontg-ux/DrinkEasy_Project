@@ -274,8 +274,12 @@ class _AccountPageState extends State<AccountPage> {
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
                     onPressed: () async {
-                      await auth.logout();
-                      Get.offAllNamed('/connexion');
+                      try {
+                        await auth.logout();
+                      } catch (e) {
+                        debugPrint('Logout error: $e');
+                      }
+                      Get.offAll(const Home());
                     },
                     icon: const Icon(Icons.logout, color: Colors.white),
                     label: const Text(

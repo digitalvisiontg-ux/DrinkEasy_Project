@@ -14,7 +14,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  bool _loading = true;
+  // removed _loading flag: bottom area now depends on auth state
   late AnimationController _controller;
   late Animation<double> _logoOpacity;
   late Animation<double> _logoScale;
@@ -23,11 +23,9 @@ class _SplashPageState extends State<SplashPage>
   @override
   void initState() {
     super.initState();
-    _initAnimations();
-    _checkSession();
-  }
-
-  void _initAnimations() {
+    // Initialize the animation controller and animations immediately so the
+    // build phase can safely reference them, but don't start the animation
+    // until after the first frame and assets are preloaded.
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -46,23 +44,30 @@ class _SplashPageState extends State<SplashPage>
       CurvedAnimation(parent: _controller, curve: const Interval(0.5, 1.0)),
     );
 
-    _controller.forward();
+    // Précharger l'image de fond avant de lancer les animations pour éviter
+    // le saut visuel lorsque l'image arrive après le rendu initial.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        await precacheImage(const AssetImage('assets/images/bgimage2.jpg'), context);
+      } catch (_) {}
+      // Après préchargement, démarrer les animations et vérifier la session.
+      _controller.forward();
+      _checkSession();
+    });
   }
 
   Future<void> _checkSession() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    // La restauration de session est maintenant lancée à l'initialisation du provider
-    // (dans main). Ici on vérifie simplement si l'utilisateur est déjà chargé.
+    // Si l'utilisateur est déjà connecté, afficher le splash un court instant
+    // (sans bouton) puis rediriger vers Home.
     if (auth.user != null) {
-      Get.offAll(() => const Home());
+      // afficher le splash ~700ms pour l'animation puis naviguer
+      await Future.delayed(const Duration(milliseconds: 700));
+      if (mounted) Get.offAll(() => const Home());
     } else {
-      // Donnons un petit délai pour laisser la restauration asynchrone démarrer
+      // L'utilisateur n'est pas connecté : laisser un court délai pour les animations
       await Future.delayed(const Duration(milliseconds: 200));
-      if (auth.user != null) {
-        Get.offAll(() => const Home());
-      } else {
-        setState(() => _loading = false);
-      }
+      // pas de changement d'état local nécessaire : le bouton s'affiche via Provider
     }
   }
 
@@ -75,11 +80,24 @@ class _SplashPageState extends State<SplashPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Use a dark background while the image is loading so we don't show white
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           // --- Background ---
           Positioned.fill(
-            child: Image.asset('assets/images/bgimage2.jpg', fit: BoxFit.cover),
+            child: Container(
+              // Use a decoration image rather than Image.asset to ensure the
+              // background covers the whole screen (including under system bars)
+              // and to avoid layout reflow during image load.
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/images/bgimage2.jpg'),
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                ),
+              ),
+            ),
           ),
           // --- Overlay ---
           Positioned.fill(
@@ -164,18 +182,26 @@ class _SplashPageState extends State<SplashPage>
                       duration: const Duration(milliseconds: 600),
                       transitionBuilder: (child, anim) =>
                           ScaleTransition(scale: anim, child: child),
-                      child: _loading
-                          ? const CircularProgressIndicator(
-                              key: ValueKey('loader'),
-                              color: Colors.amber,
-                              strokeWidth: 3,
-                            )
-                          : ButtonComponent(
-                              textButton: 'Commencer',
-                              onPressed: () {
-                                Get.offAll(() => const Home());
-                              },
-                            ),
+                      child: Builder(builder: (ctx) {
+                        final auth = Provider.of<AuthProvider>(ctx);
+                        // Si l'utilisateur est connecté, ne rien afficher en bas.
+                        if (auth.user != null) {
+                          // Keep a transparent placeholder with the same height as
+                          // the 'Commencer' button so the layout spacing remains
+                          // identical between connected and non-connected states.
+                          return const SizedBox(
+                            width: double.infinity,
+                            height: 45,
+                          );
+                        }
+                        // Si non connecté, afficher le bouton "Commencer" (pas de loader en bas).
+                        return ButtonComponent(
+                          textButton: 'Commencer',
+                          onPressed: () {
+                            Get.offAll(() => const Home());
+                          },
+                        );
+                      }),
                     ),
                   ),
                 ],

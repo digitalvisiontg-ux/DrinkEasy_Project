@@ -271,9 +271,9 @@ class _ConnexionPageState extends State<ConnexionPage> {
                                       Icons.email_outlined,
                                       color: Colors.black54,
                                     ),
-                                    hintText: "Adresse e-mail",
+                                    hintText: "E-mail ou Téléphone",
                                     obscureText: false,
-                                    validator: validateEmail,
+                                    validator: validateLogin,
                                   ),
                                   const SizedBox(height: 15),
 

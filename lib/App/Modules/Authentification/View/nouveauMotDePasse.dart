@@ -1,7 +1,7 @@
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
-import 'package:drink_eazy/App/Modules/Connexion/View/connexion.dart';
+import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
