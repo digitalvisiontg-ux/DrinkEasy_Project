@@ -25,7 +25,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
   bool loading = false;
 
   /// ✅ Message de succès (toast stylé)
-  void _showSuccessToast(String message) {
+  void showSuccessToast(String message) {
     FToast fToast = FToast();
     fToast.init(context);
 
@@ -149,7 +149,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
     setState(() => loading = false);
 
     if (success == true) {
-      _showSuccessToast("Connexion réussie 🎉");
+      showSuccessToast("Connexion réussie 🎉");
       await Future.delayed(const Duration(seconds: 1));
       Get.offAll(() => const Home());
     } else {

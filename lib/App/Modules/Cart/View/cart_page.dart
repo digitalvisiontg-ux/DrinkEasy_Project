@@ -249,7 +249,7 @@ class _CartPageState extends State<CartPage>
           // header
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 20),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 colors: [Color(0xFFFFF8E1), Color(0xFFFFFFFF)],
@@ -336,189 +336,206 @@ class _CartPageState extends State<CartPage>
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.all(12),
-            child: Row(
+            child: Column(
               children: [
-                Container(
-                  width: 78,
-                  height: 78,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                    color: Colors.white,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child:
-                        product.imagepath != null &&
-                            product.imagepath!.isNotEmpty
-                        ? Image.asset(
-                            product.imagepath!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.local_drink,
-                              size: 36,
-                              color: Colors.grey,
-                            ),
-                          )
-                        : const Icon(
-                            Icons.local_drink,
-                            size: 36,
-                            color: Colors.grey,
+                Row(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width / 5,
+                      height: MediaQuery.of(context).size.width / 4,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
                           ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                        ],
+                        color: Colors.white,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child:
+                            product.imagepath != null &&
+                                product.imagepath!.isNotEmpty
+                            ? Image.asset(
+                                product.imagepath!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.local_drink,
+                                  size: 36,
+                                  color: Colors.grey,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.local_drink,
+                                size: 36,
+                                color: Colors.grey,
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            child: Text(
-                              product.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              if (hasPromo) ...[
-                                Text(
-                                  "${_formatPrice(product.oldPriceCfa!)} CFA",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF9E9E9E),
-                                    decoration: TextDecoration.lineThrough,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                              ],
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.orange.shade50,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  "${_formatPrice(product.priceCfa)} CFA",
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.orange,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              product.category,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const Spacer(),
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _styledQtyButton(Icons.remove, () {
-                                _updateQuantity(index, -1);
-                              }, isAdd: false),
-                              const SizedBox(width: 10),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                transitionBuilder: (child, anim) =>
-                                    ScaleTransition(scale: anim, child: child),
+                              Expanded(
                                 child: Text(
-                                  "$quantity",
-                                  key: ValueKey<int>(quantity),
+                                  product.name,
                                   style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                     fontSize: 16,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              _styledQtyButton(Icons.add, () {
-                                _updateQuantity(index, 1);
-                              }, isAdd: true),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          if (quantity > 1)
-                            Text(
-                              "Sous-total: ${_formatPrice(product.priceCfa * quantity)} CFA",
-                              style: const TextStyle(
-                                color: Color(0xFF757575),
-                                fontSize: 13,
-                              ),
-                            ),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () => _removeItem(index),
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
+                              const SizedBox(width: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Icon(
-                                    Icons.delete_outline,
-                                    size: 16,
-                                    color: Colors.red.shade400,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  const Text(
-                                    "Supprimer",
-                                    style: TextStyle(color: Colors.red),
+                                  if (hasPromo) ...[
+                                    Text(
+                                      "${_formatPrice(product.oldPriceCfa!)} CFA",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF9E9E9E),
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      "${_formatPrice(product.priceCfa)} CFA",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.orange,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  product.category,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Row(
+                                children: [
+                                  _styledQtyButton(Icons.remove, () {
+                                    _updateQuantity(index, -1);
+                                  }, isAdd: false),
+                                  const SizedBox(width: 10),
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 300),
+                                    transitionBuilder: (child, anim) =>
+                                        ScaleTransition(
+                                          scale: anim,
+                                          child: child,
+                                        ),
+                                    child: Text(
+                                      "$quantity",
+                                      key: ValueKey<int>(quantity),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  _styledQtyButton(Icons.add, () {
+                                    _updateQuantity(index, 1);
+                                  }, isAdd: true),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Column(
+                            children: [
+                              if (quantity > 1)
+                                Row(
+                                  children: [
+                                    Text(
+                                      "Sous-total:",
+                                      style: const TextStyle(
+                                        color: Color(0xFF757575),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    Spacer(),
+                                    Text(
+                                      " ${_formatPrice(product.priceCfa * quantity)} CFA",
+                                      style: const TextStyle(
+                                        color: Color(0xFF757575),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                InkWell(
+                  onTap: () => _removeItem(index),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width / 2.5,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.delete_outline,
+                          size: 16,
+                          color: Colors.red.shade400,
+                        ),
+                        SizedBox(width: 6),
+                        Text("Supprimer", style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -594,26 +611,33 @@ class _CartPageState extends State<CartPage>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
+                  Column(
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Total à payer",
-                            style: TextStyle(fontSize: 13, color: Colors.grey),
+                          Row(
+                            children: [
+                              const Text(
+                                "Total à payer",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              Spacer(),
+                              Text(
+                                "${_formatPrice(totalPrice)} CFA",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 4),
-                          Text(
-                            "${_formatPrice(totalPrice)} CFA",
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
                         ],
                       ),
-                      const Spacer(),
                       _checkoutButton(),
                     ],
                   ),
@@ -645,11 +669,54 @@ class _CartPageState extends State<CartPage>
     return GestureDetector(
       onTap: () {
         if (cartItems.isNotEmpty) {
-          showMessageComponent(
-            context,
-            "Votre commande a été confirmée ✅",
-            "Commande validée",
-            true,
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              content: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade400,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.green.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: const [
+                          Text(
+                            'Commande validée !',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Votre commande a été enregistrée avec succès',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
       },
@@ -669,7 +736,8 @@ class _CartPageState extends State<CartPage>
           ],
         ),
         child: Row(
-          children: const [
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
             Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
             SizedBox(width: 8),
             Text(
