@@ -1,12 +1,6 @@
 import 'dart:io';
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
-import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
-import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
-import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
-import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
-import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
-import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +42,7 @@ class _AccountPageState extends State<AccountPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Get.to(const Home());
+            Get.toNamed('/home');
           },
         ),
         title: const Text(
@@ -111,7 +105,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () => Get.to(const ConnexionPage()),
+                    onPressed: () => Get.toNamed('/connexion'),
                     icon: const Icon(Icons.login, color: Colors.black),
                     label: const Text(
                       "Se connecter",
@@ -130,7 +124,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => Get.to(const InscriptionChoicePage()),
+                    onPressed: () => Get.toNamed('/inscription_choice'),
                     icon: const Icon(
                       Icons.person_add_alt_1,
                       color: Colors.black,
@@ -245,7 +239,7 @@ class _AccountPageState extends State<AccountPage> {
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
-                          onPressed: () => Get.to(const ParametresPage()),
+                          onPressed: () => Get.toNamed('/parametres'),
                           icon: const Icon(
                             Icons.manage_accounts_outlined,
                             color: Colors.black,
@@ -301,17 +295,17 @@ class _AccountPageState extends State<AccountPage> {
             listTileComponent(
               icon: Icons.history,
               title: "Historique des commandes",
-              onTap: () => Get.to(const HistoriqueCommandesPage()),
+              onTap: () => Get.toNamed('/historique_commandes'),
             ),
             listTileComponent(
               icon: Icons.card_giftcard,
               title: "Offres spéciales",
-              onTap: () => Get.to(const OffresSpecialesPage()),
+              onTap: () => Get.toNamed('/offres_speciales'),
             ),
             listTileComponent(
               icon: Icons.headset_mic_outlined,
               title: "Support client",
-              onTap: () => Get.to(const SupportClientPage()),
+              onTap: () => Get.toNamed('/support_client'),
             ),
             const SizedBox(height: 24),
             Container(

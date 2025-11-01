@@ -1,7 +1,9 @@
 import 'dart:ui';
+import 'package:drink_eazy/App/Component/showToast_component.dart';
 import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/route_manager.dart';
 
 class CartPage extends StatefulWidget {
@@ -52,12 +54,7 @@ class _CartPageState extends State<CartPage>
       cartItems[index]['quantity'] += change;
       if (cartItems[index]['quantity'] <= 0) {
         cartItems.removeAt(index);
-        showMessageComponent(
-          context,
-          "Article supprimé du panier",
-          "Suppression",
-          false,
-        );
+        showToastComponent(context, "Article supprimé du panier");
       }
     });
     _pulseController.forward(from: 0);
@@ -67,22 +64,18 @@ class _CartPageState extends State<CartPage>
     setState(() {
       cartItems.removeAt(index);
     });
-    showMessageComponent(
-      context,
-      "Article supprimé du panier",
-      "Suppression",
-      false,
-    );
+
+    showToastComponent(context, "Article supprimé du panier", isError: false);
     _pulseController.forward(from: 0);
   }
 
   void _clearCart() async {
     if (cartItems.isEmpty) {
-      showMessageComponent(
+      showToastComponent(
         context,
         "Votre panier est déjà vide",
-        "Information",
-        false,
+        isError: false,
+        gravity: ToastGravity.TOP_RIGHT,
       );
       return;
     }
@@ -210,7 +203,7 @@ class _CartPageState extends State<CartPage>
 
     if (confirm == true) {
       setState(() => cartItems.clear());
-      showMessageComponent(context, "Le panier a été vidé 🗑️", "Succès", true);
+      showToastComponent(context, "Le panier a été vidé avec succès");
     }
   }
 

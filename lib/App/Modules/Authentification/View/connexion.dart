@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'package:drink_eazy/App/Component/error_popup_component.dart';
+import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
@@ -8,7 +10,6 @@ import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/Utils/form.dart'
     hide validateEmail, validatePassword;
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class ConnexionPage extends StatefulWidget {
   const ConnexionPage({Key? key}) : super(key: key);
@@ -21,121 +22,120 @@ class _ConnexionPageState extends State<ConnexionPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
-
   bool loading = false;
 
   /// ✅ Message de succès (toast stylé)
-  void showSuccessToast(String message) {
-    FToast fToast = FToast();
-    fToast.init(context);
+  // void showSuccessToast(String message) {
+  //   FToast fToast = FToast();
+  //   fToast.init(context);
 
-    Widget toast = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.greenAccent, width: 2),
-        borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.greenAccent.withOpacity(0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.check_circle, color: Colors.green, size: 24),
-          SizedBox(width: 10),
-          Text(
-            "Connexion réussie 🎉",
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
+  //   Widget toast = Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+  //     decoration: BoxDecoration(
+  //       border: Border.all(color: Colors.greenAccent, width: 2),
+  //       borderRadius: BorderRadius.circular(12),
+  //       color: Colors.white,
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: Colors.greenAccent.withOpacity(0.4),
+  //           blurRadius: 8,
+  //           offset: const Offset(0, 4),
+  //         ),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       mainAxisSize: MainAxisSize.min,
+  //       children: const [
+  //         Icon(Icons.check_circle, color: Colors.green, size: 24),
+  //         SizedBox(width: 10),
+  //         Text(
+  //           "Connexion réussie 🎉",
+  //           style: TextStyle(
+  //             color: Colors.black87,
+  //             fontWeight: FontWeight.w600,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
 
-    fToast.showToast(
-      child: toast,
-      gravity: ToastGravity.TOP,
-      toastDuration: const Duration(seconds: 2),
-    );
-  }
+  //   fToast.showToast(
+  //     child: toast,
+  //     gravity: ToastGravity.TOP,
+  //     toastDuration: const Duration(seconds: 2),
+  //   );
+  // }
 
-  void _showErrorPopup(String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 50,
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Erreur de connexion",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade700,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 10,
-                        ),
-                      ),
-                      child: const Text(
-                        "OK",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // void _showErrorPopup(String message) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true,
+  //     builder: (context) {
+  //       return Dialog(
+  //         backgroundColor: Colors.transparent,
+  //         child: ClipRRect(
+  //           borderRadius: BorderRadius.circular(20),
+  //           child: BackdropFilter(
+  //             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+  //             child: Container(
+  //               padding: const EdgeInsets.all(20),
+  //               decoration: BoxDecoration(
+  //                 color: Colors.white.withOpacity(0.9),
+  //                 borderRadius: BorderRadius.circular(20),
+  //               ),
+  //               child: Column(
+  //                 mainAxisSize: MainAxisSize.min,
+  //                 children: [
+  //                   const Icon(
+  //                     Icons.error_outline,
+  //                     color: Colors.red,
+  //                     size: 50,
+  //                   ),
+  //                   const SizedBox(height: 10),
+  //                   const Text(
+  //                     "Erreur de connexion",
+  //                     style: TextStyle(
+  //                       fontSize: 18,
+  //                       fontWeight: FontWeight.bold,
+  //                       color: Colors.red,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 8),
+  //                   Text(
+  //                     message,
+  //                     textAlign: TextAlign.center,
+  //                     style: const TextStyle(
+  //                       fontSize: 15,
+  //                       color: Colors.black87,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(height: 16),
+  //                   ElevatedButton(
+  //                     onPressed: () => Navigator.pop(context),
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: Colors.red.shade700,
+  //                       shape: RoundedRectangleBorder(
+  //                         borderRadius: BorderRadius.circular(12),
+  //                       ),
+  //                       padding: const EdgeInsets.symmetric(
+  //                         horizontal: 24,
+  //                         vertical: 10,
+  //                       ),
+  //                     ),
+  //                     child: const Text(
+  //                       "OK",
+  //                       style: TextStyle(color: Colors.white),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   /// 🧠 Gestion du login
   Future<void> _handleLogin() async {
@@ -149,14 +149,24 @@ class _ConnexionPageState extends State<ConnexionPage> {
     setState(() => loading = false);
 
     if (success == true) {
-      showSuccessToast("Connexion réussie 🎉");
+      // Affiche le showMessageComponent
+      showMessageComponent(context, "Connexion réussie 🎉", "Succès", false);
       await Future.delayed(const Duration(seconds: 1));
       Get.offAll(() => const Home());
     } else {
-      _showErrorPopup(
-        auth.errorMessage ??
+      // Affiche le popup d'erreur
+      showErrorPopupComponent(
+        context,
+        title: "Erreur",
+        message:
+            auth.errorMessage ??
             'Erreur lors de la connexion. Vérifiez vos identifiants.',
       );
+
+      // _showErrorPopup(
+      //   auth.errorMessage ??
+      //       'Erreur lors de la connexion. Vérifiez vos identifiants.',
+      // );
     }
   }
 
@@ -172,6 +182,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true, // 🔑 Clavier géré
       body: Stack(
         children: [
           /// --- Image de fond
@@ -195,10 +206,10 @@ class _ConnexionPageState extends State<ConnexionPage> {
               ),
               child: IconButton(
                 onPressed: () => Get.back(),
-                icon: const Icon(
+                icon: Icon(
                   Icons.arrow_back,
                   color: Colors.white,
-                  size: 22,
+                  size: size.width * 0.06,
                 ),
               ),
             ),
@@ -209,7 +220,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
+                  physics: const AlwaysScrollableScrollPhysics(),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: constraints.maxHeight,
@@ -217,28 +228,28 @@ class _ConnexionPageState extends State<ConnexionPage> {
                     child: IntrinsicHeight(
                       child: Column(
                         children: [
-                          const SizedBox(height: 70),
+                          SizedBox(height: size.height * 0.1),
 
                           /// --- Titre principal
                           Column(
                             mainAxisSize: MainAxisSize.min,
-                            children: const [
+                            children: [
                               Text(
                                 'DrinkEazy',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 44,
+                                  fontSize: size.width * 0.12,
                                   fontFamily: 'Agbalumo',
                                   letterSpacing: 1.2,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: size.height * 0.01),
                               Text(
                                 'Connectez-vous pour commander vos boissons',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white70,
-                                  fontSize: 16,
+                                  fontSize: size.width * 0.04,
                                 ),
                               ),
                             ],
@@ -302,6 +313,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                                         style: TextStyle(
                                           color: Colors.red.shade700,
                                           fontWeight: FontWeight.w500,
+                                          fontSize: size.width * 0.038,
                                         ),
                                       ),
                                     ),
@@ -330,6 +342,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                                           text: "Pas de compte ? ",
                                           style: TextStyle(
                                             color: Colors.grey.shade600,
+                                            fontSize: size.width * 0.036,
                                           ),
                                           children: [
                                             TextSpan(
@@ -337,6 +350,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                                               style: TextStyle(
                                                 color: Colors.red.shade700,
                                                 fontWeight: FontWeight.w600,
+                                                fontSize: size.width * 0.038,
                                               ),
                                             ),
                                           ],

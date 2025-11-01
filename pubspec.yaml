@@ -48,6 +48,7 @@ dependencies:
   toast: ^0.3.0
   motion_toast: ^2.14.0
   fluttertoast: ^9.0.0
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

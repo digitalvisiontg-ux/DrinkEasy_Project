@@ -1,5 +1,7 @@
+import 'package:drink_eazy/App/Component/showToast_component.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart'; // ✅ Ajout
 
 class SupportClientPage extends StatefulWidget {
   const SupportClientPage({super.key});
@@ -12,6 +14,41 @@ class _SupportClientPageState extends State<SupportClientPage> {
   final _messageCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   bool loading = false;
+
+  /// ✅ Fonction pour lancer des URLs
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      showToastComponent(
+        context,
+        "Impossible d’ouvrir le lien.",
+        isError: true,
+      );
+      // Get.snackbar("Erreur", "Impossible d’ouvrir : $url");
+    }
+  }
+
+  /// ✅ Appeler le support
+  void _callSupport() {
+    const phoneNumber = "+22897148251";
+    _launchUrl("tel:$phoneNumber");
+  }
+
+  /// ✅ Ouvrir WhatsApp
+  void _openWhatsApp() {
+    const whatsappNumber = "+228971148251";
+    const message = "Bonjour, j’aimerais avoir de l’aide...";
+    final encodedMessage = Uri.encodeComponent(message);
+    _launchUrl("whatsapp://send?phone=$whatsappNumber&text=$encodedMessage");
+  }
+
+  /// ✅ Envoyer un e-mail
+  void _sendEmail() {
+    const email = "digitalvisiontg@gmail.com";
+    final subject = Uri.encodeComponent("Assistance DrinkEazy");
+    final body = Uri.encodeComponent("Bonjour, j’aimerais avoir de l’aide...");
+    _launchUrl("mailto:$email?subject=$subject&body=$body");
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +76,12 @@ class _SupportClientPageState extends State<SupportClientPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            /// 🔹 Illustration
-            Image.asset("assets/images/support.jpg", height: 180),
+            Image.asset(
+              "assets/images/support.jpg",
+              height: MediaQuery.of(context).size.height * 0.20,
+            ),
             const SizedBox(height: 18),
 
-            /// 🔹 Titre
             const Text(
               "Comment pouvons-nous vous aider ?",
               textAlign: TextAlign.center,
@@ -61,7 +99,6 @@ class _SupportClientPageState extends State<SupportClientPage> {
             ),
             const SizedBox(height: 28),
 
-            /// 🔹 Champ e-mail
             _buildTextField(
               controller: _emailCtrl,
               label: "Votre e-mail",
@@ -69,7 +106,6 @@ class _SupportClientPageState extends State<SupportClientPage> {
             ),
             const SizedBox(height: 16),
 
-            /// 🔹 Champ message
             _buildTextField(
               controller: _messageCtrl,
               label: "Décrivez votre problème ou question",
@@ -78,13 +114,12 @@ class _SupportClientPageState extends State<SupportClientPage> {
             ),
             const SizedBox(height: 24),
 
-            /// 🔹 Bouton d’envoi
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.amber,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
-                  vertical: 14,
+                padding: EdgeInsets.symmetric(
+                  horizontal: MediaQuery.of(context).size.width * 0.1,
+                  vertical: 12,
                 ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -124,14 +159,13 @@ class _SupportClientPageState extends State<SupportClientPage> {
                 loading ? "Envoi en cours..." : "Envoyer le message",
                 style: const TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w500,
                   color: Colors.black,
                 ),
               ),
             ),
             const SizedBox(height: 32),
 
-            /// 🔹 Autres options de contact
             const Text(
               "Autres moyens de contact",
               style: TextStyle(
@@ -145,28 +179,27 @@ class _SupportClientPageState extends State<SupportClientPage> {
             _buildContactTile(
               icon: Icons.phone_outlined,
               title: "Appeler le support",
-              subtitle: "+228 90 00 00 00",
+              subtitle: "+228 97 14 82 51",
               color: Colors.green.shade600,
-              onTap: () => Get.snackbar("Appel", "Numéro : +228 90 00 00 00"),
+              onTap: _callSupport,
             ),
             const SizedBox(height: 10),
 
             _buildContactTile(
               icon: Icons.chat_outlined,
               title: "WhatsApp",
-              subtitle: "+228 91 11 11 11",
+              subtitle: "+228 97 14 82 51",
               color: Colors.teal.shade600,
-              onTap: () => Get.snackbar("WhatsApp", "Ouverture du chat..."),
+              onTap: _openWhatsApp,
             ),
             const SizedBox(height: 10),
 
             _buildContactTile(
               icon: Icons.mail_outline,
               title: "E-mail",
-              subtitle: "support@drinkeazy.com",
+              subtitle: "digitalvisiontg@gmail.com",
               color: Colors.orange.shade700,
-              onTap: () =>
-                  Get.snackbar("E-mail", "support@drinkeazy.com copié !"),
+              onTap: _sendEmail,
             ),
             const SizedBox(height: 40),
           ],
@@ -175,7 +208,6 @@ class _SupportClientPageState extends State<SupportClientPage> {
     );
   }
 
-  /// Champ de texte personnalisé
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -203,7 +235,6 @@ class _SupportClientPageState extends State<SupportClientPage> {
     );
   }
 
-  /// Carte de contact stylisée
   Widget _buildContactTile({
     required IconData icon,
     required String title,

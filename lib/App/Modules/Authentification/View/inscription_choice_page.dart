@@ -1,7 +1,4 @@
 import 'dart:ui';
-import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
-import 'package:drink_eazy/App/Modules/Authentification/View/inscription_email.dart';
-import 'package:drink_eazy/App/Modules/Authentification/View/inscription_phone.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 

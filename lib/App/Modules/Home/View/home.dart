@@ -13,8 +13,11 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+
   String _selectedCategory = 'Tous';
   int cartCount = 0;
+  bool _isSearching = false; // ✅ Nouveau
 
   // --- Filtrage des produits ---
   List<Product> get _filteredProducts {
@@ -32,29 +35,72 @@ class _HomeState extends State<Home> {
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 13.0),
-      child: SizedBox(
-        height: 45,
-        child: TextField(
-          style: const TextStyle(fontSize: 14),
-          controller: _searchController,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            hintText: 'Rechercher une boisson...',
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(28),
-              borderSide: const BorderSide(color: Colors.amber, width: 1),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(28),
-              borderSide: const BorderSide(color: Colors.amber, width: 1.8),
+      child: Row(
+        children: [
+          // --- Champ de recherche ---
+          Expanded(
+            child: SizedBox(
+              height: 45,
+              child: TextField(
+                style: const TextStyle(fontSize: 14),
+                controller: _searchController,
+                focusNode: _searchFocusNode,
+                onTap: () {
+                  setState(() => _isSearching = true);
+                },
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Rechercher une boisson...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14.0),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(color: Colors.amber, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(
+                      color: Colors.amber,
+                      width: 1.8,
+                    ),
+                  ),
+                ),
+                textInputAction: TextInputAction.search,
+              ),
             ),
           ),
-          textInputAction: TextInputAction.search,
-        ),
+
+          // --- Bouton Annuler ---
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, anim) =>
+                FadeTransition(opacity: anim, child: child),
+            child: _isSearching
+                ? Padding(
+                    key: const ValueKey('cancel'),
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        // Ferme le champ et vide le texte
+                        _searchController.clear();
+                        _searchFocusNode.unfocus();
+                        setState(() => _isSearching = false);
+                      },
+                      child: const Text(
+                        'Annuler',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('empty')),
+          ),
+        ],
       ),
     );
   }
@@ -172,6 +218,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose(); // ✅ Libère le focus node
     super.dispose();
   }
 
@@ -220,8 +267,11 @@ class _HomeState extends State<Home> {
                     itemCount: items.length,
                   ),
           ),
-          Material(elevation: 6, child: _buildBottomScannerBar()),
         ],
+      ),
+      bottomNavigationBar: Material(
+        elevation: 6,
+        child: SafeArea(top: false, child: _buildBottomScannerBar()),
       ),
     );
   }

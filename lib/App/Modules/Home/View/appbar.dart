@@ -27,7 +27,7 @@ Widget buildAppBar(dynamic cartCount) {
     actions: [
       IconButton(
         icon: const Icon(Icons.person_outline, color: Colors.black87),
-        onPressed: () => Get.to(() => const AccountPage()),
+        onPressed: () => Get.toNamed('/account'),
       ),
       Stack(
         clipBehavior: Clip.none,
@@ -53,7 +53,7 @@ Widget buildAppBar(dynamic cartCount) {
                 ),
                 constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
                 child: Text(
-                  '$cartCount',
+                  '${cartCount > 9 ? '9+' : cartCount}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
