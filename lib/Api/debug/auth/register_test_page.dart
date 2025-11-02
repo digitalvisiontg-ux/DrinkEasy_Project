@@ -55,19 +55,19 @@ class _RegisterTestPageState extends State<RegisterTestPage> {
                   ? const CircularProgressIndicator()
                   : ElevatedButton(
                       onPressed: () async {
-                        final name = nameController.text.trim();
-                        final email = emailController.text.trim();
-                        final phone = phoneController.text.trim();
-                        final password = passwordController.text.trim();
-                        final passwordConfirm = passwordConfirmController.text.trim();
+                        // final name = nameController.text.trim();
+                        // final email = emailController.text.trim();
+                        // final phone = phoneController.text.trim();
+                        // final password = passwordController.text.trim();
+                        // final passwordConfirm = passwordConfirmController.text.trim();
 
-                        final success = await auth.register({
-                          'name': name,
-                          'email': email.isEmpty ? null : email,
-                          'phone': phone.isEmpty ? null : phone,
-                          'password': password,
-                          'password_confirmation': passwordConfirm,
-                        });
+                        // final success = await auth.register({
+                        //   'name': name,
+                        //   'email': email.isEmpty ? null : email,
+                        //   'phone': phone.isEmpty ? null : phone,
+                        //   'password': password,
+                        //   'password_confirmation': passwordConfirm,
+                        // });
 
                         // if (success) {
                         //   ScaffoldMessenger.of(context).showSnackBar(

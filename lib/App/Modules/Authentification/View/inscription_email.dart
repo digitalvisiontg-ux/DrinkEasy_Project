@@ -7,7 +7,6 @@ import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:get/get.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/Utils/form.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class InscriptionEmailPage extends StatefulWidget {
   const InscriptionEmailPage({Key? key}) : super(key: key);

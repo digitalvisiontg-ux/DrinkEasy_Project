@@ -15,4 +15,9 @@ class ApiConstants {
   static String get authDeleteAccount => "$authBase/delete-account";
   static String get authVerifyOtp => "$authBase/verify-otp";
   static String get authMe => "$authBase/me";
+
+  // ---- Produits ----
+  static String get produits => "$baseUrl/produits";
+  static String get produitsCategorie => "$baseUrl/produits/categorie";
+  static String get produitsPromo => "$baseUrl/produits/promo";
 }

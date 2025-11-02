@@ -1,7 +1,6 @@
 // import 'package:drink_eazy/Api/debug/auth/home_page.dart';
 // import 'package:drink_eazy/Api/debug/test_api.dart';
 // import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
-import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';

@@ -1,7 +1,6 @@
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'verify_otp_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -34,27 +33,27 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: () async {
-                      final login = loginController.text.trim();
+                      // final login = loginController.text.trim();
 
-                      final success = await auth.forgotPassword(login);
+                      // final success = await auth.forgotPassword(login);
 
-                      if (success != null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('OTP envoyé avec succès')),
-                        );
+                      // if (success != null) {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     const SnackBar(content: Text('OTP envoyé avec succès')),
+                      //   );
 
-                        // Redirection vers la page de vérification OTP
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => VerifyOtpPage(login: login),
-                          ),
-                        );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP')),
-                        );
-                      }
+                      //   // Redirection vers la page de vérification OTP
+                      //   Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //       builder: (_) => VerifyOtpPage(login: login),
+                      //     ),
+                      //   );
+                      // } else {
+                      //   ScaffoldMessenger.of(context).showSnackBar(
+                      //     SnackBar(content: Text(auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP')),
+                      //   );
+                      // }
                     },
                     child: const Text('Envoyer OTP'),
                   ),

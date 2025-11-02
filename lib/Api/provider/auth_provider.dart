@@ -83,7 +83,10 @@ class AuthProvider extends ChangeNotifier {
         'error': ok ? null : _errorMessage,
       };
     } catch (e) {
-      _setError(e.toString());
+      final msg = e is Exception
+          ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : e.toString();
+      _setError(msg);
       _setLoading(false);
       return {
         'success': false,
@@ -111,29 +114,42 @@ class AuthProvider extends ChangeNotifier {
     // Gestion professionnelle des erreurs pour l'utilisateur final
     if (message == null) {
       _errorMessage = null;
-    } else if (message.contains('email') && message.contains('invalide')) {
-      _errorMessage = "L'adresse e-mail est invalide.";
-    } else if (message.contains('mot de passe') && message.contains('incorrect')) {
-      _errorMessage = "Le mot de passe est incorrect.";
-    } else if (message.contains('already') || message.contains('existe déjà') || message.contains('existe deja')) {
-      _errorMessage = "Ce numéro ou e-mail est déjà inscrit.";
-    } else if (message.contains('not found') || message.contains('introuvable')) {
-      _errorMessage = "Aucun compte trouvé avec ces informations.";
-    } else if (message.contains('token')) {
-      _errorMessage = "Session expirée, veuillez vous reconnecter.";
-    } else if (message.contains('OTP') || message.contains('otp')) {
-      _errorMessage = "Le code reçu est invalide ou expiré.";
-    } else if (message.contains('register')) {
-      _errorMessage = "Votre inscription n'a pas pu aboutir. Veuillez vérifier vos informations.";
-    } else if (message.contains('login')) {
-      _errorMessage = "Connexion impossible. Vérifiez vos identifiants ou réessayez.";
-    } else if (message.contains('Erreur inconnue') || message.contains('Exception')) {
-      _errorMessage = "Une erreur est survenue. Veuillez réessayer.";
-    } else if (message.toLowerCase().contains('server') || message.toLowerCase().contains('500')) {
-      _errorMessage = "Le serveur ne répond pas. Veuillez réessayer plus tard.";
     } else {
-      // Message générique si non reconnu
-      _errorMessage = "Une erreur est survenue. Veuillez recommencer.";
+      // Normalize for matching but keep original message for display when
+      // we don't want to override backend text.
+      final low = message.toLowerCase();
+
+      // Exact/backend French messages mapping -> user-friendly French
+      if (low.contains('email ou téléphone') || low.contains('email ou telephone') || low.contains('email ou numéro') || low.contains('email ou numero')) {
+        _errorMessage = "Veuillez fournir un email ou un numéro de téléphone.";
+      } else if (low.contains('numéro invalide') || low.contains('numero invalide')) {
+        _errorMessage = "Numéro de téléphone invalide.";
+      } else if (low.contains('Utilisateur introuvable') || low.contains('utilisateur non trouvé') || low.contains('utilisateur non trouve')) {
+        _errorMessage = "Utilisateur introuvable.";
+      } else if (low.contains('Email introuvable') || low.contains('email introuvable')) {
+        _errorMessage = "Email introuvable. Veuillez vous inscrire d'abord.";
+      } else if (low.contains('Numéro introuvable') || low.contains('Numero introuvable')) {
+        _errorMessage = "Numéro introuvable. Veuillez vous inscrire d'abord.";
+      } else if (low.contains('mot de passe incorrect') || (low.contains('mot de passe') && low.contains('incorrect'))) {
+        _errorMessage = "Mot de passe incorrect.";
+      } else if (low.contains('otp invalide') || low.contains('code otp invalide') || low.contains('aucun otp') || low.contains('otp expir')) {
+        _errorMessage = "Code OTP invalide ou expiré.";
+      } else if (low.contains('nombre maximum de tentatives') || low.contains('maximum de tentatives')) {
+        _errorMessage = "Nombre maximum de tentatives atteint. Veuillez réessayer plus tard.";
+      } else if (low.contains('format de l') && low.contains('email')) {
+        _errorMessage = "Format de l'email invalide.";
+      } else if (low.contains('erreur serveur') || low.contains('server') || low.contains('500')) {
+        // Keep a friendly message for server-side errors
+        _errorMessage = "Le serveur a rencontré une erreur. Veuillez réessayer plus tard.";
+      } else if (low.contains('already') || low.contains('has already been taken') || low.contains('existe déjà') || low.contains('existe deja')) {
+        _errorMessage = "Ce numéro ou e-mail est déjà inscrit.";
+      } else if (low.contains('token')) {
+        _errorMessage = "Session expirée, veuillez vous reconnecter.";
+      } else {
+        // Pour tous les autres cas, privilégier le message renvoyé par le backend
+        // (plus précis et possibly contains accents). On le renvoie tel quel.
+        _errorMessage = message;
+      }
     }
     notifyListeners();
   }
@@ -164,7 +180,10 @@ class AuthProvider extends ChangeNotifier {
       _setLoading(false);
       return ok;
     } catch (error) {
-      _setError(error.toString());
+      final msg = error is Exception
+          ? error.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : error.toString();
+      _setError(msg);
       _setLoading(false);
       return false;
     }
@@ -187,7 +206,10 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _setError(e.toString());
+      final msg = e is Exception
+          ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : e.toString();
+      _setError(msg);
       _setLoading(false);
       return false;
     }
@@ -213,7 +235,10 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _setError(e.toString());
+      final msg = e is Exception
+          ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : e.toString();
+      _setError(msg);
       _setLoading(false);
       return false;
     }
@@ -240,7 +265,10 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _setError(e.toString());
+      final msg = e is Exception
+          ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+          : e.toString();
+      _setError(msg);
       _setLoading(false);
       return false;
     }

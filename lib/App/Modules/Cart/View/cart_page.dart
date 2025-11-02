@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:drink_eazy/App/Component/showToast_component.dart';
 import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
-import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/route_manager.dart';
 

@@ -1,4 +1,3 @@
-import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
 import 'package:drink_eazy/App/Modules/Home/Controller/controller.dart';
 import 'package:flutter/material.dart';

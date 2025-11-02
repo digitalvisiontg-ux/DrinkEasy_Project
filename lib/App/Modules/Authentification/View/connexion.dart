@@ -205,7 +205,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
                 shape: BoxShape.circle,
               ),
               child: IconButton(
-                onPressed: () => Get.back(),
+                onPressed: () => Get.toNamed('/account'),
                 icon: Icon(
                   Icons.arrow_back,
                   color: Colors.white,
