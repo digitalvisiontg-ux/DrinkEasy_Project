@@ -23,79 +23,6 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
   final _confirmCtrl = TextEditingController();
   bool loading = false;
 
-  /// ✅ Message stylisé (popup pour erreurs / toast pour succès)
-  // void showCustomMessage(BuildContext context, String message, bool isError) {
-  //   if (isError) {
-  //     showDialog(
-  //       context: context,
-  //       builder: (_) => AlertDialog(
-  //         backgroundColor: Colors.white,
-  //         shape: RoundedRectangleBorder(
-  //           borderRadius: BorderRadius.circular(18),
-  //         ),
-  //         title: const Text(
-  //           "Erreur",
-  //           style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-  //         ),
-  //         content: Text(message, style: const TextStyle(fontSize: 15)),
-  //         actions: [
-  //           TextButton(
-  //             onPressed: () => Get.back(),
-  //             child: const Text(
-  //               "Fermer",
-  //               style: TextStyle(
-  //                 color: Colors.red,
-  //                 fontWeight: FontWeight.w600,
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     );
-  //   } else {
-  //     FToast fToast = FToast();
-  //     fToast.init(context);
-
-  //     Widget toast = Container(
-  //       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-  //       decoration: BoxDecoration(
-  //         color: Colors.white,
-  //         borderRadius: BorderRadius.circular(30),
-  //         border: Border.all(color: Colors.green.shade600, width: 2),
-  //         boxShadow: [
-  //           BoxShadow(
-  //             color: Colors.green.withOpacity(0.15),
-  //             blurRadius: 6,
-  //             offset: const Offset(2, 2),
-  //           ),
-  //         ],
-  //       ),
-  //       child: Row(
-  //         mainAxisSize: MainAxisSize.min,
-  //         children: [
-  //           const Icon(Icons.check_circle, color: Colors.green, size: 20),
-  //           const SizedBox(width: 8),
-  //           Flexible(
-  //             child: Text(
-  //               message,
-  //               style: const TextStyle(
-  //                 color: Colors.black87,
-  //                 fontWeight: FontWeight.w500,
-  //               ),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     );
-
-  //     fToast.showToast(
-  //       child: toast,
-  //       gravity: ToastGravity.BOTTOM,
-  //       toastDuration: const Duration(seconds: 2),
-  //     );
-  //   }
-  // }
-
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -180,9 +107,13 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
                         children: [
                           /// --- Bouton retour rond ---
                           Padding(
-                            padding: const EdgeInsets.only(left: 12, top: 10),
+                            // Utiliser le media query pour un bon resultat sur tous les écrans
+                            padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).padding.top + 0.0,
+                              left: MediaQuery.of(context).padding.left + 16.0,
+                            ),
                             child: Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: Alignment.topLeft,
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.15),
@@ -193,7 +124,9 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
                                     Icons.arrow_back,
                                     color: Colors.white,
                                   ),
-                                  onPressed: () => Get.back(),
+                                  onPressed: () {
+                                    Get.back();
+                                  },
                                 ),
                               ),
                             ),
@@ -209,7 +142,7 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontFamily: "Agbalumo",
-                                  fontSize: 42,
+                                  fontSize: 40,
                                   letterSpacing: 1.3,
                                 ),
                               ),

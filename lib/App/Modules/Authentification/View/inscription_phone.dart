@@ -120,13 +120,13 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
                         children: [
                           /// 🔹 Bouton retour
                           Padding(
-                            padding: const EdgeInsets.only(
-                              left: 12,
-                              top: 10,
-                              bottom: 10,
+                            // Utiliser le media query pour un bon resultat sur tous les écrans
+                            padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).padding.top + 0.0,
+                              left: MediaQuery.of(context).padding.left + 16.0,
                             ),
                             child: Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: Alignment.topLeft,
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white.withOpacity(0.15),
@@ -137,7 +137,9 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
                                     Icons.arrow_back,
                                     color: Colors.white,
                                   ),
-                                  onPressed: () => Get.back(),
+                                  onPressed: () {
+                                    Get.back();
+                                  },
                                 ),
                               ),
                             ),
@@ -153,7 +155,7 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 44,
+                                  fontSize: 40,
                                   fontFamily: 'Agbalumo',
                                   letterSpacing: 1.2,
                                 ),

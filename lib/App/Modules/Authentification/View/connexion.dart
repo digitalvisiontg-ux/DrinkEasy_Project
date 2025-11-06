@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:drink_eazy/App/Component/error_popup_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/Controller/controller.dart';
@@ -23,119 +22,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool loading = false;
-
-  /// ✅ Message de succès (toast stylé)
-  // void showSuccessToast(String message) {
-  //   FToast fToast = FToast();
-  //   fToast.init(context);
-
-  //   Widget toast = Container(
-  //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-  //     decoration: BoxDecoration(
-  //       border: Border.all(color: Colors.greenAccent, width: 2),
-  //       borderRadius: BorderRadius.circular(12),
-  //       color: Colors.white,
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: Colors.greenAccent.withOpacity(0.4),
-  //           blurRadius: 8,
-  //           offset: const Offset(0, 4),
-  //         ),
-  //       ],
-  //     ),
-  //     child: Row(
-  //       mainAxisSize: MainAxisSize.min,
-  //       children: const [
-  //         Icon(Icons.check_circle, color: Colors.green, size: 24),
-  //         SizedBox(width: 10),
-  //         Text(
-  //           "Connexion réussie 🎉",
-  //           style: TextStyle(
-  //             color: Colors.black87,
-  //             fontWeight: FontWeight.w600,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-
-  //   fToast.showToast(
-  //     child: toast,
-  //     gravity: ToastGravity.TOP,
-  //     toastDuration: const Duration(seconds: 2),
-  //   );
-  // }
-
-  // void _showErrorPopup(String message) {
-  //   showDialog(
-  //     context: context,
-  //     barrierDismissible: true,
-  //     builder: (context) {
-  //       return Dialog(
-  //         backgroundColor: Colors.transparent,
-  //         child: ClipRRect(
-  //           borderRadius: BorderRadius.circular(20),
-  //           child: BackdropFilter(
-  //             filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-  //             child: Container(
-  //               padding: const EdgeInsets.all(20),
-  //               decoration: BoxDecoration(
-  //                 color: Colors.white.withOpacity(0.9),
-  //                 borderRadius: BorderRadius.circular(20),
-  //               ),
-  //               child: Column(
-  //                 mainAxisSize: MainAxisSize.min,
-  //                 children: [
-  //                   const Icon(
-  //                     Icons.error_outline,
-  //                     color: Colors.red,
-  //                     size: 50,
-  //                   ),
-  //                   const SizedBox(height: 10),
-  //                   const Text(
-  //                     "Erreur de connexion",
-  //                     style: TextStyle(
-  //                       fontSize: 18,
-  //                       fontWeight: FontWeight.bold,
-  //                       color: Colors.red,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 8),
-  //                   Text(
-  //                     message,
-  //                     textAlign: TextAlign.center,
-  //                     style: const TextStyle(
-  //                       fontSize: 15,
-  //                       color: Colors.black87,
-  //                     ),
-  //                   ),
-  //                   const SizedBox(height: 16),
-  //                   ElevatedButton(
-  //                     onPressed: () => Navigator.pop(context),
-  //                     style: ElevatedButton.styleFrom(
-  //                       backgroundColor: Colors.red.shade700,
-  //                       shape: RoundedRectangleBorder(
-  //                         borderRadius: BorderRadius.circular(12),
-  //                       ),
-  //                       padding: const EdgeInsets.symmetric(
-  //                         horizontal: 24,
-  //                         vertical: 10,
-  //                       ),
-  //                     ),
-  //                     child: const Text(
-  //                       "OK",
-  //                       style: TextStyle(color: Colors.white),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 
   /// 🧠 Gestion du login
   Future<void> _handleLogin() async {
@@ -162,11 +48,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
             auth.errorMessage ??
             'Erreur lors de la connexion. Vérifiez vos identifiants.',
       );
-
-      // _showErrorPopup(
-      //   auth.errorMessage ??
-      //       'Erreur lors de la connexion. Vérifiez vos identifiants.',
-      // );
     }
   }
 
@@ -193,26 +74,6 @@ class _ConnexionPageState extends State<ConnexionPage> {
           /// --- Filtre sombre
           Positioned.fill(
             child: Container(color: Colors.black.withOpacity(0.55)),
-          ),
-
-          /// --- Bouton retour
-          Positioned(
-            top: size.height * 0.05,
-            left: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                onPressed: () => Get.toNamed('/account'),
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                  size: size.width * 0.06,
-                ),
-              ),
-            ),
           ),
 
           /// --- Contenu principal
@@ -368,6 +229,29 @@ class _ConnexionPageState extends State<ConnexionPage> {
                   ),
                 );
               },
+            ),
+          ),
+
+          Padding(
+            // Utiliser le media query pour un bon resultat sur tous les écrans
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 0.0,
+              left: MediaQuery.of(context).padding.left + 16.0,
+            ),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    Get.back();
+                  },
+                ),
+              ),
             ),
           ),
         ],

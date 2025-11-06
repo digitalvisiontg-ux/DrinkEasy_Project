@@ -37,6 +37,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                       // final success = await auth.forgotPassword(login);
 
+<<<<<<< HEAD
                       // if (success != null) {
                       //   ScaffoldMessenger.of(context).showSnackBar(
                       //     const SnackBar(content: Text('OTP envoyé avec succès')),
@@ -54,6 +55,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                       //     SnackBar(content: Text(auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP')),
                       //   );
                       // }
+=======
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('OTP envoyé avec succès')),
+                      );
+
+                      // Redirection vers la page de vérification OTP
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => VerifyOtpPage(login: login),
+                        ),
+                      );
+>>>>>>> 2a8ea96 (Mise à jour du projet : DrinkEasy)
                     },
                     child: const Text('Envoyer OTP'),
                   ),

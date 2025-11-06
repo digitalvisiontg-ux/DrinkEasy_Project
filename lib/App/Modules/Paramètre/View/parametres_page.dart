@@ -1,3 +1,8 @@
+import 'package:drink_eazy/App/Component/confirm_component.dart';
+import 'package:drink_eazy/App/Component/error_popup_component.dart'
+    show showErrorPopupComponent;
+import 'package:drink_eazy/App/Component/showMessage_component.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -47,7 +52,10 @@ class _ParametresPageState extends State<ParametresPage> {
                 return _buildSettingTile(
                   icon: Icons.person_outline,
                   title: user['name']?.toString() ?? 'Utilisateur',
-                  subtitle: user['email']?.toString() ?? user['phone']?.toString() ?? 'Profil utilisateur',
+                  subtitle:
+                      user['email']?.toString() ??
+                      user['phone']?.toString() ??
+                      'Profil utilisateur',
                   onTap: () => Get.snackbar("Profil", "Ouverture du profil..."),
                 );
               } else {
@@ -55,7 +63,10 @@ class _ParametresPageState extends State<ParametresPage> {
                   icon: Icons.person_outline,
                   title: "Mode invité",
                   subtitle: "Connectez-vous pour gérer votre profil",
-                  onTap: () => Get.snackbar("Profil", "Veuillez vous connecter pour accéder à votre profil"),
+                  onTap: () => Get.snackbar(
+                    "Profil",
+                    "Veuillez vous connecter pour accéder à votre profil",
+                  ),
                 );
               }
             },
@@ -114,37 +125,56 @@ class _ParametresPageState extends State<ParametresPage> {
             subtitle: "Version 1.0.0 — Drink Eazy ©2025",
           ),
           const SizedBox(height: 28),
-          Center(
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 12,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onPressed: () {
-                Get.defaultDialog(
-                  title: "Déconnexion",
-                  middleText: "Voulez-vous vraiment vous déconnecter ?",
-                  textConfirm: "Oui",
-                  textCancel: "Annuler",
-                  confirmTextColor: Colors.white,
-                  onConfirm: () async {
-                    final auth = Provider.of<AuthProvider>(context, listen: false);
-                    await auth.logout();
-                    Get.back(); // fermer le dialogue
-                    Get.offAllNamed("/connexion"); // rediriger vers connexion
-                  },
-                );
-              },
-              icon: const Icon(Icons.logout, color: Colors.white),
-              label: const Text(
-                "Déconnexion",
-                style: TextStyle(fontSize: 16, color: Colors.white),
+          // --- Déconnexion ---
+          OutlinedButton.icon(
+            onPressed: () async {
+              final confirm = await showConfirmComponent(
+                context,
+                title: 'Déconnexion',
+                message: 'Voulez-vous vraiment vous déconnecter ?',
+                confirmText: 'Déconnecter',
+                cancelText: 'Annuler',
+                confirmColor: Colors.red,
+                cancelColor: Colors.grey.shade200,
+                // icon: Icons.logout_rounded,
+                // iconColor: Colors.red,
+                // iconBgColor: Colors.redAccent.withOpacity(0.1),
+              );
+
+              if (confirm == true) {
+                try {
+                  final auth = Provider.of<AuthProvider>(
+                    context,
+                    listen: false,
+                  );
+                  await auth.logout();
+                  Get.offAll(const Home());
+                  showMessageComponent(
+                    context,
+                    'Déconnexion réussie',
+                    'Vous avez été déconnecté avec succès.',
+                    false,
+                  );
+                } catch (e) {
+                  debugPrint('Erreur de déconnexion : $e');
+                  showErrorPopupComponent(
+                    context,
+                    title: 'Erreur',
+                    message: 'Une erreur est survenue lors de la déconnexion.',
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.logout, color: Colors.red),
+            label: const Text(
+              "Déconnexion",
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: Colors.red.shade300),
+              minimumSize: const Size.fromHeight(50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
               ),
             ),
           ),
@@ -262,7 +292,7 @@ class _ParametresPageState extends State<ParametresPage> {
         ),
         trailing: Switch(
           value: value,
-          activeColor: Colors.orange.shade700,
+          activeThumbColor: Colors.orange.shade700,
           onChanged: onChanged,
         ),
       ),

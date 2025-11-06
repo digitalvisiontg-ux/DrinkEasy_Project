@@ -34,7 +34,7 @@ class InscriptionChoicePage extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      onPressed: () => Get.toNamed('/account'),
+                      onPressed: () => Get.offNamed('/account'),
                       icon: const Icon(
                         Icons.arrow_back,
                         color: Colors.white,

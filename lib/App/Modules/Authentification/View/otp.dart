@@ -205,26 +205,6 @@ class _OtpPageState extends State<OtpPage> {
             child: Container(color: Colors.black.withOpacity(0.55)),
           ),
 
-          /// --- Bouton retour
-          Positioned(
-            top: size.height * 0.05,
-            left: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                onPressed: () => Get.back(),
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                  size: size.width * 0.06,
-                ),
-              ),
-            ),
-          ),
-
           /// --- Contenu principal
           SafeArea(
             child: LayoutBuilder(
@@ -329,6 +309,30 @@ class _OtpPageState extends State<OtpPage> {
                   ),
                 );
               },
+            ),
+          ),
+
+          /// ✅ Bouton retour placé au-dessus de tout
+          Padding(
+            padding: const EdgeInsets.only(top: 40.0, left: 16.0),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () {
+                    if (Get.previousRoute == '/motdepasseOublie') {
+                      Get.back();
+                    } else {
+                      Get.offNamed('/motdepasseOublie');
+                    }
+                  },
+                ),
+              ),
             ),
           ),
         ],

@@ -42,7 +42,7 @@ class _AccountPageState extends State<AccountPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Get.toNamed('/home');
+            Get.back();
           },
         ),
         title: const Text(
@@ -59,6 +59,8 @@ class _AccountPageState extends State<AccountPage> {
         child: Column(
           children: [
             // --- Mode invité ---
+
+            // Affichage du mode déjà connecté
             if (user == null)
               Column(
                 children: [
@@ -105,7 +107,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
-                    onPressed: () => Get.toNamed('/connexion'),
+                    onPressed: () => Get.offNamed('/connexion'),
                     icon: const Icon(Icons.login, color: Colors.black),
                     label: const Text(
                       "Se connecter",
@@ -124,7 +126,7 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   const SizedBox(height: 12),
                   OutlinedButton.icon(
-                    onPressed: () => Get.toNamed('/inscription_choice'),
+                    onPressed: () => Get.offNamed('/inscription_choice'),
                     icon: const Icon(
                       Icons.person_add_alt_1,
                       color: Colors.black,
@@ -151,10 +153,14 @@ class _AccountPageState extends State<AccountPage> {
               Column(
                 children: [
                   Container(
+                    width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [Color(0xFFFFE9B0), Color(0xFFFFF8E1)],
+                        colors: [
+                          Color.fromARGB(255, 255, 240, 202),
+                          Color(0xFFFFF8E1),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -213,9 +219,10 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
+                        // Mettre un email pour jus pour le test
                         Text(
                           user['email']?.toString() ??
-                              user['phone']?.toString() ??
+                              user?['phone']?.toString() ??
                               '',
                           style: TextStyle(color: Colors.grey.shade700),
                         ),
@@ -226,39 +233,14 @@ class _AccountPageState extends State<AccountPage> {
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.shade100,
+                            color: Colors.white.withOpacity(0.9),
                             borderRadius: BorderRadius.circular(30),
                           ),
-                          child: const Text(
+                          child: Text(
                             "⭐ 230 points de fidélité",
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => Get.toNamed('/parametres'),
-                          icon: const Icon(
-                            Icons.manage_accounts_outlined,
-                            color: Colors.black,
-                          ),
-                          label: const Text(
-                            "Gérer mon compte",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.amber,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 40,
-                              vertical: 14,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
+                              color: Colors.red.shade800,
                             ),
                           ),
                         ),
@@ -266,32 +248,59 @@ class _AccountPageState extends State<AccountPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      try {
-                        await auth.logout();
-                      } catch (e) {
-                        debugPrint('Logout error: $e');
-                      }
-                      Get.offAll(const Home());
-                    },
-                    icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      "Déconnexion",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade700,
-                      minimumSize: const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => Get.toNamed('/Gerer_compte'),
+                      icon: const Icon(
+                        Icons.manage_accounts_outlined,
+                        color: Colors.black,
+                      ),
+                      label: Text(
+                        "Gérer mon compte",
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
                       ),
                     ),
                   ),
+                  // ElevatedButton.icon(
+                  //   onPressed: () async {
+                  //     try {
+                  //       await auth.logout();
+                  //     } catch (e) {
+                  //       debugPrint('Logout error: $e');
+                  //     }
+                  //     Get.offAll(const Home());
+                  //   },
+                  //   icon: const Icon(Icons.logout, color: Colors.white),
+                  //   label: const Text(
+                  //     "Déconnexion",
+                  //     style: TextStyle(fontSize: 16, color: Colors.white),
+                  //   ),
+                  //   style: ElevatedButton.styleFrom(
+                  //     backgroundColor: Colors.red.shade700,
+                  //     minimumSize: const Size.fromHeight(50),
+                  //     shape: RoundedRectangleBorder(
+                  //       borderRadius: BorderRadius.circular(30),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             listTileComponent(
               icon: Icons.history,
               title: "Historique des commandes",
@@ -301,6 +310,11 @@ class _AccountPageState extends State<AccountPage> {
               icon: Icons.card_giftcard,
               title: "Offres spéciales",
               onTap: () => Get.toNamed('/offres_speciales'),
+            ),
+            listTileComponent(
+              icon: Icons.settings_outlined,
+              title: "Paramètres",
+              onTap: () => Get.toNamed('/parametres'),
             ),
             listTileComponent(
               icon: Icons.headset_mic_outlined,

@@ -1,6 +1,3 @@
-// import 'package:drink_eazy/Api/debug/auth/home_page.dart';
-// import 'package:drink_eazy/Api/debug/test_api.dart';
-// import 'package:drink_eazy/Api/debug/auth/login_test_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
@@ -10,8 +7,10 @@ import 'package:drink_eazy/App/Modules/Authentification/View/inscription_phone.d
 import 'package:drink_eazy/App/Modules/Authentification/View/motDePasseOublier.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
+import 'package:drink_eazy/App/Modules/Gerer_Compte/View/gerer_Compte.dart';
 import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
 import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
 import 'package:flutter/material.dart';
@@ -83,11 +82,13 @@ class MyApp extends StatelessWidget {
           name: '/mot_de_passe_oublie',
           page: () => const MotDePasseOubliePage(),
         ),
+        GetPage(name: '/parametres', page: () => const ParametresPage()),
         GetPage(name: '/account', page: () => const AccountPage()),
         GetPage(
           name: '/cart',
           page: () => const CartPage(cartItems: []),
         ),
+        GetPage(name: '/Gerer_compte', page: () => const GererComptePage()),
         GetPage(
           name: '/historique_commandes',
           page: () => const HistoriqueCommandesPage(),
@@ -106,11 +107,13 @@ class MyApp extends StatelessWidget {
           name: '/otp',
           page: () => const OtpPage(login: ''),
         ),
+        GetPage(name: '/account', page: () => const AccountPage()),
 
         // Provide an empty list or appropriate cart items
       ],
       // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
       // si l'utilisateur est déjà connecté (comportement souhaité).
+      // home: const SplashScreen(),
       home: const SplashPage(),
       // home: BarTestPage(),
       // home: HomePage(),
