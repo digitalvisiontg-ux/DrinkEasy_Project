@@ -1,4 +1,5 @@
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/Api/provider/produit_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
@@ -46,12 +47,21 @@ Future<void> main() async {
   // Créer le provider et attendre la restauration de session AVANT runApp
   final auth = AuthProvider();
   await auth.restoreSession();
+  // Précharger les produits pour les rendre disponibles immédiatement
+  // (évite que Home reçoive une liste vide au démarrage)
+  final produitProvider = ProduitProvider();
+  await produitProvider.fetchProduits();
+  // Debug: print how many produits were fetched (voir console)
+  try {
+    print('Produits préchargés: ${produitProvider.produits.length}');
+  } catch (_) {}
 
   runApp(
     MultiProvider(
       providers: [
         // Fournir l'instance déjà initialisée
         ChangeNotifierProvider.value(value: auth),
+        ChangeNotifierProvider.value(value: produitProvider),
       ],
       child: const MyApp(),
     ),

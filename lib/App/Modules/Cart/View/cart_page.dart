@@ -3,6 +3,7 @@ import 'package:drink_eazy/App/Component/confirm_component.dart';
 import 'package:drink_eazy/App/Component/showToast_component.dart';
 import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
+import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/route_manager.dart';
 
@@ -41,11 +42,11 @@ class _CartPageState extends State<CartPage>
     super.dispose();
   }
 
-  int get totalPrice {
-    return cartItems.fold<int>(0, (sum, item) {
-      final Product product = item['product'] as Product;
+  double get totalPrice {
+    return cartItems.fold<double>(0.0, (sum, item) {
+      final Produit product = item['product'] as Produit;
       final int quantity = item['quantity'] as int;
-      return sum + (product.priceCfa * quantity);
+      return sum + (product.prixBase * quantity);
     });
   }
 
@@ -189,16 +190,15 @@ class _CartPageState extends State<CartPage>
         separatorBuilder: (_, __) => const SizedBox(height: 14),
         itemBuilder: (context, index) {
           final item = cartItems[index];
-          final Product product = item['product'];
+          final Produit product = item['product'] as Produit;
           final int quantity = item['quantity'];
           return _buildProductCard(product, quantity, index);
         },
       ),
     );
   }
-
-  Widget _buildProductCard(Product product, int quantity, int index) {
-    final hasPromo = product.promotion != null && product.oldPriceCfa != null;
+  Widget _buildProductCard(Produit product, int quantity, int index) {
+  // Produit model currently doesn't include promotion/old price fields.
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
@@ -241,11 +241,9 @@ class _CartPageState extends State<CartPage>
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child:
-                            product.imagepath != null &&
-                                product.imagepath!.isNotEmpty
+                            child: product.imageUrl != null && product.imageUrl!.isNotEmpty
                             ? Image.asset(
-                                product.imagepath!,
+                                product.imageUrl!,
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) => const Icon(
                                   Icons.local_drink,
@@ -270,7 +268,7 @@ class _CartPageState extends State<CartPage>
                             children: [
                               Expanded(
                                 child: Text(
-                                  product.name,
+                                  product.nomProd,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
@@ -283,17 +281,6 @@ class _CartPageState extends State<CartPage>
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  if (hasPromo) ...[
-                                    Text(
-                                      "${_formatPrice(product.oldPriceCfa!)} CFA",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF9E9E9E),
-                                        decoration: TextDecoration.lineThrough,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                  ],
                                   Container(
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 8,
@@ -304,7 +291,7 @@ class _CartPageState extends State<CartPage>
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      "${_formatPrice(product.priceCfa)} CFA",
+                                      "${_formatPrice(product.prixBase)} CFA",
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w800,
                                         color: Colors.orange,
@@ -328,7 +315,7 @@ class _CartPageState extends State<CartPage>
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(
-                                  product.category,
+                                  product.categorieNom ?? '',
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
@@ -381,7 +368,7 @@ class _CartPageState extends State<CartPage>
                                     ),
                                     Spacer(),
                                     Text(
-                                      " ${_formatPrice(product.priceCfa * quantity)} CFA",
+                                      " ${_formatPrice(product.prixBase * quantity)} CFA",
                                       style: const TextStyle(
                                         color: Color(0xFF757575),
                                         fontSize: 13,
@@ -696,8 +683,9 @@ class _CartPageState extends State<CartPage>
     );
   }
 
-  String _formatPrice(int price) {
-    final s = price.toString();
+  String _formatPrice(num price) {
+    final int value = price.round();
+    final s = value.toString();
     final buffer = StringBuffer();
     int count = 0;
     for (int i = s.length - 1; i >= 0; i--) {
