@@ -42,7 +42,7 @@ class _AccountPageState extends State<AccountPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Get.toNamed('/home');
+            Navigator.of(context).pop();
           },
         ),
         title: const Text(

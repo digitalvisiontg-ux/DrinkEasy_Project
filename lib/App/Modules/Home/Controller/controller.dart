@@ -1,7 +1,4 @@
 // --- Formatage prix ---
-import 'package:drink_eazy/App/Modules/Home/View/home.dart';
-import 'package:drink_eazy/App/Modules/Home/View/productDetailModal.dart';
-import 'package:flutter/material.dart';
 
 String formatPrice(int price) {
   final s = price.toString();
@@ -19,19 +16,19 @@ String formatPrice(int price) {
 }
 
 // --- Modal du produit ---
-Future<int?> showProductDetailBottomSheet(
-  BuildContext context,
-  Product product,
-) {
-  return showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) => ProductDetailBottomSheet(product: product),
-  );
-}
+// Future<int?> showProductDetailBottomSheet(
+//   BuildContext context,
+//   Product product,
+// ) {
+//   return showModalBottomSheet(
+//     context: context,
+//     isScrollControlled: true,
+//     backgroundColor: Colors.white,
+//     shape: const RoundedRectangleBorder(
+//       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+//     ),
+//     builder: (context) => ProductDetailBottomSheet(product: product),
+//   );
+// }
 
 List<Map<String, dynamic>> globalCart = [];
