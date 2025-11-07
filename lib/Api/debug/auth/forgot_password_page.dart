@@ -1,3 +1,4 @@
+import 'package:drink_eazy/Api/debug/auth/verify_otp_page.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -33,29 +34,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ? const CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: () async {
-                      // final login = loginController.text.trim();
+                      final login = loginController.text.trim();
 
                       // final success = await auth.forgotPassword(login);
 
-<<<<<<< HEAD
-                      // if (success != null) {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     const SnackBar(content: Text('OTP envoyé avec succès')),
-                      //   );
-
-                      //   // Redirection vers la page de vérification OTP
-                      //   Navigator.push(
-                      //     context,
-                      //     MaterialPageRoute(
-                      //       builder: (_) => VerifyOtpPage(login: login),
-                      //     ),
-                      //   );
-                      // } else {
-                      //   ScaffoldMessenger.of(context).showSnackBar(
-                      //     SnackBar(content: Text(auth.errorMessage ?? 'Erreur lors de l’envoi de l’OTP')),
-                      //   );
-                      // }
-=======
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('OTP envoyé avec succès')),
                       );
@@ -67,7 +49,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           builder: (_) => VerifyOtpPage(login: login),
                         ),
                       );
->>>>>>> 2a8ea96 (Mise à jour du projet : DrinkEasy)
                     },
                     child: const Text('Envoyer OTP'),
                   ),
