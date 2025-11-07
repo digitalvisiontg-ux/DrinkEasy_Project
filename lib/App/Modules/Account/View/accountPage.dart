@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
-import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
