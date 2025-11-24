@@ -1,4 +1,5 @@
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
@@ -29,9 +30,6 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
-  // Make app draw edge-to-edge so the splash image can extend under
-  // the status/navigation bars. Also set transparent bars so the image
-  // shows through (helps avoid visible bars with a different background).
   try {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
@@ -62,6 +60,7 @@ Future<void> main() async {
         // Fournir l'instance déjà initialisée
         ChangeNotifierProvider.value(value: auth),
         ChangeNotifierProvider.value(value: produitProvider),
+        ChangeNotifierProvider(create: (_) => CartProvider()..loadFromPrefs()),
       ],
       child: const MyApp(),
     ),
@@ -96,7 +95,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/account', page: () => const AccountPage()),
         GetPage(
           name: '/cart',
-          page: () => const CartPage(cartItems: []),
+          page: () => CartPage(),
         ),
         GetPage(name: '/Gerer_compte', page: () => const GererComptePage()),
         GetPage(

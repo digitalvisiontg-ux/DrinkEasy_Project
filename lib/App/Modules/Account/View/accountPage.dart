@@ -221,7 +221,7 @@ class _AccountPageState extends State<AccountPage> {
                         // Mettre un email pour jus pour le test
                         Text(
                           user['email']?.toString() ??
-                              user?['phone']?.toString() ??
+                              user['phone']?.toString() ??
                               '',
                           style: TextStyle(color: Colors.grey.shade700),
                         ),

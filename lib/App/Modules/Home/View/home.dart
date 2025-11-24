@@ -1,4 +1,5 @@
 import 'package:drink_eazy/Api/models/produit.dart';
+import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
 import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
 import 'package:drink_eazy/App/Modules/Home/View/qr_scanner_modal.dart';
@@ -7,8 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
 
 class Home extends StatefulWidget {
-  final List<Produit> produits;
-  const Home({super.key, this.produits = const []});
+  const Home({super.key});
 
   @override
   State<Home> createState() => _HomeState();
@@ -22,18 +22,23 @@ class _HomeState extends State<Home> {
   int cartCount = 0;
   bool _isSearching = false;
 
-  // --- Liste des catégories avec emojis et style
+  // --- Récupération des catégories dynamiques
   List<String> _categories(BuildContext context) {
-    final source = widget.produits.isNotEmpty
-        ? widget.produits
-        : Provider.of<ProduitProvider>(context).produits;
-    final cats = source.map((p) => p.categorieNom ?? 'Autre').toSet().toList();
+    final source = Provider.of<ProduitProvider>(context).produits;
+    final cats = source
+        .where((p) => p.categorie != null)
+        .map((p) => p.categorie!.nomCat)
+        .toSet()
+        .toList();
+
     cats.insert(0, 'Tous');
+    cats.insert(1, 'Promotion');
     return cats;
   }
 
+  // --- Emoji catégorie
   String _emojiForCategory(String category) {
-    switch (category.toLowerCase().trim()) {
+    switch (category.toLowerCase()) {
       case 'promotion':
         return '🎉';
       case 'bière':
@@ -53,19 +58,26 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // --- Filtrage des produits
+  // --- Filtrage produits
   List<Produit> _filteredProduits(BuildContext context) {
-    final source = widget.produits.isNotEmpty
-        ? widget.produits
-        : Provider.of<ProduitProvider>(context).produits;
+    final produits = Provider.of<ProduitProvider>(context).produits;
     final query = _searchController.text.trim().toLowerCase();
 
-    return source.where((p) {
-      final matchesQuery =
-          query.isEmpty || p.nomProd.toLowerCase().contains(query);
-      final matchesCategory =
-          _selectedCategory == 'Tous' || (p.categorieNom?.trim() == _selectedCategory);
-      return matchesQuery && matchesCategory;
+    return produits.where((p) {
+      final matchQuery = query.isEmpty || p.nomProd.toLowerCase().contains(query);
+
+      // Filtrer promotion
+      if (_selectedCategory == 'Promotion') {
+        return matchQuery && (p.promotionActive || p.promotionsDetails.isNotEmpty);
+      }
+
+      // Tous les produits
+      if (_selectedCategory == 'Tous') {
+        return matchQuery;
+      }
+
+      // Catégorie normale
+      return matchQuery && p.categorie?.nomCat.trim() == _selectedCategory;
     }).toList();
   }
 
@@ -76,60 +88,7 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final items = _filteredProduits(context);
-
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: buildAppBar(cartCount),
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          _buildSearchField(),
-          const SizedBox(height: 12),
-          _buildCategoryChips(),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun résultat',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final p = items[index];
-                      return buildProduitCard(
-                        context: context,
-                        produit: p,
-                        onCartUpdated: () => setState(() {}),
-                        updateCartCount: (qty) => setState(() => cartCount += qty),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Material(
-        elevation: 6,
-        child: SafeArea(top: false, child: _buildBottomScannerBar()),
-      ),
-    );
-  }
-
-  // --- Champ de recherche
+  // --- Barre de recherche
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 13.0),
@@ -139,9 +98,9 @@ class _HomeState extends State<Home> {
             child: SizedBox(
               height: 45,
               child: TextField(
-                style: const TextStyle(fontSize: 14),
                 controller: _searchController,
                 focusNode: _searchFocusNode,
+                style: const TextStyle(fontSize: 14),
                 onTap: () => setState(() => _isSearching = true),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
@@ -165,48 +124,45 @@ class _HomeState extends State<Home> {
           ),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
             child: _isSearching
-                ? Padding(
-                    key: const ValueKey('cancel'),
-                    padding: const EdgeInsets.only(left: 8),
-                    child: GestureDetector(
-                      onTap: () {
-                        _searchController.clear();
-                        _searchFocusNode.unfocus();
-                        setState(() => _isSearching = false);
-                      },
-                      child: const Text(
-                        'Annuler',
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                ? GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      _searchFocusNode.unfocus();
+                      setState(() => _isSearching = false);
+                    },
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Text('Annuler',
+                          style: TextStyle(
+                            color: Colors.redAccent,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          )),
                     ),
                   )
-                : const SizedBox.shrink(key: ValueKey('empty')),
-          ),
+                : const SizedBox.shrink(),
+          )
         ],
       ),
     );
   }
 
-  // --- Chips de catégories avec emojis
+  // --- Chips catégories
   Widget _buildCategoryChips() {
     final cats = _categories(context);
     return SizedBox(
       height: 40,
       child: ListView.separated(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         scrollDirection: Axis.horizontal,
         itemCount: cats.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final cat = cats[index];
+        itemBuilder: (_, i) {
+          final cat = cats[i];
           final selected = _selectedCategory == cat;
+
           return ChoiceChip(
             showCheckmark: false,
             label: Row(
@@ -231,7 +187,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // --- Barre du bas pour scanner le QR code
+  // --- Bottom scanner bar
   Widget _buildBottomScannerBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -239,10 +195,11 @@ class _HomeState extends State<Home> {
       child: Row(
         children: [
           Expanded(
-              child: Text(
-            'Scannez le QR code de votre table pour commander',
-            style: TextStyle(color: Colors.grey.shade700),
-          )),
+            child: Text(
+              'Scannez le QR code de votre table pour commander',
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+          ),
           ElevatedButton(
             onPressed: () async {
               await showDialog(context: context, builder: (_) => const QrScannerModal());
@@ -251,10 +208,65 @@ class _HomeState extends State<Home> {
               backgroundColor: Colors.amber,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              elevation: 0.5,
             ),
             child: const Text('Scanner', style: TextStyle(color: Colors.black87)),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = _filteredProduits(context);
+
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: Consumer<CartProvider>(
+        builder: (_, cart, __) {
+          return buildAppBar(cart.totalItems);
+        },
+        ),
+      ),
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          _buildSearchField(),
+          const SizedBox(height: 12),
+          _buildCategoryChips(),
+          const SizedBox(height: 8),
+          Expanded(
+            child: items.isEmpty
+                ? Center(
+                    child: Text(
+                      'Aucun résultat',
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 8, bottom: 12),
+                    itemCount: items.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (_, i) {
+                      final p = items[i];
+                      return buildProductCard(
+                        context: context,
+                        produit: p,
+                        onCartUpdated: () => setState(() {}),
+                        updateCartCount: (q) => setState(() => cartCount += q),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Material(
+        elevation: 6,
+        child: SafeArea(top: false, child: _buildBottomScannerBar()),
       ),
     );
   }

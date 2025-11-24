@@ -1,5 +1,4 @@
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
-import 'package:drink_eazy/App/Modules/Home/Controller/controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 
@@ -37,7 +36,7 @@ Widget buildAppBar(dynamic cartCount) {
               color: Colors.black87,
             ),
             onPressed: () {
-              Get.to(() => CartPage(cartItems: globalCart));
+              Get.to(() => CartPage());
             },
           ),
           if (cartCount > 0)
