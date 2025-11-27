@@ -5,6 +5,9 @@ import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/App/Component/confirm_component.dart';
 import 'package:drink_eazy/App/Component/showToast_component.dart';
+import 'package:drink_eazy/App/Modules/Cart/View/PasserCommandePage.dart';
+import 'package:drink_eazy/App/Modules/Home/Controller/controller.dart';
+import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -26,14 +29,16 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 700),
-      lowerBound: 0.0,
-      upperBound: 0.05,
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed) _pulseController.reverse();
-      });
+    cartItems = List<Map<String, dynamic>>.from(widget.cartItems);
+    _pulseController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 700),
+          lowerBound: 0.0,
+          upperBound: 0.05,
+        )..addStatusListener((status) {
+          if (status == AnimationStatus.completed) _pulseController.reverse();
+        });
   }
 
   @override
@@ -173,6 +178,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
               children: [
                 Row(
                   children: [
+                    // IMAGE
                     Container(
                       width: MediaQuery.of(context).size.width / 5,
                       height: MediaQuery.of(context).size.width / 4,
@@ -216,7 +222,10 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                       ),
                     ),
+
                     const SizedBox(width: 12),
+
+                    // INFOS PRODUIT
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,6 +245,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                                 ),
                               ),
                               const SizedBox(width: 8),
+
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
@@ -260,7 +270,9 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 8), 
+
                           Row(
                             children: [
                               Container(
@@ -281,6 +293,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                                 ),
                               ),
                               const Spacer(),
+
                               Row(
                                 children: [
                                   _styledQtyButton(Icons.remove, () {
@@ -308,6 +321,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 10),
                           if (quantity > 1)
                             Row(
@@ -334,7 +348,9 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 10),
+
                 InkWell(
                   onTap: () => _removeItem(cart, item),
                   child: Container(
@@ -510,64 +526,11 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
     );
   }
 
+  // 🔥🔥🔥 _checkoutButton entièrement corrigé 🔥🔥🔥
   Widget _checkoutButton(CartProvider cart) {
     return GestureDetector(
       onTap: () {
-        if (!cart.isEmpty) {
-          // ici tu peux appeler ton endpoint de création de commande avant de clear le panier
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              content: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade400,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text(
-                            'Commande validée !',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Votre commande a été enregistrée avec succès',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-
-          // vider le panier local après validation (si tu veux)
-          cart.clearCart();
-        }
+        Get.to(() => PasserCommandePage(cartItems: globalCart));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),

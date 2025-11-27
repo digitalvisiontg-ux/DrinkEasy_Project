@@ -11,6 +11,7 @@ import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
 import 'package:drink_eazy/App/Modules/Gerer_Compte/View/gerer_Compte.dart';
 import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
+import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
@@ -79,6 +80,7 @@ class MyApp extends StatelessWidget {
           name: '/inscription_choice',
           page: () => const InscriptionChoicePage(),
         ),
+        GetPage(name: '/home', page: () => const Home()),
         GetPage(
           name: '/inscription_email',
           page: () => const InscriptionEmailPage(),
