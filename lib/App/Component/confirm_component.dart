@@ -16,6 +16,7 @@ Future<bool?> showConfirmComponent(
   IconData? icon,
   Color iconBgColor = Colors.redAccent,
   Color iconColor = Colors.white,
+  void Function()? onConfirm,
 }) {
   return showDialog<bool>(
     context: context,
@@ -107,7 +108,10 @@ Future<bool?> showConfirmComponent(
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context, true),
+                        onPressed: () {
+                          if (onConfirm != null) onConfirm();
+                          Navigator.pop(context, true);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: confirmColor,
                           elevation: 0,

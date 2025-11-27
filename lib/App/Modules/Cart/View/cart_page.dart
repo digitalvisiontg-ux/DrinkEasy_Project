@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:drink_eazy/App/Component/confirm_component.dart';
 import 'package:drink_eazy/App/Component/showToast_component.dart';
+import 'package:drink_eazy/App/Modules/Cart/View/PasserCommandePage.dart'
+    hide Product;
+import 'package:drink_eazy/App/Modules/Home/Controller/controller.dart';
 import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -24,6 +27,7 @@ class _CartPageState extends State<CartPage>
   void initState() {
     super.initState();
     cartItems = List<Map<String, dynamic>>.from(widget.cartItems);
+
     _pulseController =
         AnimationController(
           vsync: this,
@@ -57,6 +61,7 @@ class _CartPageState extends State<CartPage>
         showToastComponent(context, "Article supprimé du panier");
       }
     });
+
     _pulseController.forward(from: 0);
   }
 
@@ -191,6 +196,7 @@ class _CartPageState extends State<CartPage>
           final item = cartItems[index];
           final Product product = item['product'];
           final int quantity = item['quantity'];
+
           return _buildProductCard(product, quantity, index);
         },
       ),
@@ -225,6 +231,7 @@ class _CartPageState extends State<CartPage>
               children: [
                 Row(
                   children: [
+                    // IMAGE
                     Container(
                       width: MediaQuery.of(context).size.width / 5,
                       height: MediaQuery.of(context).size.width / 4,
@@ -260,7 +267,10 @@ class _CartPageState extends State<CartPage>
                               ),
                       ),
                     ),
+
                     const SizedBox(width: 12),
+
+                    // INFOS PRODUIT
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,6 +290,7 @@ class _CartPageState extends State<CartPage>
                                 ),
                               ),
                               const SizedBox(width: 8),
+
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
@@ -315,7 +326,9 @@ class _CartPageState extends State<CartPage>
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 8),
+
                           Row(
                             children: [
                               Container(
@@ -336,6 +349,7 @@ class _CartPageState extends State<CartPage>
                                 ),
                               ),
                               const Spacer(),
+
                               Row(
                                 children: [
                                   _styledQtyButton(Icons.remove, () {
@@ -366,37 +380,37 @@ class _CartPageState extends State<CartPage>
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 10),
-                          Column(
-                            children: [
-                              if (quantity > 1)
-                                Row(
-                                  children: [
-                                    Text(
-                                      "Sous-total:",
-                                      style: const TextStyle(
-                                        color: Color(0xFF757575),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Text(
-                                      " ${_formatPrice(product.priceCfa * quantity)} CFA",
-                                      style: const TextStyle(
-                                        color: Color(0xFF757575),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ],
+
+                          if (quantity > 1)
+                            Row(
+                              children: [
+                                const Text(
+                                  "Sous-total:",
+                                  style: TextStyle(
+                                    color: Color(0xFF757575),
+                                    fontSize: 13,
+                                  ),
                                 ),
-                            ],
-                          ),
+                                const Spacer(),
+                                Text(
+                                  " ${_formatPrice(product.priceCfa * quantity)} CFA",
+                                  style: const TextStyle(
+                                    color: Color(0xFF757575),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
                         ],
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 10),
+
                 InkWell(
                   onTap: () => _removeItem(index),
                   child: Container(
@@ -417,8 +431,11 @@ class _CartPageState extends State<CartPage>
                           size: 16,
                           color: Colors.red.shade400,
                         ),
-                        SizedBox(width: 6),
-                        Text("Supprimer", style: TextStyle(color: Colors.red)),
+                        const SizedBox(width: 6),
+                        const Text(
+                          "Supprimer",
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -550,60 +567,11 @@ class _CartPageState extends State<CartPage>
     );
   }
 
+  // 🔥🔥🔥 _checkoutButton entièrement corrigé 🔥🔥🔥
   Widget _checkoutButton() {
     return GestureDetector(
       onTap: () {
-        if (cartItems.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              content: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.green.shade400,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.green.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle, color: Colors.white),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text(
-                            'Commande validée !',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            'Votre commande a été enregistrée avec succès',
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+        Get.to(() => PasserCommandePage(cartItems: globalCart));
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
@@ -622,7 +590,7 @@ class _CartPageState extends State<CartPage>
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: const [
             Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
             SizedBox(width: 8),
             Text(
@@ -659,17 +627,22 @@ class _CartPageState extends State<CartPage>
               ),
             ),
             const SizedBox(height: 22),
+
             const Text(
               "Votre panier est vide",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
+
             const SizedBox(height: 8),
+
             Text(
               "Ajoutez des boissons pour commencer votre commande !",
               style: TextStyle(color: Colors.grey.shade600),
               textAlign: TextAlign.center,
             ),
+
             const SizedBox(height: 18),
+
             ElevatedButton(
               onPressed: () {
                 Get.offAll(() => const Home());
@@ -699,6 +672,7 @@ class _CartPageState extends State<CartPage>
   String _formatPrice(int price) {
     final s = price.toString();
     final buffer = StringBuffer();
+
     int count = 0;
     for (int i = s.length - 1; i >= 0; i--) {
       buffer.write(s[i]);
@@ -708,6 +682,7 @@ class _CartPageState extends State<CartPage>
         count = 0;
       }
     }
+
     return buffer.toString().split('').reversed.join('');
   }
 }
