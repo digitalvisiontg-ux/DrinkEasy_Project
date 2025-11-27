@@ -26,7 +26,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     text: "00",
   );
 
-  int currentStep = 1; // 1 = step QR/manual, 2 = confirmation
+  int currentStep = 1;
   bool isScanning = false;
   String selectedTable = "00";
   int tableNumber = 0;
@@ -34,10 +34,8 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   late AnimationController scanController;
   late Animation<double> scanAnim;
 
-  // Utilise la liste passée via le constructeur
   List<Map<String, dynamic>> get cartItems => widget.cartItems;
 
-  // Calcule le total en veillant à convertir num -> int si nécessaire
   int get totalPrice {
     int total = 0;
     for (final item in cartItems) {
@@ -67,9 +65,6 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     super.dispose();
   }
 
-  // ---------------------------------------------------
-  // Scan simulation
-  // ---------------------------------------------------
   void startScan() {
     if (isScanning) return;
 
@@ -90,20 +85,16 @@ class _PasserCommandePageState extends State<PasserCommandePage>
         MaterialPageRoute(builder: (_) => const QrScannerPage()),
       );
 
-      // ⬇️ SI LA PAGE DE SCAN RETOURNE UNE VALEUR
       if (scannedTable != null) {
         setState(() {
           selectedTable = scannedTable.toString();
           tableController.text = selectedTable;
-          currentStep = 2; // Aller au step 2 avec les infos scannées
+          currentStep = 2;
         });
       }
     });
   }
 
-  // ---------------------------------------------------
-  // Manual confirmation
-  // ---------------------------------------------------
   void confirmManual() {
     if (tableController.text == "00" || tableController.text.isEmpty) return;
     setState(() {
@@ -205,9 +196,6 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     );
   }
 
-  // ---------------------------------------------------
-  // STEP 1
-  // ---------------------------------------------------
   Widget buildStep1(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 140),
@@ -435,7 +423,6 @@ class _PasserCommandePageState extends State<PasserCommandePage>
         children: [
           buildStepHeader(step2: true),
           const SizedBox(height: 22),
-
           // Yellow table card
           Container(
             padding: const EdgeInsets.all(18),
@@ -631,27 +618,27 @@ class _PasserCommandePageState extends State<PasserCommandePage>
           const SizedBox(height: 22),
 
           // Info box
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF4EA),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.orange.shade100),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline, color: Colors.orange.shade800),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Text(
-                    "Votre commande sera préparée et livrée à votre table dans environ 10-20 minutes.",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.all(16),
+          //   decoration: BoxDecoration(
+          //     color: const Color(0xFFFFF4EA),
+          //     borderRadius: BorderRadius.circular(16),
+          //     border: Border.all(color: Colors.orange.shade100),
+          //   ),
+          //   child: Row(
+          //     crossAxisAlignment: CrossAxisAlignment.start,
+          //     children: [
+          //       Icon(Icons.info_outline, color: Colors.orange.shade800),
+          //       const SizedBox(width: 12),
+          //       const Expanded(
+          //         child: Text(
+          //           "Votre commande sera préparée et livrée à votre table dans environ 10-20 minutes.",
+          //           style: TextStyle(fontSize: 13),
+          //         ),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -702,78 +689,92 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   // ---------------------------------------------------
   Widget buildStepHeader({required bool step2}) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // STEP 1
-        Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: step2 ? Colors.green : const Color(0xFFFFD73C),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: step2
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
-                    : const Text(
-                        "1",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
+        // ------------ STEP 1 -------------
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: step2 ? Colors.green : const Color(0xFFFFD73C),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: step2
+                      ? const Icon(Icons.check, color: Colors.white, size: 18)
+                      : const Text(
+                          "1",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              "Numéro de table",
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: step2 ? Colors.black : Colors.black,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(width: 12),
-        Container(
-          width: 35,
-          height: 2,
-          color: step2 ? Colors.green : Colors.grey.shade300,
-        ),
-        const SizedBox(width: 12),
-
-        // STEP 2
-        Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: step2 ? const Color(0xFFFFD73C) : Colors.grey.shade300,
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text(
-                  "2",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.black,
+              const SizedBox(width: 6),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "Numéro de table",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              "Confirmation",
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: step2 ? Colors.black : Colors.grey,
+            ],
+          ),
+        ),
+
+        // ------------ LINE -------------
+        Container(
+          width: 30,
+          height: 3,
+          color: step2 ? Colors.green : Colors.grey.shade300,
+        ),
+
+        // ------------ STEP 2 -------------
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: step2 ? const Color(0xFFFFD73C) : Colors.grey.shade300,
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Text(
+                    "2",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 6),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    "Confirmation",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: step2 ? Colors.black : Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
