@@ -260,7 +260,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 8), 
                           Row(
                             children: [
                               Container(

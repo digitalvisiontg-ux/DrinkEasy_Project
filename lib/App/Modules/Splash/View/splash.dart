@@ -1,9 +1,11 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'dart:async';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -14,18 +16,18 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage>
     with SingleTickerProviderStateMixin {
-  // removed _loading flag: bottom area now depends on auth state
   late AnimationController _controller;
   late Animation<double> _logoOpacity;
   late Animation<double> _logoScale;
   late Animation<double> _textOpacity;
 
+  bool _isOffline = false;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
+
   @override
   void initState() {
     super.initState();
-    // Initialize the animation controller and animations immediately so the
-    // build phase can safely reference them, but don't start the animation
-    // until after the first frame and assets are preloaded.
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -44,52 +46,63 @@ class _SplashPageState extends State<SplashPage>
       CurvedAnimation(parent: _controller, curve: const Interval(0.5, 1.0)),
     );
 
-    // Précharger l'image de fond avant de lancer les animations pour éviter
-    // le saut visuel lorsque l'image arrive après le rendu initial.
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        await precacheImage(const AssetImage('assets/images/bgimage2.jpg'), context);
+        await precacheImage(
+            const AssetImage('assets/images/bgimage2.jpg'), context);
       } catch (_) {}
-      // Après préchargement, démarrer les animations et vérifier la session.
       _controller.forward();
-      _checkSession();
+      _checkConnectivity();
     });
+  }
+
+  void _checkConnectivity() async {
+    final result = await Connectivity().checkConnectivity();
+    // result est maintenant une List<ConnectivityResult>
+    final hasConnection = result.isNotEmpty && !result.contains(ConnectivityResult.none);
+    
+    if (!hasConnection) {
+      setState(() => _isOffline = true);
+      return;
+    }
+
+    _connectivitySub =
+        Connectivity().onConnectivityChanged.listen((resultList) async {
+      if (!mounted) return;
+      final hasConnNow = resultList.isNotEmpty && !resultList.contains(ConnectivityResult.none);
+      if (hasConnNow && _isOffline) {
+        setState(() => _isOffline = false);
+        _checkSession();
+      }
+    });
+
+    _checkSession();
   }
 
   Future<void> _checkSession() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
-    // Si l'utilisateur est déjà connecté, afficher le splash un court instant
-    // (sans bouton) puis rediriger vers Home.
     if (auth.user != null) {
-      // afficher le splash ~700ms pour l'animation puis naviguer
       await Future.delayed(const Duration(milliseconds: 700));
       if (mounted) Get.offAll(() => const Home());
-    } else {
-      // L'utilisateur n'est pas connecté : laisser un court délai pour les animations
-      await Future.delayed(const Duration(milliseconds: 200));
-      // pas de changement d'état local nécessaire : le bouton s'affiche via Provider
     }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _connectivitySub?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Use a dark background while the image is loading so we don't show white
       backgroundColor: Colors.black,
       body: Stack(
         children: [
           // --- Background ---
           Positioned.fill(
             child: Container(
-              // Use a decoration image rather than Image.asset to ensure the
-              // background covers the whole screen (including under system bars)
-              // and to avoid layout reflow during image load.
               decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage('assets/images/bgimage2.jpg'),
@@ -100,11 +113,8 @@ class _SplashPageState extends State<SplashPage>
             ),
           ),
           // --- Overlay ---
-          Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.4)),
-          ),
-
-          // --- Animated Glass Overlay (subtle moving light effect) ---
+          Positioned.fill(child: Container(color: Colors.black.withOpacity(0.4))),
+          // --- Animated Glass Overlay ---
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _controller,
@@ -124,7 +134,6 @@ class _SplashPageState extends State<SplashPage>
               ),
             ),
           ),
-
           // --- Content ---
           SafeArea(
             child: Padding(
@@ -133,7 +142,6 @@ class _SplashPageState extends State<SplashPage>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const SizedBox(height: 20),
-
                   // --- Animated logo + text ---
                   FadeTransition(
                     opacity: _logoOpacity,
@@ -174,34 +182,45 @@ class _SplashPageState extends State<SplashPage>
                       ),
                     ),
                   ),
-
-                  // --- Animated Button / Loader ---
+                  // --- Animated Button / Offline Message ---
                   Padding(
                     padding: const EdgeInsets.only(bottom: 20),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 600),
                       transitionBuilder: (child, anim) =>
                           ScaleTransition(scale: anim, child: child),
-                      child: Builder(builder: (ctx) {
-                        final auth = Provider.of<AuthProvider>(ctx);
-                        // Si l'utilisateur est connecté, ne rien afficher en bas.
-                        if (auth.user != null) {
-                          // Keep a transparent placeholder with the same height as
-                          // the 'Commencer' button so the layout spacing remains
-                          // identical between connected and non-connected states.
-                          return const SizedBox(
-                            width: double.infinity,
-                            height: 45,
-                          );
-                        }
-                        // Si non connecté, afficher le bouton "Commencer" (pas de loader en bas).
-                        return ButtonComponent(
-                          textButton: 'Commencer',
-                          onPressed: () {
-                            Get.offAll(() => const Home());
-                          },
-                        );
-                      }),
+                      child: _isOffline
+                          ? Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.redAccent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text(
+                                'Vous êtes hors connexion. Impossible d’accéder à l’app.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
+                          : Builder(builder: (ctx) {
+                              final auth = Provider.of<AuthProvider>(ctx);
+                              if (auth.user != null) {
+                                return const SizedBox(
+                                  width: double.infinity,
+                                  height: 45,
+                                );
+                              }
+                              return ButtonComponent(
+                                textButton: 'Commencer',
+                                onPressed: () {
+                                  Get.offAll(() => const Home());
+                                },
+                              );
+                            }),
                     ),
                   ),
                 ],

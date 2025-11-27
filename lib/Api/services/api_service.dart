@@ -15,7 +15,6 @@ class ApiService {
       headers: {
         'Accept': 'application/json',
       },
-      contentType: Headers.jsonContentType,
     ));
 
     dio.interceptors.add(InterceptorsWrapper(
@@ -47,7 +46,6 @@ class ApiService {
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? params}) => _dio.get(path, queryParameters: params);
-  Future<Response> post(String path, Map<String, dynamic> data) => _dio.post(path, data: data);
-  Future<Response> put(String path, Map<String, dynamic> data) => _dio.put(path, data: data);
+  Future<Response> post(String path, dynamic data) => _dio.post(path, data: data);
   Future<Response> delete(String path) => _dio.delete(path);
 }

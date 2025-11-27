@@ -6,6 +6,7 @@ import 'package:drink_eazy/App/Modules/Home/View/qr_scanner_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
+import 'dart:ui';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -17,12 +18,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-
   String _selectedCategory = 'Tous';
-  int cartCount = 0;
   bool _isSearching = false;
 
-  // --- Récupération des catégories dynamiques
   List<String> _categories(BuildContext context) {
     final source = Provider.of<ProduitProvider>(context).produits;
     final cats = source
@@ -36,7 +34,6 @@ class _HomeState extends State<Home> {
     return cats;
   }
 
-  // --- Emoji catégorie
   String _emojiForCategory(String category) {
     switch (category.toLowerCase()) {
       case 'promotion':
@@ -58,7 +55,6 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // --- Filtrage produits
   List<Produit> _filteredProduits(BuildContext context) {
     final produits = Provider.of<ProduitProvider>(context).produits;
     final query = _searchController.text.trim().toLowerCase();
@@ -66,29 +62,16 @@ class _HomeState extends State<Home> {
     return produits.where((p) {
       final matchQuery = query.isEmpty || p.nomProd.toLowerCase().contains(query);
 
-      // Filtrer promotion
       if (_selectedCategory == 'Promotion') {
         return matchQuery && (p.promotionActive || p.promotionsDetails.isNotEmpty);
       }
 
-      // Tous les produits
-      if (_selectedCategory == 'Tous') {
-        return matchQuery;
-      }
+      if (_selectedCategory == 'Tous') return matchQuery;
 
-      // Catégorie normale
       return matchQuery && p.categorie?.nomCat.trim() == _selectedCategory;
     }).toList();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  // --- Barre de recherche
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 13.0),
@@ -148,7 +131,6 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // --- Chips catégories
   Widget _buildCategoryChips() {
     final cats = _categories(context);
     return SizedBox(
@@ -187,7 +169,6 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // --- Bottom scanner bar
   Widget _buildBottomScannerBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -217,57 +198,119 @@ class _HomeState extends State<Home> {
     );
   }
 
+  void _retry() {
+    // Rafraîchir la page en forçant setState
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    final produits = Provider.of<ProduitProvider>(context).produits;
     final items = _filteredProduits(context);
+    final isOffline = produits.isEmpty;
 
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(56),
-        child: Consumer<CartProvider>(
-        builder: (_, cart, __) {
-          return buildAppBar(cart.totalItems);
-        },
-        ),
-      ),
-      backgroundColor: const Color(0xFFF8F8F8),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          _buildSearchField(),
-          const SizedBox(height: 12),
-          _buildCategoryChips(),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun résultat',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                    ),
-                  )
-                : ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                    itemCount: items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (_, i) {
-                      final p = items[i];
-                      return buildProductCard(
-                        context: context,
-                        produit: p,
-                        onCartUpdated: () => setState(() {}),
-                        updateCartCount: (q) => setState(() => cartCount += q),
-                      );
-                    },
-                  ),
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: Consumer<CartProvider>(
+              builder: (_, cart, __) {
+                return buildAppBar(cart.totalItems);
+              },
+            ),
           ),
-        ],
-      ),
-      bottomNavigationBar: Material(
-        elevation: 6,
-        child: SafeArea(top: false, child: _buildBottomScannerBar()),
-      ),
+          backgroundColor: const Color(0xFFF8F8F8),
+          body: Column(
+            children: [
+              const SizedBox(height: 12),
+              _buildSearchField(),
+              const SizedBox(height: 12),
+              _buildCategoryChips(),
+              const SizedBox(height: 8),
+              Expanded(
+  child: RefreshIndicator(
+    color: Colors.amber,
+    onRefresh: () async {
+      await Provider.of<ProduitProvider>(context, listen: false).fetchProduits();
+    },
+    child: items.isEmpty
+        ? ListView(
+            // Nécessaire pour que RefreshIndicator fonctionne même si la liste est vide
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              Center(
+                child: Text(
+                  isOffline ? '' : 'Aucun résultat',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                ),
+              ),
+            ],
+          )
+        : ListView.separated(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.only(top: 8, bottom: 12),
+            itemCount: items.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (_, i) {
+              final p = items[i];
+              return buildProductCard(
+                context: context,
+                produit: p,
+                onCartUpdated: () => setState(() {}),
+                updateCartCount: (q) => setState(() {}),
+              );
+            },
+          ),
+  ),
+),
+            ],
+          ),
+          bottomNavigationBar: Material(
+            elevation: 6,
+            child: SafeArea(top: false, child: _buildBottomScannerBar()),
+          ),
+        ),
+
+        // --- Pop-up hors connexion ---
+        if (isOffline)
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.3),
+              alignment: Alignment.center,
+              child: Card(
+                elevation: 12,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.wifi_off, size: 50, color: Colors.amber),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Vous êtes hors connexion.\nVeuillez vous connecter et réessayer.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: _retry,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.amber,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        ),
+                        child: const Text('Réessayer', style: TextStyle(color: Colors.black87)),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

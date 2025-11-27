@@ -1,9 +1,16 @@
 
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/config/api_constants.dart';
 import 'package:drink_eazy/Api/services/api_service.dart';
 
 class AuthApi {
+
+  Future<Map<String, dynamic>> getMe() async {
+  final response = await _apiService.get(ApiConstants.authMe);
+  return response.data;
+}
 
   /// Déconnexion utilisateur (logout)
   Future<void> logout() async {
@@ -39,15 +46,6 @@ class AuthApi {
 
   AuthApi({ApiService? apiService}) : _apiService = apiService ?? ApiService();
 
-  /// Get current user (auto-login)
-  Future<Map<String, dynamic>> getMe() async {
-    try {
-      final response = await _apiService.get(ApiConstants.authMe);
-      return response.data;
-    } on DioException catch (e) {
-      throw Exception(_extractError(e));
-    }
-  }
 
 
   Future<Map<String, dynamic>> forgotPassword(String login) async {
@@ -86,6 +84,30 @@ Future<Map<String, dynamic>> resetPassword(Map<String, dynamic> data) async {
       throw Exception('Erreur deleteAccount: ${_extractError(e)}');
     }
   }
+
+  /// modification
+   Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data, {File? avatar}) async {
+  try {
+    FormData formData = FormData.fromMap(data);
+
+    if (avatar != null) {
+      formData.files.add(MapEntry(
+        'avatar',
+        await MultipartFile.fromFile(avatar.path, filename: avatar.path.split('/').last),
+      ));
+    }
+
+    final response = await _apiService.post(
+      '${ApiConstants.authBase}/profile', // ton endpoint Laravel POST
+      formData 
+    );
+
+    return response.data;
+  } on DioException catch (e) {
+    throw Exception(_extractError(e));
+  }
+}
+
 
   // Utilitaire pour extraire message d'erreur (dès que possible)
   String _extractError(DioException e) {

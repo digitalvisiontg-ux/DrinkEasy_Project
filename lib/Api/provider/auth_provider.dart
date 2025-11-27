@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/services/auth_api.dart';
@@ -16,6 +18,9 @@ class AuthProvider extends ChangeNotifier {
   ///   'email': String,
   ///   ...
   /// }
+  /// 
+  /// 
+  /// 
 
   // 🔹 RESTORE SESSION (auto-login)
   Future<void> restoreSession() async {
@@ -274,6 +279,35 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  // modification
+  Future<bool> updateProfile(Map<String, dynamic> data, {File? avatar}) async {
+  _setLoading(true);
+  _setError(null);
+  try {
+    final response = await _authApi.updateProfile(data, avatar: avatar);
+
+    if (response['success'] == true || response['user'] != null) {
+      if (response['user'] != null && response['user'] is Map<String, dynamic>) {
+        _setUser(response['user']);
+        await SecureStorage.writeUser(Map<String, dynamic>.from(response['user']));
+      }
+      _setLoading(false);
+      return true;
+    } else {
+      _setError(response['message'] ?? 'Erreur lors de la mise à jour du profil');
+      _setLoading(false);
+      return false;
+    }
+  } catch (e) {
+    final msg = e is Exception
+        ? e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '')
+        : e.toString();
+    _setError(msg);
+    _setLoading(false);
+    return false;
+  }
+}
+
   // 🔹 LOGOUT
   Future<void> logout() async {
     try {
@@ -285,4 +319,18 @@ class AuthProvider extends ChangeNotifier {
     _setUser(null);
     notifyListeners();
   }
+
+  Future<void> loadUser() async {
+  try {
+    final res = await _authApi.getMe();
+    if (res['user'] != null && res['user'] is Map<String, dynamic>) {
+      _setUser(Map<String, dynamic>.from(res['user']));
+    } else {
+      _setUser(null);
+    }
+  } catch (e) {
+    _setError(e.toString()); // Utilise le setter pour notifier l'UI
+  }
+}
+
 }

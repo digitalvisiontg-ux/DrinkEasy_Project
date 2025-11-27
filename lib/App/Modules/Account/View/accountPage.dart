@@ -16,6 +16,15 @@ class AccountPage extends StatefulWidget {
 class _AccountPageState extends State<AccountPage> {
   File? _profileImage;
 
+  @override
+  void initState() {
+    super.initState();
+    // Charger l'utilisateur depuis le backend
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().loadUser();
+    });
+  }
+
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(
@@ -26,6 +35,9 @@ class _AccountPageState extends State<AccountPage> {
       setState(() {
         _profileImage = File(image.path);
       });
+      // Optionnel : envoyer l'image au backend
+      final provider = context.read<AuthProvider>();
+      await provider.updateProfile({}, avatar: _profileImage);
     }
   }
 
@@ -40,9 +52,7 @@ class _AccountPageState extends State<AccountPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+          onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
           "Mon Compte",
@@ -58,8 +68,6 @@ class _AccountPageState extends State<AccountPage> {
         child: Column(
           children: [
             // --- Mode invité ---
-
-            // Affichage du mode déjà connecté
             if (user == null)
               Column(
                 children: [
@@ -186,24 +194,12 @@ class _AccountPageState extends State<AccountPage> {
                                     ? FileImage(_profileImage!)
                                     : null,
                                 child: _profileImage == null
-                                    ? const Icon(
+                                    ? Icon(
                                         Icons.person,
                                         color: Colors.black,
                                         size: 42,
                                       )
                                     : null,
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                  color: Colors.black87,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
                               ),
                             ],
                           ),
@@ -218,7 +214,6 @@ class _AccountPageState extends State<AccountPage> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        // Mettre un email pour jus pour le test
                         Text(
                           user['email']?.toString() ??
                               user['phone']?.toString() ??
@@ -274,28 +269,6 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                  // ElevatedButton.icon(
-                  //   onPressed: () async {
-                  //     try {
-                  //       await auth.logout();
-                  //     } catch (e) {
-                  //       debugPrint('Logout error: $e');
-                  //     }
-                  //     Get.offAll(const Home());
-                  //   },
-                  //   icon: const Icon(Icons.logout, color: Colors.white),
-                  //   label: const Text(
-                  //     "Déconnexion",
-                  //     style: TextStyle(fontSize: 16, color: Colors.white),
-                  //   ),
-                  //   style: ElevatedButton.styleFrom(
-                  //     backgroundColor: Colors.red.shade700,
-                  //     minimumSize: const Size.fromHeight(50),
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(30),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
 
@@ -338,7 +311,7 @@ class _AccountPageState extends State<AccountPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     "⭐ Programme de fidélité",
                     style: TextStyle(
                       color: Colors.white,
@@ -346,13 +319,13 @@ class _AccountPageState extends State<AccountPage> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
+                  const SizedBox(height: 8),
+                  const Text(
                     "Gagnez des points à chaque commande et débloquez des récompenses exclusives !",
                     style: TextStyle(color: Colors.white),
                   ),
-                  SizedBox(height: 12),
-                  Text(
+                  const SizedBox(height: 12),
+                  const Text(
                     "• 1 commande = 10 points\n• 100 points = 1 boisson offerte",
                     style: TextStyle(
                       color: Colors.white,
