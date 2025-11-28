@@ -36,10 +36,55 @@ class CommandeValideePage extends StatelessWidget {
     final String orderNumber = "#${6000 + DateTime.now().millisecond}";
 
     return Scaffold(
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   elevation: 0,
+      //   centerTitle: true,
+      //   title: const Text(
+      //     "Commande Validée",
+      //     style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
+      //   ),
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back, color: Colors.black87),
+      //     onPressed: () => Get.back(),
+      //   ),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
         child: Column(
           children: [
+            Column(
+              children: [
+                InkWell(
+                  onTap: () => Get.offAllNamed("/home"),
+                  borderRadius: BorderRadius.circular(40),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.amber.withOpacity(0.4),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: const Icon(Icons.home_rounded, color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  "Retour à l'accueil",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+
             Image.asset("assets/images/confettis.gif", width: 100, height: 100),
 
             const SizedBox(height: 16),
@@ -64,7 +109,7 @@ class CommandeValideePage extends StatelessWidget {
 
             // 🟣 Numéro de commande
             Material(
-              elevation: 2,
+              elevation: 0.4,
               borderRadius: BorderRadius.circular(18),
               child: Container(
                 width: double.infinity,
@@ -108,7 +153,7 @@ class CommandeValideePage extends StatelessWidget {
 
             // 🟡 Votre table
             Material(
-              elevation: 2,
+              elevation: 0.4,
               borderRadius: BorderRadius.circular(18),
               child: Container(
                 width: double.infinity,
@@ -164,7 +209,7 @@ class CommandeValideePage extends StatelessWidget {
 
             // 🔵 Temps estimé
             Material(
-              elevation: 2,
+              elevation: 0.4,
               borderRadius: BorderRadius.circular(18),
               child: Container(
                 width: double.infinity,
@@ -212,7 +257,7 @@ class CommandeValideePage extends StatelessWidget {
 
             // 🧾 Détails de la commande
             Material(
-              elevation: 2,
+              elevation: 0.4,
               borderRadius: BorderRadius.circular(18),
               child: Container(
                 width: double.infinity,
@@ -245,8 +290,8 @@ class CommandeValideePage extends StatelessWidget {
                           child: Text(
                             "${cartItems.length} articles",
                             style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.green,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2AA55B),
                             ),
                           ),
                         ),
@@ -267,22 +312,23 @@ class CommandeValideePage extends StatelessWidget {
                           child: Row(
                             children: [
                               Container(
-                                width: 26,
-                                height: 26,
+                                width: 30,
+                                height: 30,
                                 decoration: BoxDecoration(
-                                  color: Colors.yellow.shade700,
-                                  shape: BoxShape.circle,
+                                  color: const Color(0xFFFFF4E0),
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Center(
                                   child: Text(
                                     "${index + 1}",
                                     style: const TextStyle(
-                                      color: Colors.white,
                                       fontWeight: FontWeight.w700,
+                                      color: Color(0xFFB76D00),
                                     ),
                                   ),
                                 ),
                               ),
+
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -348,27 +394,27 @@ class CommandeValideePage extends StatelessWidget {
             const SizedBox(height: 20),
 
             // Orange Notification
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3E0),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.info, color: Colors.orange),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      "Votre commande sera livrée à votre table dans environ 14 minutes.",
-                      style: TextStyle(color: Colors.black87),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Container(
+            //   padding: const EdgeInsets.all(16),
+            //   decoration: BoxDecoration(
+            //     color: const Color(0xFFFFF3E0),
+            //     borderRadius: BorderRadius.circular(14),
+            //   ),
+            //   child: const Row(
+            //     children: [
+            //       Icon(Icons.info, color: Colors.orange),
+            //       SizedBox(width: 10),
+            //       Expanded(
+            //         child: Text(
+            //           "Votre commande sera livrée à votre table dans environ 14 minutes.",
+            //           style: TextStyle(color: Colors.black87),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
-            const SizedBox(height: 25),
+            // const SizedBox(height: 25),
 
             // 🟦 Modifier la commande
             SizedBox(
@@ -450,36 +496,6 @@ class CommandeValideePage extends StatelessWidget {
             ),
 
             const SizedBox(height: 12),
-
-            // 🟡 Retour Accueil
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Get.offAllNamed("/home"),
-                style: ElevatedButton.styleFrom(
-                  elevation: 0.3,
-                  backgroundColor: Colors.amber,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 26,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.home, color: Colors.black87),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Retour à l'accueil",
-                      style: TextStyle(color: Colors.black87, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),

@@ -29,7 +29,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    cartItems = List<Map<String, dynamic>>.from(widget.cartItems);
+    // Rien à initialiser ici : les données du panier viennent de CartProvider.
     _pulseController =
         AnimationController(
           vsync: this,
