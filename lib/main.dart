@@ -9,6 +9,7 @@ import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
 import 'package:drink_eazy/App/Modules/Gerer_Compte/View/gerer_Compte.dart';
 import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
+import 'package:drink_eazy/App/Modules/Home/View/OrderDetailsPag.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
@@ -110,6 +111,7 @@ class MyApp extends StatelessWidget {
           page: () => const OtpPage(login: ''),
         ),
         GetPage(name: '/account', page: () => const AccountPage()),
+        GetPage(name: "/orderDetails", page: () => const OrderDetailsPage()),
 
         // Provide an empty list or appropriate cart items
       ],

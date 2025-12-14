@@ -1,8 +1,8 @@
 import 'package:drink_eazy/App/Modules/Home/Controller/productController.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
 import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
-import 'package:drink_eazy/App/Modules/Home/View/qr_scanner_modal.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -17,9 +17,26 @@ class _HomeState extends State<Home> {
 
   String _selectedCategory = 'Tous';
   int cartCount = 0;
-  bool _isSearching = false; // ✅ Nouveau
+  bool _isSearching = false;
 
-  // --- Filtrage des produits ---
+  Map<String, dynamic>? runningOrder;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args != null && args is Map<String, dynamic>) {
+      setState(() {
+        runningOrder = args;
+      });
+    }
+  }
+
+  // ------------------------------
+  // FILTRAGE PRODUITS
+  // ------------------------------
   List<Product> get _filteredProducts {
     final query = _searchController.text.trim().toLowerCase();
     return products.where((p) {
@@ -31,13 +48,14 @@ class _HomeState extends State<Home> {
     }).toList();
   }
 
-  // --- Barre de recherche ---
+  // ------------------------------
+  // CHAMP DE RECHERCHE
+  // ------------------------------
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 13.0),
       child: Row(
         children: [
-          // --- Champ de recherche ---
           Expanded(
             child: SizedBox(
               height: 45,
@@ -45,9 +63,7 @@ class _HomeState extends State<Home> {
                 style: const TextStyle(fontSize: 14),
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                onTap: () {
-                  setState(() => _isSearching = true);
-                },
+                onTap: () => setState(() => _isSearching = true),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'Rechercher une boisson...',
@@ -67,12 +83,10 @@ class _HomeState extends State<Home> {
                     ),
                   ),
                 ),
-                textInputAction: TextInputAction.search,
               ),
             ),
           ),
 
-          // --- Bouton Annuler ---
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             transitionBuilder: (child, anim) =>
@@ -83,7 +97,6 @@ class _HomeState extends State<Home> {
                     padding: const EdgeInsets.only(left: 8),
                     child: GestureDetector(
                       onTap: () {
-                        // Ferme le champ et vide le texte
                         _searchController.clear();
                         _searchFocusNode.unfocus();
                         setState(() => _isSearching = false);
@@ -105,7 +118,9 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // --- Catégories avec emoji ---
+  // ------------------------------
+  // CATÉGORIES
+  // ------------------------------
   Widget _buildCategoryChips() {
     return SizedBox(
       height: 40,
@@ -145,19 +160,15 @@ class _HomeState extends State<Home> {
                 width: 1.2,
               ),
             ),
-            onSelected: (_) {
-              setState(() {
-                _selectedCategory = cat;
-              });
-            },
+            onSelected: (_) => setState(() => _selectedCategory = cat),
           );
         },
       ),
     );
   }
 
-  String _emojiForCategory(String category) {
-    switch (category.toLowerCase().trim()) {
+  String _emojiForCategory(String cat) {
+    switch (cat.toLowerCase().trim()) {
       case 'promotion':
         return '🎉';
       case 'bière':
@@ -177,107 +188,181 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // --- Barre du bas ---
-  Widget _buildBottomScannerBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Scannez le QR code de votre table pour commander',
-              style: TextStyle(color: Colors.grey.shade700),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await showDialog(
-                context: context,
-                builder: (_) => const QrScannerModal(),
-              );
+  // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
+  // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
+  Widget _buildRunningOrderBottomCard() {
+    if (runningOrder == null) return const SizedBox.shrink();
+
+    final media = MediaQuery.of(context);
+    final double horizontalPadding = media.size.width * 0.04; // adaptatif
+    final double iconSize = media.size.width < 360 ? 20 : 22;
+
+    return Positioned(
+      left: horizontalPadding,
+      right: horizontalPadding,
+      bottom: media.padding.bottom * 0.2 + 0,
+      child: SafeArea(
+        top: false,
+        child: Material(
+          elevation: 5,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () {
+              Get.toNamed("/orderDetails", arguments: runningOrder);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: media.size.width * 0.04,
+                vertical: media.size.height * 0.018,
               ),
-              elevation: 0.5,
-            ),
-            child: const Text(
-              'Scanner',
-              style: TextStyle(color: Colors.black87),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  // ICON
+                  Container(
+                    width: media.size.width * 0.11,
+                    height: media.size.width * 0.11,
+                    constraints: const BoxConstraints(
+                      minWidth: 38,
+                      maxWidth: 44,
+                      minHeight: 38,
+                      maxHeight: 44,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFC8FFD4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      color: Colors.green,
+                      size: iconSize,
+                    ),
+                  ),
+
+                  const SizedBox(width: 14),
+
+                  // TEXTE
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "Commande en cours",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Table #${runningOrder!["tableNumber"]} • ${runningOrder!["orderId"]}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // CHEVRON
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: media.size.width < 360 ? 16 : 18,
+                    color: Colors.black45,
+                  ),
+                ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose(); // ✅ Libère le focus node
-    super.dispose();
+  // ------------------------------
+  // CONTENU PRINCIPAL
+  // ------------------------------
+  Widget _buildContent() {
+    final items = _filteredProducts;
+
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        _buildSearchField(),
+        const SizedBox(height: 12),
+        _buildCategoryChips(),
+        const SizedBox(height: 8),
+
+        Expanded(
+          child: items.isEmpty
+              ? Center(
+                  child: Text(
+                    'Aucun résultat',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                  ),
+                )
+              : ListView.separated(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.only(top: 8, bottom: 50),
+                  itemBuilder: (context, index) {
+                    final p = items[index];
+                    return buildProductCard(
+                      context: context,
+                      p: p,
+                      onCartUpdated: () => setState(() {}),
+                      updateCartCount: (qty) =>
+                          setState(() => cartCount += qty),
+                    );
+                  },
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemCount: items.length,
+                ),
+        ),
+        SizedBox(
+          height: runningOrder == null
+              ? 25
+              : MediaQuery.of(context).padding.bottom + 40,
+        ),
+      ],
+    );
   }
 
-  // --- Interface principale ---
   @override
   Widget build(BuildContext context) {
-    final items = _filteredProducts;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: buildAppBar(cartCount),
       ),
       backgroundColor: const Color(0xFFF8F8F8),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-          _buildSearchField(),
-          const SizedBox(height: 12),
-          _buildCategoryChips(),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun résultat',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 16,
-                      ),
-                    ),
-                  )
-                : ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                    itemBuilder: (context, index) {
-                      final p = items[index];
-                      return buildProductCard(
-                        context: context,
-                        p: p,
-                        onCartUpdated: () => setState(() {}),
-                        updateCartCount: (qty) =>
-                            setState(() => cartCount += qty),
-                      );
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemCount: items.length,
-                  ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: Material(
-        elevation: 6,
-        child: SafeArea(top: false, child: _buildBottomScannerBar()),
-      ),
+      body: Stack(children: [_buildContent(), _buildRunningOrderBottomCard()]),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
   }
 }
 
-// --- Classe Produit ---
+// ------------------------------
+// CLASS PRODUCT
+// ------------------------------
 class Product {
   final String name;
   final String category;
