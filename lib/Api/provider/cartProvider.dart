@@ -72,34 +72,48 @@ class CartProvider with ChangeNotifier {
   bool containsProduct(int productId) => _items.containsKey(productId);
   CartItem? getItemByProductId(int productId) => _items[productId];
 
+  // Nombre total d'articles offerts éligibles selon les promotions "achat_offert"
+  int get totalOfferedProducts {
+    int total = 0;
+    _items.forEach((_, item) {
+      final promos = item.produit.promotionsDetails;
+      for (final promo in promos) {
+        if (promo.type.toLowerCase() == 'achat_offert' &&
+            promo.quantiteAchat != null &&
+            promo.quantiteOfferte != null) {
+          total += (item.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+          break; // on prend la première promo applicable pour ce produit
+        }
+      }
+    });
+    return total;
+  }
+
+  /// Nombre d'articles offerts pour un produit précis dans le panier
+  int offeredCountForProduct(int productId) {
+    final item = _items[productId];
+    if (item == null) return 0;
+    int total = 0;
+    final promos = item.produit.promotionsDetails;
+    for (final promo in promos) {
+      if (promo.type.toLowerCase() == 'achat_offert' &&
+          promo.quantiteAchat != null &&
+          promo.quantiteOfferte != null) {
+        total += (item.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+        break;
+      }
+    }
+    return total;
+  }
+
   // --- persistence (SharedPreferences) ---
   Future<void> _saveToPrefs() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final list = _items.values.map((e) => e.toMap()).toList();
-      await prefs.setString(_prefsKey, json.encode(list));
-    } catch (e) {
-      // log mais ne breaker l'app
-      debugPrint('CartProvider _saveToPrefs error: $e');
-    }
+    // Désactivé : ne pas persister le panier localement.
+    return Future.value();
   }
 
   Future<void> loadFromPrefs() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonStr = prefs.getString(_prefsKey);
-      if (jsonStr == null || jsonStr.isEmpty) return;
-      final decoded = json.decode(jsonStr);
-      if (decoded is List) {
-        _items.clear();
-        for (final e in decoded) {
-          final item = CartItem.fromMap(Map<String, dynamic>.from(e));
-          _items[item.produit.id] = item;
-        }
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint('CartProvider loadFromPrefs error: $e');
-    }
+    // Méthode laissée pour compatibilité mais sans effet.
+    return Future.value();
   }
 }

@@ -61,7 +61,7 @@ Future<void> main() async {
         // Fournir l'instance déjà initialisée
         ChangeNotifierProvider.value(value: auth),
         ChangeNotifierProvider.value(value: produitProvider),
-        ChangeNotifierProvider(create: (_) => CartProvider()..loadFromPrefs()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: const MyApp(),
     ),

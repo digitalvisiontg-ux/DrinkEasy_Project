@@ -323,7 +323,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                           ),
 
                           const SizedBox(height: 10),
-                          if (quantity > 1)
+                          if (quantity > 1) ...[
                             Row(
                               children: [
                                 const Text(
@@ -343,6 +343,30 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                                 ),
                               ],
                             ),
+
+                            // Afficher le nombre d'articles offerts pour ce produit si éligible
+                            Builder(builder: (ctx) {
+                              final offered = cart.offeredCountForProduct(product.id);
+                              return offered > 0
+                                  ? Padding(
+                                      padding: const EdgeInsets.only(top: 6.0),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'Offert : $offered',
+                                            style: TextStyle(
+                                              color: Colors.green.shade700,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                        ],
+                                      ),
+                                    )
+                                  : const SizedBox.shrink();
+                            }),
+                          ],
                         ],
                       ),
                     ),
@@ -446,6 +470,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
   Widget _buildBottomBar(ThemeData theme, CartProvider cart) {
     final items = cart.itemsList;
     final total = _formatTotalPrice(items);
+    final offeredCount = cart.totalOfferedProducts;
 
     return SafeArea(
       top: false,
@@ -496,7 +521,24 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
+                                const SizedBox(height: 4),
+                                if (offeredCount > 0)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 6.0),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'Total Offert : $offeredCount',
+                                          style: TextStyle(
+                                            color: Colors.green.shade700,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                      ],
+                                    ),
+                                  ),
                         ],
                       ),
                       _checkoutButton(cart),
