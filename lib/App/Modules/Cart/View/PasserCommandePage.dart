@@ -4,8 +4,6 @@
 
 import 'dart:async';
 import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
-import 'package:drink_eazy/App/Modules/Cart/View/QrScan_Page.dart'
-    show QRScanPage;
 import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
