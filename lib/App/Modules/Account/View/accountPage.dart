@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:drink_eazy/App/Component/listTitle_component.dart';
-import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
@@ -59,8 +58,7 @@ class _AccountPageState extends State<AccountPage> {
         child: Column(
           children: [
             // --- Mode invité ---
-
-            // Affichage du mode déjà connecté
+            // Affichage du mode connecté
             if (user == null)
               Column(
                 children: [
@@ -222,7 +220,7 @@ class _AccountPageState extends State<AccountPage> {
                         // Mettre un email pour jus pour le test
                         Text(
                           user['email']?.toString() ??
-                              user?['phone']?.toString() ??
+                              user['phone']?.toString() ??
                               '',
                           style: TextStyle(color: Colors.grey.shade700),
                         ),
@@ -275,28 +273,6 @@ class _AccountPageState extends State<AccountPage> {
                       ),
                     ),
                   ),
-                  // ElevatedButton.icon(
-                  //   onPressed: () async {
-                  //     try {
-                  //       await auth.logout();
-                  //     } catch (e) {
-                  //       debugPrint('Logout error: $e');
-                  //     }
-                  //     Get.offAll(const Home());
-                  //   },
-                  //   icon: const Icon(Icons.logout, color: Colors.white),
-                  //   label: const Text(
-                  //     "Déconnexion",
-                  //     style: TextStyle(fontSize: 16, color: Colors.white),
-                  //   ),
-                  //   style: ElevatedButton.styleFrom(
-                  //     backgroundColor: Colors.red.shade700,
-                  //     minimumSize: const Size.fromHeight(50),
-                  //     shape: RoundedRectangleBorder(
-                  //       borderRadius: BorderRadius.circular(30),
-                  //     ),
-                  //   ),
-                  // ),
                 ],
               ),
 
@@ -307,21 +283,10 @@ class _AccountPageState extends State<AccountPage> {
               onTap: () => Get.toNamed('/historique_commandes'),
             ),
             listTileComponent(
-              icon: Icons.card_giftcard,
-              title: "Offres spéciales",
-              onTap: () => Get.toNamed('/offres_speciales'),
-            ),
-            listTileComponent(
               icon: Icons.settings_outlined,
               title: "Paramètres",
               onTap: () => Get.toNamed('/parametres'),
             ),
-            listTileComponent(
-              icon: Icons.headset_mic_outlined,
-              title: "Support client",
-              onTap: () => Get.toNamed('/support_client'),
-            ),
-            const SizedBox(height: 24),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
