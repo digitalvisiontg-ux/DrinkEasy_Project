@@ -68,6 +68,7 @@ class _AccountPageState extends State<AccountPage> {
         child: Column(
           children: [
             // --- Mode invité ---
+            // Affichage du mode connecté
             if (user == null)
               Column(
                 children: [
@@ -279,21 +280,10 @@ class _AccountPageState extends State<AccountPage> {
               onTap: () => Get.toNamed('/historique_commandes'),
             ),
             listTileComponent(
-              icon: Icons.card_giftcard,
-              title: "Offres spéciales",
-              onTap: () => Get.toNamed('/offres_speciales'),
-            ),
-            listTileComponent(
               icon: Icons.settings_outlined,
               title: "Paramètres",
               onTap: () => Get.toNamed('/parametres'),
             ),
-            listTileComponent(
-              icon: Icons.headset_mic_outlined,
-              title: "Support client",
-              onTap: () => Get.toNamed('/support_client'),
-            ),
-            const SizedBox(height: 24),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),

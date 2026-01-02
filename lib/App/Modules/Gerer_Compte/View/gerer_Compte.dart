@@ -1,8 +1,9 @@
-import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'dart:io';
+import 'package:drink_eazy/App/Component/deconnexion_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class GererComptePage extends StatefulWidget {
   const GererComptePage({super.key});
@@ -125,32 +126,48 @@ class _GererComptePageState extends State<GererComptePage> {
                     _emailController.text,
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
-                  const SizedBox(height: 25),
-                  _buildTextField("Nom complet", _nameController, Icons.person),
-                  const SizedBox(height: 14),
-                  _buildTextField("Email", _emailController, Icons.email_outlined),
-                  const SizedBox(height: 14),
-                  _buildTextField("Téléphone", _phoneController, Icons.phone),
-                  const SizedBox(height: 30),
-                  ElevatedButton.icon(
-                    onPressed: _saveChanges,
-                    icon: const Icon(Icons.save, color: Colors.black),
-                    label: const Text(
-                      "Enregistrer les modifications",
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber,
-                      elevation: 0.1,
-                      minimumSize: const Size.fromHeight(50),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
+            const SizedBox(height: 25),
+
+            // --- Formulaire d'édition ---
+            _buildTextField("Nom complet", _nameController, Icons.person),
+            const SizedBox(height: 14),
+            _buildTextField("Email", _emailController, Icons.email_outlined),
+            const SizedBox(height: 14),
+            _buildTextField("Téléphone", _phoneController, Icons.phone),
+            const SizedBox(height: 14),
+            _buildPasswordField("Mot de passe actuel", obscure: true),
+            const SizedBox(height: 14),
+            _buildPasswordField("Nouveau mot de passe", obscure: true),
+            const SizedBox(height: 30),
+            // --- Bouton sauvegarde ---
+            ElevatedButton.icon(
+              onPressed: _saveChanges,
+              icon: const Icon(Icons.save, color: Colors.black),
+              label: const Text(
+                "Enregistrer les modifications",
+                style: TextStyle(color: Colors.black),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+                elevation: 0.1,
+                minimumSize: const Size.fromHeight(50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // --- Déconnexion ---
+            Deconnexion_component(context),
+
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 
