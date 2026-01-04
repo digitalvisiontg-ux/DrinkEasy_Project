@@ -783,11 +783,10 @@
 
 // PasserCommandePage.dart
 import 'dart:async';
-<<<<<<< HEAD
 import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
+import 'package:drink_eazy/App/Modules/Cart/View/QrScan_Page.dart'
+    show QRScanPage;
 import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
-=======
->>>>>>> 815d9db0a3ed69ec1d46dd40288e3c46e4642d3f
 import 'package:flutter/material.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
 import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart'; // si tu utilises la page QR

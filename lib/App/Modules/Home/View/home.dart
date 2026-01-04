@@ -23,6 +23,7 @@ class _HomeState extends State<Home> {
   bool _isSearching = false;
 
   Map<String, dynamic>? runningOrder;
+  bool _produitsLoaded = false;
 
   @override
   void didChangeDependencies() {
@@ -35,12 +36,22 @@ class _HomeState extends State<Home> {
         runningOrder = args;
       });
     }
+    // Charger les produits via le provider une seule fois
+    if (!_produitsLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final provider = Provider.of<ProduitProvider>(context, listen: false);
+        provider.fetchProduits();
+      });
+      _produitsLoaded = true;
+    }
   }
 
   // ------------------------------
   // FILTRAGE PRODUITS
   // ------------------------------
-  List<Product> get _filteredProducts {
+  List<Produit> get _filteredProducts {
+    final provider = Provider.of<ProduitProvider>(context);
+    final produits = provider.produits;
     final query = _searchController.text.trim().toLowerCase();
 
     return produits.where((p) {
@@ -70,7 +81,6 @@ class _HomeState extends State<Home> {
                 focusNode: _searchFocusNode,
                 onTap: () => setState(() => _isSearching = true),
                 style: const TextStyle(fontSize: 14),
-                onTap: () => setState(() => _isSearching = true),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'Rechercher une boisson...',
@@ -181,7 +191,24 @@ class _HomeState extends State<Home> {
     }
   }
 
-  // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
+    // Retourne la liste des catégories disponibles pour les chips.
+    List<String> _categories(BuildContext context) {
+      final provider = Provider.of<ProduitProvider>(context);
+      final produits = provider.produits;
+
+      final setCats = <String>{};
+      for (final p in produits) {
+        final name = p.categorie?.nomCat?.trim();
+        if (name != null && name.isNotEmpty) setCats.add(name);
+      }
+
+      // Prioriser 'Tous' et 'Promotion'
+      final List<String> result = ['Tous', 'Promotion'];
+      // Ajouter les catégories récupérées, en évitant les doublons
+      result.addAll(setCats.where((c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous'));
+      return result;
+    }
+
   // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
   Widget _buildRunningOrderBottomCard() {
     if (runningOrder == null) return const SizedBox.shrink();
@@ -285,93 +312,66 @@ class _HomeState extends State<Home> {
     );
   }
 
-  // ------------------------------
-  // CONTENU PRINCIPAL
-  // ------------------------------
-  Widget _buildContent() {
-    final items = _filteredProducts;
-
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        _buildSearchField(),
-        const SizedBox(height: 12),
-        _buildCategoryChips(),
-        const SizedBox(height: 8),
-
-        Expanded(
-          child: items.isEmpty
-              ? Center(
-                  child: Text(
-                    'Aucun résultat',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                  ),
-                )
-              : ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.only(top: 8, bottom: 50),
-                  itemBuilder: (context, index) {
-                    final p = items[index];
-                    return buildProductCard(
-                      context: context,
-                      p: p,
-                      onCartUpdated: () => setState(() {}),
-                      updateCartCount: (qty) =>
-                          setState(() => cartCount += qty),
-                    );
-                  },
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemCount: items.length,
-                ),
-        ),
-        SizedBox(
-          height: runningOrder == null
-              ? 25
-              : MediaQuery.of(context).padding.bottom + 40,
-        ),
-      ],
-    );
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose(); // ✅ Libère le focus node
+    super.dispose();
   }
 
+  // --- Interface principale ---
   @override
   Widget build(BuildContext context) {
+    final items = _filteredProducts;
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(56),
         child: buildAppBar(cartCount),
       ),
       backgroundColor: const Color(0xFFF8F8F8),
-      body: Stack(children: [_buildContent(), _buildRunningOrderBottomCard()]),
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          _buildSearchField(),
+          const SizedBox(height: 12),
+          _buildCategoryChips(),
+          const SizedBox(height: 8),
+          Expanded(
+            child: items.isEmpty
+                ? Center(
+                    child: Text(
+                      'Aucun résultat',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 8, bottom: 12),
+                    itemBuilder: (context, index) {
+                      final p = items[index];
+                      return buildProductCard(
+                        context: context,
+                        produit: p,
+                        onCartUpdated: () => setState(() {}),
+                        updateCartCount: (qty) =>
+                            setState(() => cartCount += qty),
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemCount: items.length,
+                  ),
+          ),
+        ],
+      ),
+      // bottomNavigationBar: Material(
+      //   elevation: 6,
+      //   child: SafeArea(top: false, child: _buildBottomScannerBar()),
+      // ),
     );
   }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
 }
 
-// ------------------------------
-// CLASS PRODUCT
-// ------------------------------
-class Product {
-  final String name;
-  final String category;
-  final int priceCfa;
-  final String? promotion;
-  final int? oldPriceCfa;
-  final String? imagepath;
-  final String? boissonType;
-
-  Product({
-    required this.name,
-    required this.category,
-    required this.priceCfa,
-    required this.boissonType,
-    this.oldPriceCfa,
-    this.promotion,
-    required this.imagepath,
-  });
-}
+// Using `Produit` model from API provider
