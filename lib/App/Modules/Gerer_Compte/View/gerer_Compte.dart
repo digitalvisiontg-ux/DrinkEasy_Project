@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/App/Component/deconnexion_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class GererComptePage extends StatefulWidget {
@@ -105,6 +108,7 @@ class _GererComptePageState extends State<GererComptePage> {
           : SingleChildScrollView(
               padding: const EdgeInsets.all(20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   CircleAvatar(
                     radius: 48,
@@ -114,6 +118,7 @@ class _GererComptePageState extends State<GererComptePage> {
                   const SizedBox(height: 12),
                   Text(
                     _nameController.text,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w800,
@@ -123,15 +128,24 @@ class _GererComptePageState extends State<GererComptePage> {
                   const SizedBox(height: 4),
                   Text(
                     _emailController.text,
+                    textAlign: TextAlign.center,
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 25),
+
+                  // --- Formulaire d'édition ---
                   _buildTextField("Nom complet", _nameController, Icons.person),
                   const SizedBox(height: 14),
                   _buildTextField("Email", _emailController, Icons.email_outlined),
                   const SizedBox(height: 14),
                   _buildTextField("Téléphone", _phoneController, Icons.phone),
+                  const SizedBox(height: 14),
+                  _buildPasswordField("Mot de passe actuel", obscure: true),
+                  const SizedBox(height: 14),
+                  _buildPasswordField("Nouveau mot de passe", obscure: true),
                   const SizedBox(height: 30),
+
+                  // --- Bouton sauvegarde ---
                   ElevatedButton.icon(
                     onPressed: _saveChanges,
                     icon: const Icon(Icons.save, color: Colors.black),
@@ -148,6 +162,12 @@ class _GererComptePageState extends State<GererComptePage> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  // --- Déconnexion ---
+                  Deconnexion_component(context),
+
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -161,6 +181,28 @@ class _GererComptePageState extends State<GererComptePage> {
         labelText: label,
         labelStyle: const TextStyle(color: Colors.black87),
         prefixIcon: Icon(icon, color: Colors.amber.shade800),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: Colors.amber.shade700, width: 1),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPasswordField(String label, {bool obscure = true}) {
+    return TextField(
+      obscureText: obscure,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.black87),
+        prefixIcon: Icon(Icons.lock, color: Colors.amber.shade800),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

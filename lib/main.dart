@@ -11,9 +11,16 @@ import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
 import 'package:drink_eazy/App/Modules/Gerer_Compte/View/gerer_Compte.dart';
 import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
+import 'package:drink_eazy/App/Modules/Home/View/OrderDetailsPag.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
-import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/AboutPage.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Help_center.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Parametres_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/confidentiality.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/contacter_personnel_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/information_compte.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/signaler_probleme_page.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
 import 'package:flutter/material.dart';
@@ -119,6 +126,25 @@ class MyApp extends StatelessWidget {
           page: () => const OtpPage(login: ''),
         ),
         GetPage(name: '/account', page: () => const AccountPage()),
+        GetPage(name: "/orderDetails", page: () => const OrderDetailsPage()),
+        GetPage(name: "/help_center", page: () => const HelpCenterPage()),
+        GetPage(
+          name: "/confidentiality",
+          page: () => const ConfidentialityPage(),
+        ),
+        GetPage(
+          name: "/information_compte",
+          page: () => const InformationComptePage(),
+        ),
+        GetPage(name: "/about", page: () => const AboutPage()),
+        GetPage(
+          name: "/contacter_personnel",
+          page: () => const ContacterPersonnelPage(),
+        ),
+        GetPage(
+          name: "/signaler_probleme",
+          page: () => const SignalerProblemePage(),
+        ),
 
         // Provide an empty list or appropriate cart items
       ],

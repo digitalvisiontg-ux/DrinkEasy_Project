@@ -2,11 +2,11 @@ import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
 import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
-import 'package:drink_eazy/App/Modules/Home/View/qr_scanner_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
 import 'dart:ui';
+import 'package:get/get.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -19,44 +19,39 @@ class _HomeState extends State<Home> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _selectedCategory = 'Tous';
+  int cartCount = 0;
   bool _isSearching = false;
 
-  List<String> _categories(BuildContext context) {
-    final source = Provider.of<ProduitProvider>(context).produits;
-    final cats = source
-        .where((p) => p.categorie != null)
-        .map((p) => p.categorie!.nomCat)
-        .toSet()
-        .toList();
+  Map<String, dynamic>? runningOrder;
+  bool _produitsLoaded = false;
 
-    cats.insert(0, 'Tous');
-    cats.insert(1, 'Promotion');
-    return cats;
-  }
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
 
-  String _emojiForCategory(String category) {
-    switch (category.toLowerCase()) {
-      case 'promotion':
-        return '🎉';
-      case 'bière':
-        return '🍺';
-      case 'cocktail':
-        return '🍸';
-      case 'vin':
-        return '🍷';
-      case 'soft':
-        return '🥤';
-      case 'spiritueux':
-        return '🥃';
-      case 'tous':
-        return '🍾';
-      default:
-        return '🍹';
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args != null && args is Map<String, dynamic>) {
+      setState(() {
+        runningOrder = args;
+      });
+    }
+    // Charger les produits via le provider une seule fois
+    if (!_produitsLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final provider = Provider.of<ProduitProvider>(context, listen: false);
+        provider.fetchProduits();
+      });
+      _produitsLoaded = true;
     }
   }
 
-  List<Produit> _filteredProduits(BuildContext context) {
-    final produits = Provider.of<ProduitProvider>(context).produits;
+  // ------------------------------
+  // FILTRAGE PRODUITS
+  // ------------------------------
+  List<Produit> get _filteredProducts {
+    final provider = Provider.of<ProduitProvider>(context);
+    final produits = provider.produits;
     final query = _searchController.text.trim().toLowerCase();
 
     return produits.where((p) {
@@ -72,6 +67,7 @@ class _HomeState extends State<Home> {
     }).toList();
   }
 
+  // --- Barre de recherche ---
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 13.0),
@@ -83,8 +79,8 @@ class _HomeState extends State<Home> {
               child: TextField(
                 controller: _searchController,
                 focusNode: _searchFocusNode,
-                style: const TextStyle(fontSize: 14),
                 onTap: () => setState(() => _isSearching = true),
+                style: const TextStyle(fontSize: 14),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: 'Rechercher une boisson...',
@@ -101,27 +97,31 @@ class _HomeState extends State<Home> {
                     borderSide: const BorderSide(color: Colors.amber, width: 1.8),
                   ),
                 ),
-                textInputAction: TextInputAction.search,
               ),
             ),
           ),
+
+          // --- Bouton Annuler ---
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             child: _isSearching
-                ? GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      _searchFocusNode.unfocus();
-                      setState(() => _isSearching = false);
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 8),
-                      child: Text('Annuler',
-                          style: TextStyle(
-                            color: Colors.redAccent,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          )),
+                ? Padding(
+                    key: const ValueKey('cancel'),
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        _searchController.clear();
+                        _searchFocusNode.unfocus();
+                        setState(() => _isSearching = false);
+                      },
+                      child: const Text(
+                        'Annuler',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   )
                 : const SizedBox.shrink(),
@@ -131,6 +131,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  // --- Catégories avec emoji ---
   Widget _buildCategoryChips() {
     final cats = _categories(context);
     return SizedBox(
@@ -169,148 +170,208 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildBottomScannerBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-      color: Colors.white,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Scannez le QR code de votre table pour commander',
-              style: TextStyle(color: Colors.grey.shade700),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              await showDialog(context: context, builder: (_) => const QrScannerModal());
+  String _emojiForCategory(String cat) {
+    switch (cat.toLowerCase().trim()) {
+      case 'promotion':
+        return '🎉';
+      case 'bière':
+        return '🍺';
+      case 'cocktail':
+        return '🍸';
+      case 'vin':
+        return '🍷';
+      case 'soft':
+        return '🥤';
+      case 'spiritueux':
+        return '🥃';
+      case 'tous':
+        return '🍾';
+      default:
+        return '🍹';
+    }
+  }
+
+    // Retourne la liste des catégories disponibles pour les chips.
+    List<String> _categories(BuildContext context) {
+      final provider = Provider.of<ProduitProvider>(context);
+      final produits = provider.produits;
+
+      final setCats = <String>{};
+      for (final p in produits) {
+        final name = p.categorie?.nomCat?.trim();
+        if (name != null && name.isNotEmpty) setCats.add(name);
+      }
+
+      // Prioriser 'Tous' et 'Promotion'
+      final List<String> result = ['Tous', 'Promotion'];
+      // Ajouter les catégories récupérées, en évitant les doublons
+      result.addAll(setCats.where((c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous'));
+      return result;
+    }
+
+  // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
+  Widget _buildRunningOrderBottomCard() {
+    if (runningOrder == null) return const SizedBox.shrink();
+
+    final media = MediaQuery.of(context);
+    final double horizontalPadding = media.size.width * 0.04; // adaptatif
+    final double iconSize = media.size.width < 360 ? 20 : 22;
+
+    return Positioned(
+      left: horizontalPadding,
+      right: horizontalPadding,
+      bottom: media.padding.bottom * 0.2 + 0,
+      child: SafeArea(
+        top: false,
+        child: Material(
+          elevation: 5,
+          borderRadius: BorderRadius.circular(18),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () {
+              Get.toNamed("/orderDetails", arguments: runningOrder);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.amber,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-              elevation: 0.5,
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: media.size.width * 0.04,
+                vertical: media.size.height * 0.018,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  // ICON
+                  Container(
+                    width: media.size.width * 0.11,
+                    height: media.size.width * 0.11,
+                    constraints: const BoxConstraints(
+                      minWidth: 38,
+                      maxWidth: 44,
+                      minHeight: 38,
+                      maxHeight: 44,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFC8FFD4),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      color: Colors.green,
+                      size: iconSize,
+                    ),
+                  ),
+
+                  const SizedBox(width: 14),
+
+                  // TEXTE
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          "Commande en cours",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Table #${runningOrder!["tableNumber"]} • ${runningOrder!["orderId"]}",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black54,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(width: 10),
+
+                  // CHEVRON
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: media.size.width < 360 ? 16 : 18,
+                    color: Colors.black45,
+                  ),
+                ],
+              ),
             ),
-            child: const Text('Scanner', style: TextStyle(color: Colors.black87)),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  void _retry() {
-    // Rafraîchir la page en forçant setState
-    setState(() {});
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose(); // ✅ Libère le focus node
+    super.dispose();
   }
 
+  // --- Interface principale ---
   @override
   Widget build(BuildContext context) {
-    final produits = Provider.of<ProduitProvider>(context).produits;
-    final items = _filteredProduits(context);
-    final isOffline = produits.isEmpty;
-
-    return Stack(
-      children: [
-        Scaffold(
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(56),
-            child: Consumer<CartProvider>(
-              builder: (_, cart, __) {
-                return buildAppBar(cart.totalItems);
-              },
-            ),
-          ),
-          backgroundColor: const Color(0xFFF8F8F8),
-          body: Column(
-            children: [
-              const SizedBox(height: 12),
-              _buildSearchField(),
-              const SizedBox(height: 12),
-              _buildCategoryChips(),
-              const SizedBox(height: 8),
-              Expanded(
-  child: RefreshIndicator(
-    color: Colors.amber,
-    onRefresh: () async {
-      await Provider.of<ProduitProvider>(context, listen: false).fetchProduits();
-    },
-    child: items.isEmpty
-        ? ListView(
-            // Nécessaire pour que RefreshIndicator fonctionne même si la liste est vide
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              Center(
-                child: Text(
-                  isOffline ? '' : 'Aucun résultat',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                ),
-              ),
-            ],
-          )
-        : ListView.separated(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(top: 8, bottom: 12),
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
-            itemBuilder: (_, i) {
-              final p = items[i];
-              return buildProductCard(
-                context: context,
-                produit: p,
-                onCartUpdated: () => setState(() {}),
-                updateCartCount: (q) => setState(() {}),
-              );
-            },
-          ),
-  ),
-),
-            ],
-          ),
-          bottomNavigationBar: Material(
-            elevation: 6,
-            child: SafeArea(top: false, child: _buildBottomScannerBar()),
-          ),
-        ),
-
-        // --- Pop-up hors connexion ---
-        if (isOffline)
-          Positioned.fill(
-            child: Container(
-              color: Colors.black.withOpacity(0.3),
-              alignment: Alignment.center,
-              child: Card(
-                elevation: 12,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                margin: const EdgeInsets.symmetric(horizontal: 32),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.wifi_off, size: 50, color: Colors.amber),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Vous êtes hors connexion.\nVeuillez vous connecter et réessayer.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+    final items = _filteredProducts;
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(56),
+        child: buildAppBar(cartCount),
+      ),
+      backgroundColor: const Color(0xFFF8F8F8),
+      body: Column(
+        children: [
+          const SizedBox(height: 12),
+          _buildSearchField(),
+          const SizedBox(height: 12),
+          _buildCategoryChips(),
+          const SizedBox(height: 8),
+          Expanded(
+            child: items.isEmpty
+                ? Center(
+                    child: Text(
+                      'Aucun résultat',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _retry,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                        ),
-                        child: const Text('Réessayer', style: TextStyle(color: Colors.black87)),
-                      )
-                    ],
+                    ),
+                  )
+                : ListView.separated(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(top: 8, bottom: 12),
+                    itemBuilder: (context, index) {
+                      final p = items[index];
+                      return buildProductCard(
+                        context: context,
+                        produit: p,
+                        onCartUpdated: () => setState(() {}),
+                        updateCartCount: (qty) =>
+                            setState(() => cartCount += qty),
+                      );
+                    },
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemCount: items.length,
                   ),
-                ),
-              ),
-            ),
           ),
-      ],
+        ],
+      ),
+      // bottomNavigationBar: Material(
+      //   elevation: 6,
+      //   child: SafeArea(top: false, child: _buildBottomScannerBar()),
+      // ),
     );
   }
 }
+
+// Using `Produit` model from API provider

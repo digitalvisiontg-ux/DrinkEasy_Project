@@ -33,58 +33,41 @@ class CommandeValideePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final int estimatedTime = 14;
+
     final String orderNumber = "#${6000 + DateTime.now().millisecond}";
 
     return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Colors.white,
-      //   elevation: 0,
-      //   centerTitle: true,
-      //   title: const Text(
-      //     "Commande Validée",
-      //     style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w700),
-      //   ),
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back, color: Colors.black87),
-      //     onPressed: () => Get.back(),
-      //   ),
-      // ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0.4,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Get.offAllNamed(
+            "/home",
+            arguments: {
+              "tableNumber": tableNumber,
+              "orderId": orderNumber,
+              "items": cartItems,
+              "totalPrice": totalPrice,
+              "status": "En préparation",
+            },
+          ),
+        ),
+        title: const Text(
+          "Retour à l'accueil",
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
+      ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
-            Column(
-              children: [
-                InkWell(
-                  onTap: () => Get.offAllNamed("/home"),
-                  borderRadius: BorderRadius.circular(40),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.amber,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.amber.withOpacity(0.4),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.home_rounded, color: Colors.black),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "Retour à l'accueil",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-
             Image.asset("assets/images/confettis.gif", width: 100, height: 100),
 
             const SizedBox(height: 16),
@@ -104,10 +87,7 @@ class CommandeValideePage extends StatelessWidget {
               "Votre commande a été envoyée avec succès",
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
-
-            SizedBox(height: 15),
-
-            // 🟣 Numéro de commande
+            const SizedBox(height: 15),
             Material(
               elevation: 0.4,
               borderRadius: BorderRadius.circular(18),
@@ -186,7 +166,7 @@ class CommandeValideePage extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           "Votre table",
                           style: TextStyle(color: Colors.black, fontSize: 14),
                         ),
@@ -300,7 +280,6 @@ class CommandeValideePage extends StatelessWidget {
 
                     const SizedBox(height: 14),
 
-                    // LISTE PRODUITS
                     Column(
                       children: List.generate(cartItems.length, (index) {
                         final item = cartItems[index];
@@ -351,6 +330,7 @@ class CommandeValideePage extends StatelessWidget {
                                   ],
                                 ),
                               ),
+
                               Text(
                                 "${_formatPrice(product.priceCfa)} CFA",
                                 style: const TextStyle(
@@ -365,7 +345,6 @@ class CommandeValideePage extends StatelessWidget {
 
                     const Divider(height: 30),
 
-                    // Total
                     Row(
                       children: [
                         const Text(
@@ -393,29 +372,6 @@ class CommandeValideePage extends StatelessWidget {
 
             const SizedBox(height: 20),
 
-            // Orange Notification
-            // Container(
-            //   padding: const EdgeInsets.all(16),
-            //   decoration: BoxDecoration(
-            //     color: const Color(0xFFFFF3E0),
-            //     borderRadius: BorderRadius.circular(14),
-            //   ),
-            //   child: const Row(
-            //     children: [
-            //       Icon(Icons.info, color: Colors.orange),
-            //       SizedBox(width: 10),
-            //       Expanded(
-            //         child: Text(
-            //           "Votre commande sera livrée à votre table dans environ 14 minutes.",
-            //           style: TextStyle(color: Colors.black87),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-
-            // const SizedBox(height: 25),
-
             // 🟦 Modifier la commande
             SizedBox(
               width: double.infinity,
@@ -432,11 +388,11 @@ class CommandeValideePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                child: Row(
+                child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.edit, color: Colors.white),
-                    const SizedBox(width: 10),
+                    Icon(Icons.edit, color: Colors.white),
+                    SizedBox(width: 10),
                     Text(
                       "Modifier la commande",
                       style: TextStyle(color: Colors.white, fontSize: 16),
@@ -451,10 +407,8 @@ class CommandeValideePage extends StatelessWidget {
             // 🔴 Annuler
             SizedBox(
               width: double.infinity,
-
               child: ElevatedButton(
                 onPressed: () async {
-                  // Afficher une confirmation avec showConfirmComponent
                   final confirm = await showConfirmComponent(
                     context,
                     title: "Annuler la commande",
@@ -468,7 +422,6 @@ class CommandeValideePage extends StatelessWidget {
                     iconColor: Colors.red,
                     iconBgColor: Colors.redAccent.withOpacity(0.1),
                   );
-
                   if (confirm == true) {
                     Get.offAllNamed("/home");
                     showToastComponent(
@@ -495,7 +448,39 @@ class CommandeValideePage extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 12),
+            // SizedBox(
+            //   width: double.infinity,
+            //   child: ElevatedButton(
+            //     onPressed: () {
+            //       Get.offAllNamed(
+            //         "/home",
+            //         arguments: {
+            //           "tableNumber": tableNumber,
+            //           "orderId": orderNumber,
+            //           "items": cartItems,
+            //           "totalPrice": totalPrice,
+            //           "status": "En préparation",
+            //         },
+            //       );
+            //     },
+            //     style: ElevatedButton.styleFrom(
+            //       elevation: 0.3,
+            //       backgroundColor: Colors.green,
+            //       padding: const EdgeInsets.symmetric(
+            //         horizontal: 26,
+            //         vertical: 14,
+            //       ),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(14),
+            //       ),
+            //     ),
+            //     child: const Text(
+            //       "Retour à l'accueil",
+            //       style: TextStyle(color: Colors.white, fontSize: 17),
+            //     ),
+            //   ),
+            // ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
