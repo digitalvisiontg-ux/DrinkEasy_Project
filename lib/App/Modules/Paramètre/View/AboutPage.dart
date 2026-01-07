@@ -1,3 +1,4 @@
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/nous_contacter_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -43,7 +44,7 @@ class AboutPage extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
             ),
             child: Column(
               children: const [
@@ -129,11 +130,7 @@ class AboutPage extends StatelessWidget {
             title: "Nous contacter",
             subtitle: "contact@drinkeasy.com",
             onTap: () {
-              Get.snackbar(
-                "Contact",
-                "Ouverture du client mail...",
-                snackPosition: SnackPosition.BOTTOM,
-              );
+              Get.toNamed('/contact');
             },
           ),
 

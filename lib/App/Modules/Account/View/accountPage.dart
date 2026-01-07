@@ -287,6 +287,11 @@ class _AccountPageState extends State<AccountPage> {
               title: "Paramètres",
               onTap: () => Get.toNamed('/parametres'),
             ),
+            listTileComponent(
+              icon: Icons.settings_outlined,
+              title: " Support Client",
+              onTap: () => Get.toNamed('/support_client'),
+            ),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),

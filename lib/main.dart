@@ -18,6 +18,7 @@ import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Parametres_page.dart'
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/confidentiality.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/contacter_personnel_page.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/information_compte.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/nous_contacter_page.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/signaler_probleme_page.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
@@ -136,7 +137,7 @@ class MyApp extends StatelessWidget {
           name: "/signaler_probleme",
           page: () => const SignalerProblemePage(),
         ),
-
+        GetPage(name: "/contact", page: () => const NousContacterPage()),
         // Provide an empty list or appropriate cart items
       ],
       // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
