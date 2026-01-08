@@ -6,7 +6,7 @@ import 'package:drink_eazy/App/Component/confirm_component.dart';
 class CommandeValideePage extends StatelessWidget {
   final List<Map<String, dynamic>> cartItems;
   final int totalPrice;
-  final int tableNumber;
+  final String tableNumber;
 
   const CommandeValideePage({
     super.key,

@@ -10,59 +10,67 @@ class QrScannerPage extends StatefulWidget {
 
 class _QrScannerPageState extends State<QrScannerPage>
     with SingleTickerProviderStateMixin {
-  bool _isDetected = false;
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  final double scanArea = 260;
+  bool _hasDetected = false;
+
+  late final AnimationController _animationController;
+  late final Animation<double> _laserAnimation;
+
+  static const double _scanAreaSize = 260;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+
+    _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    _animation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+    _laserAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
-  void _onDetect(BarcodeCapture capture) {
-    if (_isDetected) return;
-    final List<Barcode> barcodes = capture.barcodes;
-    for (final barcode in barcodes) {
-      final String? code = barcode.rawValue;
-      if (code != null) {
-        setState(() => _isDetected = true);
-        Navigator.pop(context, code);
-      }
-    }
+  void _handleDetection(BarcodeCapture capture) {
+    if (_hasDetected) return;
+
+    final barcode = capture.barcodes.first;
+    final value = barcode.rawValue;
+
+    if (value == null || value.isEmpty) return;
+
+    _hasDetected = true;
+    Navigator.pop(context, value); // retourne le token QR
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
+    final size = MediaQuery.of(context).size;
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         alignment: Alignment.center,
         children: [
-          /// --- Caméra ---
-          MobileScanner(fit: BoxFit.cover, onDetect: _onDetect),
+          /// Camera
+          MobileScanner(
+            fit: BoxFit.cover,
+            onDetect: _handleDetection,
+          ),
 
-          /// --- Overlay sombre avec découpe ---
+          /// Overlay sombre avec découpe centrale
           ColorFiltered(
             colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.6),
+              Colors.black.withOpacity(0.65),
               BlendMode.srcOut,
             ),
             child: Stack(
@@ -73,11 +81,10 @@ class _QrScannerPageState extends State<QrScannerPage>
                     backgroundBlendMode: BlendMode.dstOut,
                   ),
                 ),
-                Align(
-                  alignment: Alignment.center,
+                Center(
                   child: Container(
-                    width: scanArea,
-                    height: scanArea,
+                    width: _scanAreaSize,
+                    height: _scanAreaSize,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -88,44 +95,42 @@ class _QrScannerPageState extends State<QrScannerPage>
             ),
           ),
 
-          /// --- Cadre doré + laser ---
+          /// Cadre + laser animé
           CustomPaint(
             painter: _ScannerBorderPainter(),
             child: SizedBox(
-              width: scanArea,
-              height: scanArea,
+              width: _scanAreaSize,
+              height: _scanAreaSize,
               child: AnimatedBuilder(
-                animation: _animation,
-                builder: (context, _) {
+                animation: _laserAnimation,
+                builder: (_, __) {
                   return CustomPaint(
-                    painter: _ScannerLaserPainter(_animation.value),
-                    child: const SizedBox.expand(),
+                    painter:
+                        _ScannerLaserPainter(progress: _laserAnimation.value),
                   );
                 },
               ),
             ),
           ),
 
-          /// --- Titre et retour ---
+          /// Header
           Positioned(
-            top: screenSize.height * 0.06,
+            top: size.height * 0.06,
             left: 16,
             right: 16,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Bouton retour stylé
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back, color: Colors.white),
                 ),
                 const Text(
-                  "Scanner un QR Code",
+                  'Scanner un QR Code',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    // fontFamily: 'Agbalumo',
                   ),
                 ),
                 const SizedBox(width: 40),
@@ -133,27 +138,26 @@ class _QrScannerPageState extends State<QrScannerPage>
             ),
           ),
 
-          /// --- Texte guide ---
-          Positioned(
-            bottom: 100,
+          /// Texte guide
+          const Positioned(
+            bottom: 90,
             left: 0,
             right: 0,
             child: Column(
               children: [
-                const Text(
-                  "Placez le QR code dans le cadre",
-                  textAlign: TextAlign.center,
+                Text(
+                  'Placez le QR code dans le cadre',
                   style: TextStyle(
                     color: Colors.amber,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 6),
                 Text(
-                  "La détection se fera automatiquement",
+                  'La détection est automatique',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white70,
                     fontSize: 13,
                   ),
                 ),
@@ -166,48 +170,62 @@ class _QrScannerPageState extends State<QrScannerPage>
   }
 }
 
-/// --- Cadre du scanner (coins dorés) ---
+/// Cadre du scanner
 class _ScannerBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..shader = const LinearGradient(
         colors: [Colors.amber, Colors.orangeAccent],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ).createShader(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+      )
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke;
 
-    final borderRadius = 20.0;
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(0, 0, size.width, size.height),
-      Radius.circular(borderRadius),
+      const Radius.circular(20),
     );
+
     canvas.drawRRect(rect, paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(_) => false;
 }
 
-/// --- Ligne laser animée ---
+/// Laser animé
 class _ScannerLaserPainter extends CustomPainter {
   final double progress;
-  _ScannerLaserPainter(this.progress);
+
+  _ScannerLaserPainter({required this.progress});
 
   @override
   void paint(Canvas canvas, Size size) {
     final y = size.height * progress;
+
     final paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Colors.transparent, Colors.amber, Colors.transparent],
-      ).createShader(Rect.fromLTWH(0, y - 1, size.width, 2))
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
+        colors: [
+          Colors.transparent,
+          Colors.amber,
+          Colors.transparent,
+        ],
+      ).createShader(
+        Rect.fromLTWH(0, y - 1, size.width, 2),
+      )
+      ..strokeWidth = 3;
 
-    canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    canvas.drawLine(
+      Offset(0, y),
+      Offset(size.width, y),
+      paint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _ScannerLaserPainter oldDelegate) =>
-      oldDelegate.progress != progress;
+  bool shouldRepaint(covariant _ScannerLaserPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }
