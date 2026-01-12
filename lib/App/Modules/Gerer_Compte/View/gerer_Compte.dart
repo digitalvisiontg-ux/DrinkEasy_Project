@@ -155,10 +155,6 @@ class _GererComptePageState extends State<GererComptePage> {
             _buildTextField("Email", _emailController, Icons.email_outlined),
             const SizedBox(height: 14),
             _buildTextField("Téléphone", _phoneController, Icons.phone),
-            const SizedBox(height: 14),
-            _buildPasswordField("Mot de passe actuel", obscure: true),
-            const SizedBox(height: 14),
-            _buildPasswordField("Nouveau mot de passe", obscure: true),
             const SizedBox(height: 30),
             // --- Bouton sauvegarde ---
             ElevatedButton.icon(
@@ -201,32 +197,6 @@ class _GererComptePageState extends State<GererComptePage> {
         // Label focus text color change
         labelStyle: TextStyle(color: Colors.black87),
         prefixIcon: Icon(icon, color: Colors.amber.shade800),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.amber.shade700, width: 1),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPasswordField(String label, {bool obscure = true}) {
-    return TextField(
-      obscureText: obscure,
-      decoration: InputDecoration(
-        labelText: label,
-        // Label focus text color change
-        labelStyle: TextStyle(color: Colors.black87),
-        prefixIcon: Icon(Icons.lock_outline, color: Colors.amber.shade800),
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(
