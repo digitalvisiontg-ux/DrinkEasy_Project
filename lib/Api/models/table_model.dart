@@ -1,23 +1,24 @@
 class TableModel {
   final int id;
   final String numeroTable;
+  final String libelle;     
   final String? qrUrl;
 
   TableModel({
     required this.id,
     required this.numeroTable,
+    required this.libelle,
     this.qrUrl,
   });
 
   factory TableModel.fromJson(Map<String, dynamic> json) {
-    // Si Laravel renvoie { "success": true, "data": { "table_id": 1, ... } }
-    // On extrait d'abord la map 'data'
-    final data = json['data'] ?? json; 
+    final data = json['data'] ?? json;
 
     return TableModel(
-      id: data['table_id'], // On utilise bien 'table_id' comme dans ton Controller
+      id: data['table_id'],
       numeroTable: data['numero_table'],
-      qrUrl: data['qr_url'], // Optionnel si tu en as besoin
+      libelle: data['libelle'],
+      qrUrl: data['qr_url'],
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:drink_eazy/Api/provider/OrderProvider.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
+import 'package:drink_eazy/Api/provider/table_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/inscription_choice_page.dart';
@@ -71,6 +72,7 @@ Future<void> main() async {
         ChangeNotifierProvider.value(value: produitProvider),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => TableProvider()),
       ],
       child: const MyApp(),
     ),

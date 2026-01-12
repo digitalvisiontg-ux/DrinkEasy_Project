@@ -2,18 +2,34 @@ import 'package:flutter/material.dart';
 import '../models/cart_model.dart';
 
 class OrderProvider extends ChangeNotifier {
-  /// --- TABLE ---
-  String? _tableRaw; // token ou numero_table
+  /// ===============================
+  /// TABLE
+  /// ===============================
 
-  String get tableLabel => _tableRaw ?? '';
+  String? _tableRaw;    // numero_table (technique)
+  String? _tableLabel;  // libellé business (affichage)
+
+  /// Données exposées
+  String get tableRaw => _tableRaw ?? '';
+  String get tableLabel => _tableLabel ?? '';
+
   bool get hasTable => _tableRaw != null;
 
+  /// Setters
   void setTableRaw(String value) {
     _tableRaw = value;
     notifyListeners();
   }
 
-  /// --- ITEMS ---
+  void setTableLabel(String value) {
+    _tableLabel = value;
+    notifyListeners();
+  }
+
+  /// ===============================
+  /// ITEMS
+  /// ===============================
+
   List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
@@ -23,13 +39,20 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// --- TOTAL ---
+  /// ===============================
+  /// TOTAL
+  /// ===============================
+
   double get totalPrice =>
       _items.fold(0, (sum, e) => sum + e.subtotal);
 
-  /// --- RESET ---
+  /// ===============================
+  /// RESET
+  /// ===============================
+
   void clearOrder() {
     _tableRaw = null;
+    _tableLabel = null;
     _items.clear();
     notifyListeners();
   }
