@@ -45,7 +45,15 @@ class ApiService {
     return ApiService._internal(dio);
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? params}) => _dio.get(path, queryParameters: params);
-  Future<Response> post(String path, dynamic data) => _dio.post(path, data: data);
+  // 👇 AJOUT ICI
+  Dio get dio => _dio;
+
+  Future<Response> get(String path, {Map<String, dynamic>? params}) =>
+      _dio.get(path, queryParameters: params);
+
+  Future<Response> post(String path, dynamic data) =>
+      _dio.post(path, data: data);
+
   Future<Response> delete(String path) => _dio.delete(path);
+  
 }

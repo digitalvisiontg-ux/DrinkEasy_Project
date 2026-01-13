@@ -237,7 +237,7 @@ class OrderDetailsPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                product.name,
+                                product.nomProd,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
@@ -254,7 +254,7 @@ class OrderDetailsPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "${_formatPrice(product.priceCfa)} CFA",
+                          "${_formatPrice(product.prixFinal.toInt())} CFA",
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
                             color: Color(0xFFB00020),

@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/provider/OrderProvider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/table_provider.dart';
+import 'package:drink_eazy/Api/services/commande_service.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
 import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
 import 'package:flutter/material.dart';
@@ -160,29 +162,82 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   /// CONFIRM ORDER
   /// ===============================
   Future<void> _confirmOrder() async {
-    final order = context.read<OrderProvider>();
-
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CommandeValideePage(
-          cartItems: order.items
-              .map((e) => {
-                    'product': e.produit,
-                    'quantity': e.quantite,
-                  })
-              .toList(),
-          totalPrice: order.totalPrice.toInt(),
-          tableNumber: order.tableLabel,
-        ),
-      ),
-    );
-
-    if (result != null) {
-      order.clearOrder();
-      Navigator.pop(context, result);
-    }
+  final order = context.read<OrderProvider>();
+  final table = context.read<TableProvider>().table;
+  final cart = context.read<CartProvider>();
+  print("1");
+  if (table == null || order.items.isEmpty) {
+    _showBusinessError("Commande invalide");
+    return;
   }
+  print("2");
+  final commandeService = CommandeService();
+
+  // Payload attendu par Laravel
+  final itemsPayload = order.items.map((e) => {
+        'produit_id': e.produit.id,
+        'quantite': e.quantite,
+      }).toList();
+
+  _showLoading();
+  print("3");
+  try {
+    print("4");
+    final response = await commandeService.createCommande(
+      tableId: table.id,
+      items: itemsPayload,
+      commentaire: null, // ou ton champ si tu l’ajoutes plus tard
+    );
+    print("5");
+    Navigator.pop(context); // close loader
+    print("6");
+    if (response['success'] == true) {
+      print("7");
+      final itemsSnapshot = order.items
+      .map((e) => {
+            'product': e.produit,
+            'quantity': e.quantite,
+          })
+      .toList();
+
+  final totalSnapshot = order.totalPrice.toInt();
+  final tableLabelSnapshot = order.tableLabel;
+
+      // Nettoyage état
+      cart.clearCart();
+      order.clearOrder();
+      print("8");
+      // Navigation succès
+        await Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => CommandeValideePage(
+        cartItems: itemsSnapshot,
+        totalPrice: totalSnapshot,
+        tableNumber: tableLabelSnapshot,
+      ),
+    ),
+  );
+
+  Navigator.pop(context, true);
+    } else {
+      _showBusinessError(
+        response['message'] ?? "Échec de la commande",
+      );
+    }
+  } catch (e) {
+  print("9");
+  if (e is DioException) {
+    print("STATUS: ${e.response?.statusCode}");
+    print("DATA: ${e.response?.data}");
+  } else {
+    print(e.toString());
+  }
+  Navigator.pop(context);
+  _showBusinessError("Erreur serveur. Réessayez.");
+}
+}
+
 
   /// ===============================
   /// UI HELPERS
@@ -574,27 +629,23 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                   ),
                 ),
                 const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Votre table",
-                        style: TextStyle(color: Colors.black, fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Votre table",
+                      style: TextStyle(color: Colors.black, fontSize: 14),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      "Table : ${order.tableLabel}", // Donnée Back
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w800,
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        "Table : ${order.tableLabel}", // Donnée Back
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
