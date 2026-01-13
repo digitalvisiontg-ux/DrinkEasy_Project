@@ -17,6 +17,7 @@ import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.da
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/AboutPage.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Help_center.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Parametres_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/changer_mot_de_passe_page.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/confidentiality.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/contacter_personnel_page.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/information_compte.dart';
@@ -147,6 +148,10 @@ class MyApp extends StatelessWidget {
           page: () => const SignalerProblemePage(),
         ),
         GetPage(name: "/contact", page: () => const NousContacterPage()),
+        GetPage(
+          name: "/changer_mot_de_passe",
+          page: () => const ChangerMotDePassePage(),
+        ),
         // Provide an empty list or appropriate cart items
       ],
       // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
