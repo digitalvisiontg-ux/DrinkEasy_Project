@@ -1,18 +1,23 @@
+import 'package:drink_eazy/Api/provider/running_order_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:drink_eazy/App/Component/confirm_component.dart';
 import 'package:drink_eazy/App/Component/showToast_component.dart';
+import 'package:drink_eazy/Api/models/commande_model.dart';
+import 'package:get/get.dart';
 
 class CommandeValideePage extends StatelessWidget {
   final List<Map<String, dynamic>> cartItems;
   final int totalPrice;
   final String tableNumber;
+  final CommandeModel commande; // Injection de la commande complète
 
   const CommandeValideePage({
     super.key,
     required this.cartItems,
     required this.totalPrice,
     required this.tableNumber,
+    required this.commande,
   });
 
   String _formatPrice(int price) {
@@ -33,38 +38,35 @@ class CommandeValideePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int estimatedTime = 14;
-    final String orderNumber =
-        "#${6000 + DateTime.now().millisecondsSinceEpoch % 1000}";
+    // On injecte la commande validée dans le RunningOrderProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final runningOrderProvider = Provider.of<RunningOrderProvider>(context, listen: false);
+      runningOrderProvider.setRunningOrder(commande);
+    });
 
+    final int estimatedTime = 14;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.4,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil(
-            '/home',
-            (route) => false,
-            arguments: {
-              "orderId": orderNumber,
-              "table": tableNumber,
-              "total": totalPrice,
-              "status": "En préparation",
-            },
-          ),
-        ),
-        title: const Text(
-          "Retour à l'accueil",
-          style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
-          ),
-        ),
+    backgroundColor: Colors.white,
+    elevation: 0.4,
+    centerTitle: true,
+    automaticallyImplyLeading: false, // empêche le back automatique
+    leading: IconButton(
+      icon: const Icon(Icons.home, color: Colors.black87),
+      onPressed: () {
+        Get.toNamed('/home');
+      },
+    ),
+    title: const Text(
+      "Retour à l'accueil",
+      style: TextStyle(
+        color: Colors.black87,
+        fontWeight: FontWeight.w700,
+        fontSize: 18,
       ),
+    ),
+  ),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -75,9 +77,7 @@ class CommandeValideePage extends StatelessWidget {
               width: 100,
               height: 100,
             ),
-
             const SizedBox(height: 16),
-
             const Text(
               "Commande validée !",
               style: TextStyle(
@@ -85,36 +85,28 @@ class CommandeValideePage extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-
             const SizedBox(height: 6),
-
             const Text(
               "Votre commande a été envoyée avec succès",
               style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
-
             const SizedBox(height: 16),
-
             _infoCard(
               icon: Icons.receipt_long,
               label: "Numéro de commande",
-              value: orderNumber,
+              value: commande.numeroCommande,
             ),
-
             const SizedBox(height: 14),
-
             _gradientCard(
               icon: Icons.restaurant_menu,
               title: "Votre table",
-              value: "Table #$tableNumber",
+              value: "Table : ${commande.tableLibelle}",
               colors: const [
                 Color.fromARGB(255, 255, 161, 54),
                 Color(0xFFFFC107),
               ],
             ),
-
             const SizedBox(height: 14),
-
             _gradientCard(
               icon: Icons.access_time,
               title: "Temps estimé",
@@ -124,24 +116,20 @@ class CommandeValideePage extends StatelessWidget {
                 Color(0xFF388BFF),
               ],
             ),
-
             const SizedBox(height: 16),
-
             _orderDetails(context),
-
             const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  Get.offAllNamed('/home');
+                },
                 icon: const Icon(Icons.edit),
-                label: const Text("Modifier la commande"),
+                label: const Text("Modifierr la commande"),
               ),
             ),
-
             const SizedBox(height: 12),
-
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -158,10 +146,11 @@ class CommandeValideePage extends StatelessWidget {
                   );
 
                   if (confirm == true) {
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/home',
-                      (route) => false,
-                    );
+                    final runningOrderProvider =
+                        Provider.of<RunningOrderProvider>(context, listen: false);
+                    await runningOrderProvider.clearRunningOrder();
+
+                    Get.offAllNamed('/home');
                     showToastComponent(
                       context,
                       "Commande annulée avec succès.",
@@ -177,7 +166,6 @@ class CommandeValideePage extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
           ],
         ),

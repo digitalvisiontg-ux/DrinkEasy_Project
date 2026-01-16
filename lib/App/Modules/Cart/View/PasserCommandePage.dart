@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/provider/OrderProvider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/table_provider.dart';
@@ -22,6 +23,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
 
   int _currentStep = 1;
   bool _isScanning = false;
+  bool _showExampleText = true; // Variable pour contrôler l'affichage du texte d'exemple
 
   late AnimationController _scanController;
   late Animation<double> _scanAnim;
@@ -95,17 +97,16 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     final tableProvider = context.read<TableProvider>();
 
     _showLoading();
-    final success = await tableProvider.verifyByManual(value);
-    Navigator.pop(context);
+final success = await tableProvider.verifyByManual(value);
+Navigator.pop(context);
 
-    if (value.length != 4) {
+if (!success || tableProvider.table == null) {
   _showBusinessError(
     "Numéro de table invalide. Vérifiez et réessayez.",
   );
   return;
 }
-
-    _finalizeStep1();
+_finalizeStep1();
   }
 
   /// ===============================
@@ -202,6 +203,8 @@ class _PasserCommandePageState extends State<PasserCommandePage>
 
   final totalSnapshot = order.totalPrice.toInt();
   final tableLabelSnapshot = order.tableLabel;
+  
+  final commande = CommandeModel.fromJson(response['commande']);
 
       // Nettoyage état
       cart.clearCart();
@@ -215,6 +218,8 @@ class _PasserCommandePageState extends State<PasserCommandePage>
         cartItems: itemsSnapshot,
         totalPrice: totalSnapshot,
         tableNumber: tableLabelSnapshot,
+        commande: commande, 
+
       ),
     ),
   );
@@ -527,7 +532,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                              FilteringTextInputFormatter.allow(RegExp('[A-Z0-9]')),
                           ],
                           style: const TextStyle(
-                            fontSize: 32,
+                            fontSize: 25,
                             color: Colors.grey,
                             fontWeight: FontWeight.bold,
                           ),
@@ -536,17 +541,24 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                             border: InputBorder.none,
                             hintText: "", // Supprimé pour le style épuré
                           ),
+                          onChanged: (value) {
+                            // Cacher le texte d'exemple lorsque l'utilisateur entre un numéro de table
+                            setState(() {
+                              _showExampleText = value.isEmpty;
+                            });
+                          },
                         ),
                       ),
-                       // Design du # du front, gardé pour l'esthétique
-                      const Text(
-                        "#",
-                        style: TextStyle(
-                          fontSize: 28,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.w600,
+                      // Afficher le texte d'exemple uniquement si le champ est vide
+                      if (_showExampleText)
+                        Text(
+                          "Ex. A12B",
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

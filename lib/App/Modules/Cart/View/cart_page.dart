@@ -569,38 +569,50 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
 
   // 🔥🔥🔥 _checkoutButton entièrement corrigé 🔥🔥🔥
   Widget _checkoutButton(CartProvider cart) {
+    final bool isDisabled = cart.isEmpty;
+
     return GestureDetector(
-      onTap: () {
-        Get.to(() => PasserCommandePage(cartItems: globalCart));
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFFF8A00), Color(0xFFFFC107)],
+      onTap: isDisabled
+          ? null
+          : () {
+              Get.to(() => PasserCommandePage(cartItems: globalCart));
+            },
+      child: Opacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isDisabled
+                ? null
+                : const LinearGradient(
+                    colors: [Color(0xFFFF8A00), Color(0xFFFFC107)],
+                  ),
+            color: isDisabled ? Colors.grey.shade300 : null,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: isDisabled
+                ? []
+                : [
+                    BoxShadow(
+                      color: Colors.orange.shade50.withOpacity(0.6),
+                      blurRadius: 10,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
           ),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.orange.shade50.withOpacity(0.6),
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            const Text(
-              "Valider la commande",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text(
+                "Valider la commande",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

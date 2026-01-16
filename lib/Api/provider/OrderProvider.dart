@@ -5,14 +5,12 @@ class OrderProvider extends ChangeNotifier {
   /// ===============================
   /// TABLE
   /// ===============================
-
   String? _tableRaw;    // numero_table (technique)
   String? _tableLabel;  // libellé business (affichage)
 
   /// Données exposées
   String get tableRaw => _tableRaw ?? '';
   String get tableLabel => _tableLabel ?? '';
-
   bool get hasTable => _tableRaw != null;
 
   /// Setters
@@ -29,7 +27,6 @@ class OrderProvider extends ChangeNotifier {
   /// ===============================
   /// ITEMS
   /// ===============================
-
   List<CartItem> _items = [];
 
   List<CartItem> get items => _items;
@@ -42,14 +39,12 @@ class OrderProvider extends ChangeNotifier {
   /// ===============================
   /// TOTAL
   /// ===============================
-
   double get totalPrice =>
       _items.fold(0, (sum, e) => sum + e.subtotal);
 
   /// ===============================
   /// RESET
   /// ===============================
-
   void clearOrder() {
     _tableRaw = null;
     _tableLabel = null;

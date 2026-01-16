@@ -1,5 +1,6 @@
+import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/models/produit.dart';
-import 'package:drink_eazy/Api/provider/cartProvider.dart';
+import 'package:drink_eazy/Api/provider/running_order_provider.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
 import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
 import 'package:flutter/material.dart';
@@ -22,28 +23,14 @@ class _HomeState extends State<Home> {
   int cartCount = 0;
   bool _isSearching = false;
 
-  Map<String, dynamic>? runningOrder;
-  bool _produitsLoaded = false;
+  late RunningOrderProvider _runningOrderProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final args = ModalRoute.of(context)?.settings.arguments;
-
-    if (args != null && args is Map<String, dynamic>) {
-      setState(() {
-        runningOrder = args;
-      });
-    }
-    // Charger les produits via le provider une seule fois
-    if (!_produitsLoaded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final provider = Provider.of<ProduitProvider>(context, listen: false);
-        provider.fetchProduits();
-      });
-      _produitsLoaded = true;
-    }
+_runningOrderProvider =
+    Provider.of<RunningOrderProvider>(context, listen: false);
   }
 
   // ------------------------------
@@ -55,7 +42,8 @@ class _HomeState extends State<Home> {
     final query = _searchController.text.trim().toLowerCase();
 
     return produits.where((p) {
-      final matchQuery = query.isEmpty || p.nomProd.toLowerCase().contains(query);
+      final matchQuery =
+          query.isEmpty || p.nomProd.toLowerCase().contains(query);
 
       if (_selectedCategory == 'Promotion') {
         return matchQuery && (p.promotionActive || p.promotionsDetails.isNotEmpty);
@@ -100,7 +88,6 @@ class _HomeState extends State<Home> {
               ),
             ),
           ),
-
           // --- Bouton Annuler ---
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
@@ -191,36 +178,35 @@ class _HomeState extends State<Home> {
     }
   }
 
-    // Retourne la liste des catégories disponibles pour les chips.
-    List<String> _categories(BuildContext context) {
-      final provider = Provider.of<ProduitProvider>(context);
-      final produits = provider.produits;
+  List<String> _categories(BuildContext context) {
+    final provider = Provider.of<ProduitProvider>(context);
+    final produits = provider.produits;
 
-      final setCats = <String>{};
-      for (final p in produits) {
-        final name = p.categorie?.nomCat?.trim();
-        if (name != null && name.isNotEmpty) setCats.add(name);
-      }
-
-      // Prioriser 'Tous' et 'Promotion'
-      final List<String> result = ['Tous', 'Promotion'];
-      // Ajouter les catégories récupérées, en évitant les doublons
-      result.addAll(setCats.where((c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous'));
-      return result;
+    final setCats = <String>{};
+    for (final p in produits) {
+      final name = p.categorie?.nomCat.trim();
+      if (name != null && name.isNotEmpty) setCats.add(name);
     }
 
-  // 🔥 BOTTOM FLOTTANT EXACTEMENT COMME LA MAQUETTE
+    final List<String> result = ['Tous', 'Promotion'];
+    result.addAll(
+        setCats.where((c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous'));
+    return result;
+  }
+
+  // 🔥 BOTTOM FLOTTANT AVEC RUNNING ORDER PROVIDER
   Widget _buildRunningOrderBottomCard() {
-    if (runningOrder == null) return const SizedBox.shrink();
+    final cmd = _runningOrderProvider.runningOrder;
+    if (cmd == null) return const SizedBox.shrink();
 
     final media = MediaQuery.of(context);
-    final double horizontalPadding = media.size.width * 0.04; // adaptatif
+    final double horizontalPadding = media.size.width * 0.04;
     final double iconSize = media.size.width < 360 ? 20 : 22;
 
     return Positioned(
       left: horizontalPadding,
       right: horizontalPadding,
-      bottom: media.padding.bottom * 0.2 + 0,
+      bottom: media.padding.bottom * 0.2,
       child: SafeArea(
         top: false,
         child: Material(
@@ -229,7 +215,7 @@ class _HomeState extends State<Home> {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () {
-              Get.toNamed("/orderDetails", arguments: runningOrder);
+              Get.toNamed("/historique_commandes", arguments: cmd.toJson());
             },
             child: Container(
               padding: EdgeInsets.symmetric(
@@ -242,7 +228,6 @@ class _HomeState extends State<Home> {
               ),
               child: Row(
                 children: [
-                  // ICON
                   Container(
                     width: media.size.width * 0.11,
                     height: media.size.width * 0.11,
@@ -262,10 +247,7 @@ class _HomeState extends State<Home> {
                       size: iconSize,
                     ),
                   ),
-
                   const SizedBox(width: 14),
-
-                  // TEXTE
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,7 +264,7 @@ class _HomeState extends State<Home> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Table #${runningOrder!["tableNumber"]} • ${runningOrder!["orderId"]}",
+                          "Table #${cmd.tableLibelle} • ${cmd.numeroCommande}",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -294,10 +276,7 @@ class _HomeState extends State<Home> {
                       ],
                     ),
                   ),
-
                   const SizedBox(width: 10),
-
-                  // CHEVRON
                   Icon(
                     Icons.arrow_forward_ios,
                     size: media.size.width < 360 ? 16 : 18,
@@ -315,11 +294,10 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _searchController.dispose();
-    _searchFocusNode.dispose(); // ✅ Libère le focus node
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
-  // --- Interface principale ---
   @override
   Widget build(BuildContext context) {
     final items = _filteredProducts;
@@ -329,49 +307,48 @@ class _HomeState extends State<Home> {
         child: buildAppBar(cartCount),
       ),
       backgroundColor: const Color(0xFFF8F8F8),
-      body: Column(
+      body: Stack(
         children: [
-          const SizedBox(height: 12),
-          _buildSearchField(),
-          const SizedBox(height: 12),
-          _buildCategoryChips(),
-          const SizedBox(height: 8),
-          Expanded(
-            child: items.isEmpty
-                ? Center(
-                    child: Text(
-                      'Aucun résultat',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 16,
+          Column(
+            children: [
+              const SizedBox(height: 12),
+              _buildSearchField(),
+              const SizedBox(height: 12),
+              _buildCategoryChips(),
+              const SizedBox(height: 8),
+              Expanded(
+                child: items.isEmpty
+                    ? Center(
+                        child: Text(
+                          'Aucun résultat',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 8, bottom: 12),
+                        itemBuilder: (context, index) {
+                          final p = items[index];
+                          return buildProductCard(
+                            context: context,
+                            produit: p,
+                            onCartUpdated: () => setState(() {}),
+                            updateCartCount: (qty) =>
+                                setState(() => cartCount += qty),
+                          );
+                        },
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemCount: items.length,
                       ),
-                    ),
-                  )
-                : ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(top: 8, bottom: 12),
-                    itemBuilder: (context, index) {
-                      final p = items[index];
-                      return buildProductCard(
-                        context: context,
-                        produit: p,
-                        onCartUpdated: () => setState(() {}),
-                        updateCartCount: (qty) =>
-                            setState(() => cartCount += qty),
-                      );
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemCount: items.length,
-                  ),
+              ),
+            ],
           ),
+          _buildRunningOrderBottomCard(),
         ],
       ),
-      // bottomNavigationBar: Material(
-      //   elevation: 6,
-      //   child: SafeArea(top: false, child: _buildBottomScannerBar()),
-      // ),
     );
   }
 }
-
-// Using `Produit` model from API provider

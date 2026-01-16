@@ -1,13 +1,10 @@
-import 'dart:convert';
 
 import 'package:drink_eazy/Api/models/cart_model.dart';
 import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
   class CartProvider with ChangeNotifier {
-    final Map<int, CartItem> _items = {}; // key = produit.id
-    static const _prefsKey = 'drink_eazy_cart_v1';
+    final Map<int, CartItem> _items = {};
 
     // --- getters / vue immuable ---
     List<CartItem> get itemsList => _items.values.toList();

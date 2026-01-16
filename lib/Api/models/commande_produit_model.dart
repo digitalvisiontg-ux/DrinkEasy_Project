@@ -27,4 +27,15 @@ class CommandeProduit {
       prixUnitaire: parseDouble(json['prix_unitaire']),
     );
   }
+
+  /// ✅ AJOUT OBLIGATOIRE
+  Map<String, dynamic> toJson() {
+    return {
+      "produit_id": produitId,
+      "nomProduit": nomProduit,
+      "taille": taille,
+      "quantite": quantite,
+      "prix_unitaire": prixUnitaire,
+    };
+  }
 }

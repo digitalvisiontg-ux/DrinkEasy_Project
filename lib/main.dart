@@ -2,6 +2,7 @@ import 'package:drink_eazy/Api/provider/OrderProvider.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
+import 'package:drink_eazy/Api/provider/running_order_provider.dart';
 import 'package:drink_eazy/Api/provider/table_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
@@ -53,23 +54,22 @@ Future<void> main() async {
   } catch (_) {}
 
   // Créer le provider et attendre la restauration de session AVANT runApp
+  // Créer le provider et attendre la restauration de session AVANT runApp
   final auth = AuthProvider();
   await auth.restoreSession();
-  // Précharger les produits pour les rendre disponibles immédiatement
-  // (évite que Home reçoive une liste vide au démarrage)
+
   final produitProvider = ProduitProvider();
   await produitProvider.fetchProduits();
-  // Debug: print how many produits were fetched (voir console)
-  try {
-    print('Produits préchargés: ${produitProvider.produits.length}');
-  } catch (_) {}
+
+  final runningOrderProvider = RunningOrderProvider();
+  await runningOrderProvider.restoreFromLocal();
 
   runApp(
     MultiProvider(
       providers: [
-        // Fournir l'instance déjà initialisée
         ChangeNotifierProvider.value(value: auth),
         ChangeNotifierProvider.value(value: produitProvider),
+        ChangeNotifierProvider.value(value: runningOrderProvider),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         ChangeNotifierProvider(create: (_) => TableProvider()),
@@ -86,6 +86,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      initialRoute: '/splash',
       getPages: [
         GetPage(
           name: '/inscription_choice',
@@ -149,15 +150,15 @@ class MyApp extends StatelessWidget {
           name: "/signaler_probleme",
           page: () => const SignalerProblemePage(),
         ),
+        GetPage(
+          name: '/splash',
+          page: () => const SplashPage(),
+        ),
 
         // Provide an empty list or appropriate cart items
+        
       ],
-      // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
-      // si l'utilisateur est déjà connecté (comportement souhaité).
-      // home: const SplashScreen(),
-      home: const SplashPage(),
-      // home: BarTestPage(),
-      // home: HomePage(),
+      
     );
   }
 }

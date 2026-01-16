@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Component/deconnexion_component.dart';
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class GererComptePage extends StatefulWidget {
