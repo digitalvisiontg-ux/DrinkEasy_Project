@@ -74,11 +74,7 @@ class _ParametresPageState extends State<ParametresPage> {
                       title: "Changer le mot de passe",
                       subtitle: "Modifier votre mot de passe",
                       onTap: () {
-                        Get.snackbar(
-                          "Sécurité",
-                          "Changement du mot de passe...",
-                          snackPosition: SnackPosition.BOTTOM,
-                        );
+                        Get.toNamed('/changer_mot_de_passe');
                       },
                     ),
                 ],
@@ -107,16 +103,6 @@ class _ParametresPageState extends State<ParametresPage> {
             title: "À propos",
             subtitle: "Drink Eazy • Version 1.0.0",
             onTap: () {
-              // showAboutDialog(
-              //   context: context,
-              //   applicationName: "Drink Eazy",
-              //   applicationVersion: "1.0.0",
-              //   applicationIcon: const Icon(
-              //     Icons.local_drink_outlined,
-              //     size: 48,
-              //     color: Colors.orange,
-              //   ),
-              //   applicationLegalese: "© 2024 Drink Eazy. Tous droits réservés.",
               // );
               Get.toNamed('/about');
             },
@@ -281,54 +267,6 @@ class _ParametresPageState extends State<ParametresPage> {
 
           const SizedBox(height: 15),
 
-          // _section("Paramètres"),
-          // _tile(
-          //   icon: Icons.notifications_outlined,
-          //   title: "Notifications",
-          //   subtitle: "Gérer vos préférences de notification",
-          //   onTap: () {
-          //     showModalBottomSheet(
-          //       context: context,
-          //       builder: (context) => Container(
-          //         padding: const EdgeInsets.all(20),
-          //         child: Column(
-          //           mainAxisSize: MainAxisSize.min,
-          //           children: [
-          //             const Text(
-          //               "Notifications",
-          //               style: TextStyle(
-          //                 fontSize: 18,
-          //                 fontWeight: FontWeight.w700,
-          //               ),
-          //             ),
-          //             const SizedBox(height: 20),
-          //             SwitchListTile(
-          //               title: const Text("Notifications push"),
-          //               subtitle: const Text("Recevoir des alertes"),
-          //               value: notificationsEnabled,
-          //               onChanged: (value) {
-          //                 setState(() => notificationsEnabled = value);
-          //                 Get.back();
-          //               },
-          //             ),
-          //           ],
-          //         ),
-          //       ),
-          //     );
-          //   },
-          // ),
-          // _tile(
-          //   icon: Icons.dark_mode_outlined,
-          //   title: "Thème",
-          //   subtitle: darkMode ? "Mode sombre" : "Mode clair",
-          //   onTap: () {
-          //     setState(() => darkMode = !darkMode);
-          //     Get.snackbar(
-          //       "Thème",
-          //       darkMode ? "Mode sombre activé" : "Mode clair activé",
-          //     );
-          //   },
-          // ),
           Deconnexion_component(context),
         ],
       ),

@@ -1,4 +1,3 @@
-import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:drink_eazy/Api/provider/running_order_provider.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
@@ -215,7 +214,7 @@ _runningOrderProvider =
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () {
-              Get.toNamed("/historique_commandes", arguments: cmd.toJson());
+              Get.toNamed("/MesCommandesPage");
             },
             child: Container(
               padding: EdgeInsets.symmetric(
