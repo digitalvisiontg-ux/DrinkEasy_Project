@@ -280,6 +280,11 @@ class _AccountPageState extends State<AccountPage> {
               onTap: () => Get.toNamed('/historique_commandes'),
             ),
             listTileComponent(
+              icon: Icons.receipt_long_outlined,
+              title: "Mes commandes",
+              onTap: () => Get.toNamed('/mesCommandes'),
+            ),
+            listTileComponent(
               icon: Icons.settings_outlined,
               title: "Paramètres",
               onTap: () => Get.toNamed('/parametres'),

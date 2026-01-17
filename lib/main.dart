@@ -9,6 +9,7 @@ import 'package:drink_eazy/App/Modules/Authentification/View/inscription_phone.d
 import 'package:drink_eazy/App/Modules/Authentification/View/motDePasseOublier.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/otp.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/cart_page.dart';
+import 'package:drink_eazy/App/Modules/Cart/View/mes_commandes_page.dart';
 import 'package:drink_eazy/App/Modules/Gerer_Compte/View/gerer_Compte.dart';
 import 'package:drink_eazy/App/Modules/Historique_commandes/View/historique_commandes.dart';
 import 'package:drink_eazy/App/Modules/Home/View/OrderDetailsPag.dart';
@@ -130,6 +131,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/account', page: () => const AccountPage()),
         GetPage(name: "/orderDetails", page: () => const OrderDetailsPage()),
         GetPage(name: "/help_center", page: () => const HelpCenterPage()),
+        GetPage(name: "/mesCommandes", page: () => const MesCommandesPage()),
         GetPage(
           name: "/confidentiality",
           page: () => const ConfidentialityPage(),
@@ -152,12 +154,17 @@ class MyApp extends StatelessWidget {
           name: "/changer_mot_de_passe",
           page: () => const ChangerMotDePassePage(),
         ),
+        GetPage(
+          name: "/MesCommandesPage",
+          page: () => const MesCommandesPage(),
+        ),
+
         // Provide an empty list or appropriate cart items
       ],
       // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
       // si l'utilisateur est déjà connecté (comportement souhaité).
-      // home: const SplashScreen(),
       home: const SplashPage(),
+      // home: AdminProductsPage(),
       // home: BarTestPage(),
       // home: HomePage(),
     );
