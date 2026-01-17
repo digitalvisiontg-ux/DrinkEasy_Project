@@ -209,7 +209,7 @@ class _HomeState extends State<Home> {
           child: InkWell(
             borderRadius: BorderRadius.circular(18),
             onTap: () {
-              Get.toNamed("/orderDetails", arguments: runningOrder);
+              Get.toNamed("/MesCommandesPage");
             },
             child: Container(
               padding: EdgeInsets.symmetric(
