@@ -91,6 +91,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/splash',
+      // initialRoute: '/admin_products',
       getPages: [
         GetPage(
           name: '/inscription_choice',
