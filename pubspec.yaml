@@ -21,6 +21,7 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_dotenv: ^6.0.0
   connectivity_plus: ^7.0.0
+  uuid: ^4.4.0
 
   # Camera - QR
   mobile_scanner: ^7.1.3

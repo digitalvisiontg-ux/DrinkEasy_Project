@@ -11,6 +11,7 @@ class CommandeValideePage extends StatelessWidget {
   final int totalPrice;
   final String tableNumber;
   final CommandeModel commande; // Injection de la commande complète
+  final bool isHistory;
 
   const CommandeValideePage({
     super.key,
@@ -18,6 +19,7 @@ class CommandeValideePage extends StatelessWidget {
     required this.totalPrice,
     required this.tableNumber,
     required this.commande,
+    this.isHistory = false,
   });
 
   String _formatPrice(int price) {
@@ -39,56 +41,68 @@ class CommandeValideePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // On injecte la commande validée dans le RunningOrderProvider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final runningOrderProvider = Provider.of<RunningOrderProvider>(context, listen: false);
-      runningOrderProvider.setRunningOrder(commande);
-    });
+    if (!isHistory) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final runningOrderProvider =
+            Provider.of<RunningOrderProvider>(context, listen: false);
+        runningOrderProvider.setRunningOrder(commande);
+      });
+    }
 
     final int estimatedTime = 14;
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-    backgroundColor: Colors.white,
-    elevation: 0.4,
-    centerTitle: true,
-    automaticallyImplyLeading: false, // empêche le back automatique
-    leading: IconButton(
-      icon: const Icon(Icons.home, color: Colors.black87),
-      onPressed: () {
-        Get.toNamed('/home');
-      },
-    ),
-    title: const Text(
-      "Retour à l'accueil",
-      style: TextStyle(
-        color: Colors.black87,
-        fontWeight: FontWeight.w700,
-        fontSize: 18,
+        backgroundColor: Colors.white,
+        elevation: 0.4,
+        centerTitle: true,
+        automaticallyImplyLeading: isHistory, // Autoriser le retour si historique
+        leading: isHistory
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                onPressed: () => Get.back(),
+              )
+            : IconButton(
+                icon: const Icon(Icons.home, color: Colors.black87),
+                onPressed: () {
+                  Get.toNamed('/home');
+                },
+              ),
+        title: Text(
+          isHistory ? "Détails" : "Retour à l'accueil",
+          style: const TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
       ),
-    ),
-  ),
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: [
-            Image.asset(
-              "assets/images/confettis.gif",
-              width: 100,
-              height: 100,
-            ),
+            isHistory
+                ? const Icon(Icons.receipt_long, size: 80, color: Colors.amber)
+                : Image.asset(
+                    "assets/images/confettis.gif",
+                    width: 100,
+                    height: 100,
+                  ),
             const SizedBox(height: 16),
-            const Text(
-              "Commande validée !",
-              style: TextStyle(
+            Text(
+              isHistory ? "Détails commande" : "Commande validée !",
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 6),
-            const Text(
-              "Votre commande a été envoyée avec succès",
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            Text(
+              isHistory
+                  ? "Voici le récapitulatif de votre commande"
+                  : "Votre commande a été envoyée avec succès",
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
             const SizedBox(height: 16),
             _infoCard(
@@ -119,53 +133,56 @@ class CommandeValideePage extends StatelessWidget {
             const SizedBox(height: 16),
             _orderDetails(context),
             const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Get.offAllNamed('/home');
-                },
-                icon: const Icon(Icons.edit),
-                label: const Text("Modifierr la commande"),
-              ),
-            ),
-            const SizedBox(height: 12),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () async {
-                  final confirm = await showConfirmComponent(
-                    context,
-                    title: "Annuler la commande",
-                    message:
-                        "Êtes-vous sûr de vouloir annuler votre commande ?",
-                    confirmText: "Oui",
-                    cancelText: "Annuler",
-                    confirmColor: Colors.red,
-                    icon: Icons.warning_amber_rounded,
-                  );
-
-                  if (confirm == true) {
-                    final runningOrderProvider =
-                        Provider.of<RunningOrderProvider>(context, listen: false);
-                    await runningOrderProvider.clearRunningOrder();
-
+            if (!isHistory) ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
                     Get.offAllNamed('/home');
-                    showToastComponent(
-                      context,
-                      "Commande annulée avec succès.",
-                    );
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red.shade50,
-                ),
-                child: const Text(
-                  "Annuler la commande",
-                  style: TextStyle(color: Colors.red),
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text("Modifierr la commande"),
                 ),
               ),
-            ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final confirm = await showConfirmComponent(
+                      context,
+                      title: "Annuler la commande",
+                      message:
+                          "Êtes-vous sûr de vouloir annuler votre commande ?",
+                      confirmText: "Oui",
+                      cancelText: "Annuler",
+                      confirmColor: Colors.red,
+                      icon: Icons.warning_amber_rounded,
+                    );
+
+                    if (confirm == true) {
+                      final runningOrderProvider =
+                          Provider.of<RunningOrderProvider>(context,
+                              listen: false);
+                      await runningOrderProvider.clearRunningOrder();
+
+                      Get.offAllNamed('/home');
+                      showToastComponent(
+                        context,
+                        "Commande annulée avec succès.",
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                  ),
+                  child: const Text(
+                    "Annuler la commande",
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
           ],
         ),

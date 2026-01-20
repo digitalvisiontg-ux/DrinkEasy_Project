@@ -1,5 +1,6 @@
 import 'package:drink_eazy/Api/models/produit.dart';
 import 'package:drink_eazy/Api/provider/running_order_provider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Home/View/appbar.dart';
 import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
 import 'package:flutter/material.dart';
@@ -28,8 +29,30 @@ class _HomeState extends State<Home> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-_runningOrderProvider =
-    Provider.of<RunningOrderProvider>(context, listen: false);
+    _runningOrderProvider =
+        Provider.of<RunningOrderProvider>(context, listen: false);
+
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    if (auth.isAuthenticated) {
+      _runningOrderProvider.startUserOrdersPolling();
+    } else {
+      _runningOrderProvider.stopUserOrdersPolling();
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final auth = Provider.of<AuthProvider>(context, listen: false);
+      final ro = Provider.of<RunningOrderProvider>(context, listen: false);
+      // Vérification initiale et démarrage du polling si connecté
+      if (auth.isAuthenticated) {
+        ro.startUserOrdersPolling();
+      } else {
+        ro.stopUserOrdersPolling();
+      }
+    });
   }
 
   // ------------------------------
@@ -195,7 +218,10 @@ _runningOrderProvider =
 
   // 🔥 BOTTOM FLOTTANT AVEC RUNNING ORDER PROVIDER
   Widget _buildRunningOrderBottomCard() {
-    final cmd = _runningOrderProvider.runningOrder;
+    final ro = Provider.of<RunningOrderProvider>(context);
+    final cmd = ro.userShouldShowBanner
+        ? (ro.userCurrentActiveOrder ?? ro.userLastOrderSnapshot)
+        : ro.runningOrder;
     if (cmd == null) return const SizedBox.shrink();
 
     final media = MediaQuery.of(context);
@@ -215,7 +241,7 @@ _runningOrderProvider =
             borderRadius: BorderRadius.circular(18),
             onTap: () {
               Get.toNamed("/MesCommandesPage");
-            },
+            }, 
             child: Container(
               padding: EdgeInsets.symmetric(
                 horizontal: media.size.width * 0.04,
@@ -253,7 +279,7 @@ _runningOrderProvider =
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
-                          "Commande en cours",
+                          "Status de votre commande",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(

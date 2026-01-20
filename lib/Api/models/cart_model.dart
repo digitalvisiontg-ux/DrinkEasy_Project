@@ -10,7 +10,7 @@ class CartItem {
 
   double get subtotal => produit.prixFinal * quantite;
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toApiJson() {
     return {
       'produit': {
         'id': produit.id,
@@ -48,7 +48,7 @@ class CartItem {
     );
   }
 
-  String toJson() => json.encode(toMap());
+  String toJson() => json.encode(toApiJson());
 
   factory CartItem.fromJson(String source) => CartItem.fromMap(json.decode(source));
 }

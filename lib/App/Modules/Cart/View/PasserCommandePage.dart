@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/provider/OrderProvider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/table_provider.dart';
 import 'package:drink_eazy/Api/services/commande_service.dart';
@@ -9,6 +10,8 @@ import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class PasserCommandePage extends StatefulWidget {
   const PasserCommandePage({super.key, required List<Map<String, dynamic>> cartItems});
@@ -122,8 +125,11 @@ _finalizeStep1();
     final orderProvider = context.read<OrderProvider>();
     final cartProvider = context.read<CartProvider>();
 
-    orderProvider.setTableRaw(table.numeroTable);
-    orderProvider.setTableLabel(table.libelle);
+    orderProvider.setTable(
+      tableId: table.id,
+      numeroTable: table.numeroTable,
+      libelle: table.libelle,
+    );
     orderProvider.setItems(cartProvider.itemsList);
 
     setState(() => _currentStep = 2);
@@ -184,10 +190,17 @@ _finalizeStep1();
   print("3");
   try {
     print("4");
+    final auth = context.read<AuthProvider>();
+    String? guestToken;
+    if (!auth.isAuthenticated) {
+      guestToken = await _getGuestToken();
+    }
+
     final response = await commandeService.createCommande(
       tableId: table.id,
       items: itemsPayload,
-      commentaire: null, // ou ton champ si tu l’ajoutes plus tard
+      commentaire: null,
+      guestToken: guestToken,
     );
     print("5");
     Navigator.pop(context); // close loader
@@ -837,4 +850,14 @@ _finalizeStep1();
       ),
     );
   }
+  }
+
+  Future<String> _getGuestToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('guest_token');
+    if (token == null) {
+      token = const Uuid().v4();
+      await prefs.setString('guest_token', token);
+    }
+    return token;
   }
