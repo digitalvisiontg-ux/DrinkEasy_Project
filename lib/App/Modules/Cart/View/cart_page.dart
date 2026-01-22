@@ -22,7 +22,8 @@ class CartPage extends StatefulWidget {
   State<CartPage> createState() => _CartPageState();
 }
 
-class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin {
+class _CartPageState extends State<CartPage>
+    with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
 
   @override
@@ -47,7 +48,10 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
   }
 
   double _formatTotalPrice(List<CartItem> items) {
-    return items.fold<double>(0.0, (sum, item) => sum + (item.produit.prixFinal * item.quantite));
+    return items.fold<double>(
+      0.0,
+      (sum, item) => sum + (item.produit.prixFinal * item.quantite),
+    );
   }
 
   void _updateQuantity(CartProvider cart, CartItem item, int change) {
@@ -113,7 +117,11 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
     return buffer.toString().split('').reversed.join('');
   }
 
-  Widget _styledQtyButton(IconData icon, VoidCallback onTap, { required bool isAdd }) {
+  Widget _styledQtyButton(
+    IconData icon,
+    VoidCallback onTap, {
+    required bool isAdd,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -194,26 +202,28 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                        child:
+                            product.imageUrl != null &&
+                                product.imageUrl!.isNotEmpty
                             ? (product.imageUrl!.startsWith('http')
-                                ? Image.network(
-                                    product.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.local_drink,
-                                      size: 36,
-                                      color: Colors.grey,
-                                    ),
-                                  )
-                                : Image.asset(
-                                    product.imageUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.local_drink,
-                                      size: 36,
-                                      color: Colors.grey,
-                                    ),
-                                  ))
+                                  ? Image.network(
+                                      product.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.local_drink,
+                                        size: 36,
+                                        color: Colors.grey,
+                                      ),
+                                    )
+                                  : Image.asset(
+                                      product.imageUrl!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.local_drink,
+                                        size: 36,
+                                        color: Colors.grey,
+                                      ),
+                                    ))
                             : const Icon(
                                 Icons.local_drink,
                                 size: 36,
@@ -270,7 +280,7 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                             ],
                           ),
 
-                          const SizedBox(height: 8), 
+                          const SizedBox(height: 8),
 
                           Row(
                             children: [
@@ -302,7 +312,10 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                                   AnimatedSwitcher(
                                     duration: const Duration(milliseconds: 300),
                                     transitionBuilder: (child, anim) =>
-                                        ScaleTransition(scale: anim, child: child),
+                                        ScaleTransition(
+                                          scale: anim,
+                                          child: child,
+                                        ),
                                     child: Text(
                                       "$quantity",
                                       key: ValueKey<int>(quantity),
@@ -344,27 +357,33 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                             ),
 
                             // Afficher le nombre d'articles offerts pour ce produit si éligible
-                            Builder(builder: (ctx) {
-                              final offered = cart.offeredCountForProduct(product.id);
-                              return offered > 0
-                                  ? Padding(
-                                      padding: const EdgeInsets.only(top: 6.0),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'Offert : $offered',
-                                            style: TextStyle(
-                                              color: Colors.green.shade700,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 13,
+                            Builder(
+                              builder: (ctx) {
+                                final offered = cart.offeredCountForProduct(
+                                  product.id,
+                                );
+                                return offered > 0
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 6.0,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'Offert : $offered',
+                                              style: TextStyle(
+                                                color: Colors.green.shade700,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13,
+                                              ),
                                             ),
-                                          ),
-                                          const Spacer(),
-                                        ],
-                                      ),
-                                    )
-                                  : const SizedBox.shrink();
-                            }),
+                                            const Spacer(),
+                                          ],
+                                        ),
+                                      )
+                                    : const SizedBox.shrink();
+                              },
+                            ),
                           ],
                         ],
                       ),
@@ -395,7 +414,10 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                           color: Colors.red.shade400,
                         ),
                         const SizedBox(width: 6),
-                        const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                        const Text(
+                          "Supprimer",
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -520,24 +542,24 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
                               ),
                             ],
                           ),
-                                const SizedBox(height: 4),
-                                if (offeredCount > 0)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 6.0),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          'Total Offert : $offeredCount',
-                                          style: TextStyle(
-                                            color: Colors.green.shade700,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                      ],
+                          const SizedBox(height: 4),
+                          if (offeredCount > 0)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6.0),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Total Offert : $offeredCount',
+                                    style: TextStyle(
+                                      color: Colors.green.shade700,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
                                     ),
                                   ),
+                                  const Spacer(),
+                                ],
+                              ),
+                            ),
                         ],
                       ),
                       _checkoutButton(cart),
@@ -690,7 +712,9 @@ class _CartPageState extends State<CartPage> with SingleTickerProviderStateMixin
           const SizedBox(height: 12),
 
           Expanded(
-            child: items.isEmpty ? _buildEmptyCart(theme) : _buildCartList(theme, cart),
+            child: items.isEmpty
+                ? _buildEmptyCart(theme)
+                : _buildCartList(theme, cart),
           ),
 
           _buildBottomBar(theme, cart),

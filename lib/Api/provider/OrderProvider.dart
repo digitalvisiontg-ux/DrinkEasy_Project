@@ -6,9 +6,9 @@ class OrderProvider extends ChangeNotifier {
    * TABLE (SOURCE DE VÉRITÉ = table_id)
    * ============================================================ */
 
-  int? _tableId;          // ID réel backend
-  String? _tableNumero;   // numero_table (technique)
-  String? _tableLabel;    // libellé business
+  int? _tableId; // ID réel backend
+  String? _tableNumero; // numero_table (technique)
+  String? _tableLabel; // libellé business
 
   /// Exposed getters
   int? get tableId => _tableId;
@@ -64,8 +64,7 @@ class OrderProvider extends ChangeNotifier {
    * TOTAL
    * ============================================================ */
 
-  double get totalPrice =>
-      _items.fold(0.0, (sum, e) => sum + e.subtotal);
+  double get totalPrice => _items.fold(0.0, (sum, e) => sum + e.subtotal);
 
   /* ============================================================
    * PAYLOAD API

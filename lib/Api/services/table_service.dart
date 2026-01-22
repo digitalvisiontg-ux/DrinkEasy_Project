@@ -4,7 +4,7 @@ import 'package:drink_eazy/Api/services/api_service.dart';
 class TableService {
   final ApiService _api = ApiService();
 
-  /// Verification auto (QR) 
+  /// Verification auto (QR)
   Future<Map<String, dynamic>> verifyByQr(String token) async {
     final response = await _api.get(
       "${ApiConstants.baseUrl}/table/verify/$token",
@@ -14,12 +14,12 @@ class TableService {
 
   /// Verification manual
   Future<Map<String, dynamic>> verifyByManual(String tableNumber) async {
-  final encoded = Uri.encodeComponent(tableNumber.trim().toUpperCase());
+    final encoded = Uri.encodeComponent(tableNumber.trim().toUpperCase());
 
-  final response = await _api.get(
-    "${ApiConstants.baseUrl}/table/verify-manual/$encoded",
-  );
+    final response = await _api.get(
+      "${ApiConstants.baseUrl}/table/verify-manual/$encoded",
+    );
 
-  return response.data;
-}
+    return response.data;
+  }
 }

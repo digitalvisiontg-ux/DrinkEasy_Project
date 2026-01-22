@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/models/commande_produit_model.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
@@ -23,12 +24,16 @@ class _MesCommandesPageState extends State<MesCommandesPage>
   final CommandeService _commandeService = CommandeService();
   List<CommandeModel> _orders = [];
   bool _isLoading = true;
+  Timer? _pollTimer;
+  bool _isRefreshing = false;
+  static const Duration _pollInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _fetchOrders();
+    _startPolling();
   }
 
   Future<String> getGuestToken() async {
@@ -53,15 +58,15 @@ class _MesCommandesPageState extends State<MesCommandesPage>
         rawOrders = await _commandeService.getGuestCommandes(guestToken);
       }
 
+      if (!mounted) return;
       setState(() {
-        _orders = rawOrders
-            .map((e) => CommandeModel.fromJson(e))
-            .toList()
+        _orders = rawOrders.map((e) => CommandeModel.fromJson(e)).toList()
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
         _isLoading = false;
       });
     } catch (e) {
       debugPrint("Erreur récupération commandes: $e");
+      if (!mounted) return;
       setState(() {
         _orders = [];
         _isLoading = false;
@@ -69,9 +74,37 @@ class _MesCommandesPageState extends State<MesCommandesPage>
     }
   }
 
+  Future<void> _refreshOrdersSilently() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      final auth = context.read<AuthProvider>();
+      List<Map<String, dynamic>> rawOrders;
+      if (auth.isAuthenticated) {
+        rawOrders = await _commandeService.getUserCommandes();
+      } else {
+        final guestToken = await getGuestToken();
+        rawOrders = await _commandeService.getGuestCommandes(guestToken);
+      }
+      if (!mounted) return;
+      setState(() {
+        _orders = rawOrders.map((e) => CommandeModel.fromJson(e)).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      });
+    } catch (_) {} finally {
+      _isRefreshing = false;
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _refreshOrdersSilently());
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -89,7 +122,7 @@ class _MesCommandesPageState extends State<MesCommandesPage>
             'started',
             'ready',
             'validée',
-            'validee'
+            'validee',
           ].contains(s);
         case "terminee":
           return [
@@ -100,7 +133,7 @@ class _MesCommandesPageState extends State<MesCommandesPage>
             'livrée',
             'livree',
             'delivered',
-            'served'
+            'served',
           ].contains(s);
         case "annulee":
           return [
@@ -116,7 +149,6 @@ class _MesCommandesPageState extends State<MesCommandesPage>
       }
     }).toList();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -138,6 +170,17 @@ class _MesCommandesPageState extends State<MesCommandesPage>
             fontWeight: FontWeight.w700,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              await _fetchOrders();
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -225,6 +268,7 @@ class _MesCommandesPageState extends State<MesCommandesPage>
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: data.length,
       itemBuilder: (context, index) {
         return _orderCard(data[index]);

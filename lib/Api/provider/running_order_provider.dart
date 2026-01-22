@@ -18,9 +18,12 @@ class RunningOrderProvider extends ChangeNotifier {
   CommandeModel? _userCurrentActiveOrder;
   bool _userHasActiveOrders = false;
   Timer? _userPollTimer;
+  Timer? _bannerHideTimer;
   final _service = CommandeService();
   DateTime? _userAllTerminalAt;
   CommandeModel? _userLastOrderSnapshot;
+  DateTime? _bannerHideAt;
+  bool _bannerForUser = false;
 
   /* ============================================================
    * GETTERS
@@ -32,13 +35,31 @@ class RunningOrderProvider extends ChangeNotifier {
   bool get userHasActiveOrders => _userHasActiveOrders;
   DateTime? get userAllTerminalAt => _userAllTerminalAt;
   CommandeModel? get userLastOrderSnapshot => _userLastOrderSnapshot;
-  bool get userShouldShowBanner =>
-      _userHasActiveOrders ||
-      (_userAllTerminalAt != null &&
-          DateTime.now().difference(_userAllTerminalAt!) <
-              const Duration(minutes: 30));
-  CommandeModel? get currentBannerOrder =>
-      _userCurrentActiveOrder ?? _userLastOrderSnapshot ?? _runningOrder;
+  bool get userShouldShowBanner {
+    if (_userHasActiveOrders) return true;
+    if (_userAllTerminalAt == null) return false;
+    return DateTime.now().difference(_userAllTerminalAt!) <
+        const Duration(minutes: 15);
+  }
+  bool get guestShouldShowBanner {
+    if (_runningOrder == null) return false;
+    final s = _runningOrder!.status.toLowerCase().trim();
+    if (!_isTerminalStatus(s)) return true;
+    final completedAt = _runningOrder!.completedAt;
+    if (completedAt == null) return false;
+    return DateTime.now().difference(completedAt) <
+        const Duration(minutes: 15);
+  }
+  bool get shouldShowBanner => userShouldShowBanner || guestShouldShowBanner;
+  CommandeModel? get currentBannerOrder {
+    if (userShouldShowBanner) {
+      return _userCurrentActiveOrder ?? _userLastOrderSnapshot;
+    }
+    if (guestShouldShowBanner) {
+      return _runningOrder;
+    }
+    return null;
+  }
 
   int? get id => _runningOrder?.id;
   String get numeroCommande => _runningOrder?.numeroCommande ?? '';
@@ -87,10 +108,7 @@ class RunningOrderProvider extends ChangeNotifier {
     if (_runningOrder == null) return;
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      _storageKey,
-      jsonEncode(_runningOrder!.toJson()),
-    );
+    await prefs.setString(_storageKey, jsonEncode(_runningOrder!.toJson()));
   }
 
   /* ============================================================
@@ -108,20 +126,25 @@ class RunningOrderProvider extends ChangeNotifier {
       _runningOrder = CommandeModel.fromJson(
         Map<String, dynamic>.from(decoded),
       );
-      // Logique d'expiration: garder 1h après statut terminé
       if (_runningOrder != null) {
         final s = _runningOrder!.status.toLowerCase().trim();
         final isTerminal = _isTerminalStatus(s);
         final completedAt = _runningOrder!.completedAt;
-        if (isTerminal && completedAt == null) {
-          // Inconnu: initialiser maintenant pour une fenêtre de 1h
-          _runningOrder = _runningOrder!.copyWith(completedAt: DateTime.now());
-          await _persist();
-        } else if (isTerminal && completedAt != null) {
-          final diff = DateTime.now().difference(completedAt);
-          if (diff > const Duration(hours: 1)) {
+        if (isTerminal) {
+          final base = completedAt ?? DateTime.now();
+          if (completedAt == null) {
+            _runningOrder = _runningOrder!.copyWith(completedAt: base);
+            await _persist();
+          }
+          final diff = DateTime.now().difference(base);
+          if (diff >= const Duration(minutes: 15)) {
             await prefs.remove(_storageKey);
             _runningOrder = null;
+            debugPrint("RunningOrderProvider: guest banner cleared (15m elapsed)");
+          } else {
+            final remain = const Duration(minutes: 15) - diff;
+            _scheduleGuestHide(remain);
+            debugPrint("RunningOrderProvider: guest hide scheduled in ${remain.inSeconds}s");
           }
         }
       }
@@ -132,7 +155,6 @@ class RunningOrderProvider extends ChangeNotifier {
       _runningOrder = null;
     }
 
-    // Restaurer aussi le snapshot USER (bannière 30min)
     try {
       final snapRaw = prefs.getString(_userSnapshotKey);
       final terminalAtIso = prefs.getString(_userTerminalAtKey);
@@ -143,6 +165,18 @@ class RunningOrderProvider extends ChangeNotifier {
       }
       if (terminalAtIso != null) {
         _userAllTerminalAt = DateTime.tryParse(terminalAtIso);
+        if (_userAllTerminalAt != null) {
+          final diff = DateTime.now().difference(_userAllTerminalAt!);
+          if (diff >= const Duration(minutes: 15)) {
+            _userAllTerminalAt = null;
+            _userLastOrderSnapshot = null;
+            debugPrint("RunningOrderProvider: user banner cleared on restore (15m elapsed)");
+          } else {
+            final remain = const Duration(minutes: 15) - diff;
+            _scheduleUserHide(remain);
+            debugPrint("RunningOrderProvider: user hide scheduled in ${remain.inSeconds}s on restore");
+          }
+        }
       }
     } catch (_) {}
   }
@@ -161,6 +195,14 @@ class RunningOrderProvider extends ChangeNotifier {
     );
     notifyListeners();
     await _persist();
+    if (willBeTerminal) {
+      _cancelBannerTimer();
+      _scheduleGuestHide(const Duration(minutes: 15));
+      debugPrint("RunningOrderProvider: guest terminal reached, hide in 15m");
+    } else {
+      _cancelBannerTimer();
+      debugPrint("RunningOrderProvider: guest status non-terminal, hide timer canceled");
+    }
   }
 
   bool _isTerminalStatus(String s) {
@@ -187,7 +229,9 @@ class RunningOrderProvider extends ChangeNotifier {
         // Map into models
         final models = list.map((e) => CommandeModel.fromJson(e)).toList();
         // Filter non-terminal statuses
-        final actives = models.where((m) => !_isTerminalStatus(m.status.toLowerCase().trim())).toList();
+        final actives = models
+            .where((m) => !_isTerminalStatus(m.status.toLowerCase().trim()))
+            .toList();
         _userHasActiveOrders = actives.isNotEmpty;
         // Choose the most recent active by createdAt
         if (_userHasActiveOrders) {
@@ -196,6 +240,8 @@ class RunningOrderProvider extends ChangeNotifier {
           _userAllTerminalAt = null;
           _userLastOrderSnapshot = _userCurrentActiveOrder;
           await _persistUserBannerState();
+          _cancelBannerTimer();
+          debugPrint("RunningOrderProvider: user has active orders, hide timer canceled");
         } else {
           _userCurrentActiveOrder = null;
           if (_userAllTerminalAt == null) {
@@ -208,6 +254,9 @@ class RunningOrderProvider extends ChangeNotifier {
             _userLastOrderSnapshot = null;
           }
           await _persistUserBannerState();
+          _cancelBannerTimer();
+          _scheduleUserHide(const Duration(minutes: 15));
+          debugPrint("RunningOrderProvider: user terminal state, hide in 15m");
         }
         notifyListeners();
       } catch (_) {
@@ -219,6 +268,7 @@ class RunningOrderProvider extends ChangeNotifier {
   void stopUserOrdersPolling() {
     _userPollTimer?.cancel();
     _userPollTimer = null;
+    _cancelBannerTimer();
   }
 
   Future<void> _persistUserBannerState() async {
@@ -232,9 +282,90 @@ class RunningOrderProvider extends ChangeNotifier {
       await prefs.remove(_userSnapshotKey);
     }
     if (_userAllTerminalAt != null) {
-      await prefs.setString(_userTerminalAtKey, _userAllTerminalAt!.toIso8601String());
+      await prefs.setString(
+        _userTerminalAtKey,
+        _userAllTerminalAt!.toIso8601String(),
+      );
     } else {
       await prefs.remove(_userTerminalAtKey);
     }
+  }
+
+  void _scheduleGuestHide(Duration inDuration) {
+    _cancelBannerTimer();
+    _bannerForUser = false;
+    _bannerHideAt = DateTime.now().add(inDuration);
+    _bannerHideTimer = Timer(inDuration, () async {
+      await clearRunningOrder();
+      debugPrint("RunningOrderProvider: guest banner hidden after scheduled 15m");
+    });
+  }
+
+  void _scheduleUserHide(Duration inDuration) {
+    _cancelBannerTimer();
+    _bannerForUser = true;
+    _bannerHideAt = DateTime.now().add(inDuration);
+    _bannerHideTimer = Timer(inDuration, () async {
+      _userLastOrderSnapshot = null;
+      _userAllTerminalAt = null;
+      await _persistUserBannerState();
+      notifyListeners();
+      debugPrint("RunningOrderProvider: user banner hidden after scheduled 15m");
+    });
+  }
+
+  void _cancelBannerTimer() {
+    if (_bannerHideTimer != null) {
+      _bannerHideTimer!.cancel();
+      _bannerHideTimer = null;
+      _bannerHideAt = null;
+      debugPrint("RunningOrderProvider: hide timer canceled");
+    }
+  }
+
+  void pauseBannerHideCountdown() {
+    if (_bannerHideTimer == null || _bannerHideAt == null) {
+      debugPrint("RunningOrderProvider: pause requested but no active hide timer");
+      return;
+    }
+    final remain = _bannerHideAt!.difference(DateTime.now());
+    _cancelBannerTimer();
+    _bannerHideAt = DateTime.now().add(remain);
+    debugPrint("RunningOrderProvider: hide timer paused, remaining ${remain.inSeconds}s");
+  }
+
+  void resumeBannerHideCountdown() {
+    if (_bannerHideAt == null) {
+      debugPrint("RunningOrderProvider: resume requested but no target time");
+      return;
+    }
+    final remain = _bannerHideAt!.difference(DateTime.now());
+    if (remain <= Duration.zero) {
+      if (_bannerForUser) {
+        _userLastOrderSnapshot = null;
+        _userAllTerminalAt = null;
+        _persistUserBannerState();
+        notifyListeners();
+        debugPrint("RunningOrderProvider: resume -> user banner cleared immediately");
+      } else {
+        clearRunningOrder();
+        debugPrint("RunningOrderProvider: resume -> guest banner cleared immediately");
+      }
+      return;
+    }
+    if (_bannerForUser) {
+      _scheduleUserHide(remain);
+      debugPrint("RunningOrderProvider: hide timer resumed for user, ${remain.inSeconds}s remaining");
+    } else {
+      _scheduleGuestHide(remain);
+      debugPrint("RunningOrderProvider: hide timer resumed for guest, ${remain.inSeconds}s remaining");
+    }
+  }
+
+  @override
+  void dispose() {
+    _userPollTimer?.cancel();
+    _bannerHideTimer?.cancel();
+    super.dispose();
   }
 }

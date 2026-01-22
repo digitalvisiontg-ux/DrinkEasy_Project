@@ -6,6 +6,7 @@ import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
+import 'dart:async';
 import 'dart:ui';
 import 'package:get/get.dart';
 
@@ -16,12 +17,19 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _selectedCategory = 'Tous';
   int cartCount = 0;
   bool _isSearching = false;
+  final ScrollController _listController = ScrollController();
+  final GlobalKey<RefreshIndicatorState> _refreshKey =
+      GlobalKey<RefreshIndicatorState>();
+  Timer? _autoRefreshTimer;
+  bool _isRefreshing = false;
+  static const Duration _autoInterval = Duration(seconds: 30);
+  static const Duration _refreshTimeout = Duration(seconds: 12);
 
   late RunningOrderProvider _runningOrderProvider;
 
@@ -29,8 +37,10 @@ class _HomeState extends State<Home> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    _runningOrderProvider =
-        Provider.of<RunningOrderProvider>(context, listen: false);
+    _runningOrderProvider = Provider.of<RunningOrderProvider>(
+      context,
+      listen: false,
+    );
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     if (auth.isAuthenticated) {
@@ -43,6 +53,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = Provider.of<AuthProvider>(context, listen: false);
       final ro = Provider.of<RunningOrderProvider>(context, listen: false);
@@ -52,7 +63,64 @@ class _HomeState extends State<Home> {
       } else {
         ro.stopUserOrdersPolling();
       }
+      _startAutoRefresh();
     });
+  }
+
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer =
+        Timer.periodic(_autoInterval, (_) => _triggerAutoRefresh());
+  }
+
+  Future<void> _triggerAutoRefresh() async {
+    if (_isRefreshing) return;
+    if (!mounted) return;
+    _refreshKey.currentState?.show();
+  }
+
+  Future<void> _onRefresh() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    final oldOffset = _listController.hasClients ? _listController.offset : 0.0;
+    final provider = context.read<ProduitProvider>();
+    Future<void> task;
+    if (_selectedCategory == 'Tous') {
+      task = provider.fetchProduits();
+    } else if (_selectedCategory == 'Promotion') {
+      task = provider.fetchProduitsEnPromotion();
+    } else {
+      task = provider.fetchProduitsParCategorie(_selectedCategory);
+    }
+    bool finished = false;
+    await Future.any([
+      task.then((_) => finished = true),
+      Future.delayed(_refreshTimeout),
+    ]);
+    if (!finished) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Temps d'actualisation dépassé"),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } else {
+      final err = provider.error;
+      if (err != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(err),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+    if (mounted && _listController.hasClients) {
+      _listController.jumpTo(oldOffset);
+    }
+    _isRefreshing = false;
   }
 
   // ------------------------------
@@ -68,7 +136,8 @@ class _HomeState extends State<Home> {
           query.isEmpty || p.nomProd.toLowerCase().contains(query);
 
       if (_selectedCategory == 'Promotion') {
-        return matchQuery && (p.promotionActive || p.promotionsDetails.isNotEmpty);
+        return matchQuery &&
+            (p.promotionActive || p.promotionsDetails.isNotEmpty);
       }
 
       if (_selectedCategory == 'Tous') return matchQuery;
@@ -104,7 +173,10 @@ class _HomeState extends State<Home> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(28),
-                    borderSide: const BorderSide(color: Colors.amber, width: 1.8),
+                    borderSide: const BorderSide(
+                      color: Colors.amber,
+                      width: 1.8,
+                    ),
                   ),
                 ),
               ),
@@ -134,7 +206,7 @@ class _HomeState extends State<Home> {
                     ),
                   )
                 : const SizedBox.shrink(),
-          )
+          ),
         ],
       ),
     );
@@ -160,9 +232,15 @@ class _HomeState extends State<Home> {
             label: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(_emojiForCategory(cat), style: const TextStyle(fontSize: 16)),
+                Text(
+                  _emojiForCategory(cat),
+                  style: const TextStyle(fontSize: 16),
+                ),
                 const SizedBox(width: 6),
-                Text(cat, style: const TextStyle(color: Colors.black, fontSize: 15)),
+                Text(
+                  cat,
+                  style: const TextStyle(color: Colors.black, fontSize: 15),
+                ),
               ],
             ),
             selected: selected,
@@ -170,7 +248,10 @@ class _HomeState extends State<Home> {
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
-              side: BorderSide(color: selected ? Colors.amber : Colors.grey.shade300, width: 1.2),
+              side: BorderSide(
+                color: selected ? Colors.amber : Colors.grey.shade300,
+                width: 1.2,
+              ),
             ),
             onSelected: (_) => setState(() => _selectedCategory = cat),
           );
@@ -212,17 +293,18 @@ class _HomeState extends State<Home> {
 
     final List<String> result = ['Tous', 'Promotion'];
     result.addAll(
-        setCats.where((c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous'));
+      setCats.where(
+        (c) => c.toLowerCase() != 'promotion' && c.toLowerCase() != 'tous',
+      ),
+    );
     return result;
   }
 
   // 🔥 BOTTOM FLOTTANT AVEC RUNNING ORDER PROVIDER
   Widget _buildRunningOrderBottomCard() {
     final ro = Provider.of<RunningOrderProvider>(context);
-    final cmd = ro.userShouldShowBanner
-        ? (ro.userCurrentActiveOrder ?? ro.userLastOrderSnapshot)
-        : ro.runningOrder;
-    if (cmd == null) return const SizedBox.shrink();
+    final cmd = ro.currentBannerOrder;
+    if (!ro.shouldShowBanner || cmd == null) return const SizedBox.shrink();
 
     final media = MediaQuery.of(context);
     final double horizontalPadding = media.size.width * 0.04;
@@ -231,83 +313,89 @@ class _HomeState extends State<Home> {
     return Positioned(
       left: horizontalPadding,
       right: horizontalPadding,
-      bottom: media.padding.bottom * 0.2,
+      bottom: media.padding.bottom + 12,
       child: SafeArea(
         top: false,
-        child: Material(
-          elevation: 5,
-          borderRadius: BorderRadius.circular(18),
-          child: InkWell(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+          builder: (context, value, child) => Opacity(opacity: value, child: child!),
+          child: Material(
+            elevation: 5,
             borderRadius: BorderRadius.circular(18),
-            onTap: () {
-              Get.toNamed("/MesCommandesPage");
-            }, 
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: media.size.width * 0.04,
-                vertical: media.size.height * 0.018,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: media.size.width * 0.11,
-                    height: media.size.width * 0.11,
-                    constraints: const BoxConstraints(
-                      minWidth: 38,
-                      maxWidth: 44,
-                      minHeight: 38,
-                      maxHeight: 44,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(18),
+              onTap: () {
+                Get.toNamed("/MesCommandesPage");
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: media.size.width * 0.04,
+                  vertical: media.size.height * 0.018,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: media.size.width * 0.11,
+                      height: media.size.width * 0.11,
+                      constraints: const BoxConstraints(
+                        minWidth: 38,
+                        maxWidth: 44,
+                        minHeight: 38,
+                        maxHeight: 44,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC8FFD4),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.restaurant_menu,
+                        color: Colors.green,
+                        size: iconSize,
+                      ),
                     ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFC8FFD4),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.restaurant_menu,
-                      color: Colors.green,
-                      size: iconSize,
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          "Status de votre commande",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            "Status de votre commande",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Table #${cmd.tableLibelle} • ${cmd.numeroCommande}",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black54,
-                            fontWeight: FontWeight.w500,
+                          const SizedBox(height: 4),
+                          Text(
+                            "Table #${cmd.tableLibelle} • ${cmd.numeroCommande}",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: media.size.width < 360 ? 16 : 18,
-                    color: Colors.black45,
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: media.size.width < 360 ? 16 : 18,
+                      color: Colors.black45,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -320,7 +408,23 @@ class _HomeState extends State<Home> {
   void dispose() {
     _searchController.dispose();
     _searchFocusNode.dispose();
+    _autoRefreshTimer?.cancel();
+    _listController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final ro = Provider.of<RunningOrderProvider>(context, listen: false);
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      ro.pauseBannerHideCountdown();
+      debugPrint("Home: lifecycle paused -> banner hide timer paused");
+    } else if (state == AppLifecycleState.resumed) {
+      ro.resumeBannerHideCountdown();
+      debugPrint("Home: lifecycle resumed -> banner hide timer resumed");
+    }
   }
 
   @override
@@ -342,32 +446,49 @@ class _HomeState extends State<Home> {
               _buildCategoryChips(),
               const SizedBox(height: 8),
               Expanded(
-                child: items.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Aucun résultat',
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 16,
+                child: RefreshIndicator(
+                  key: _refreshKey,
+                  onRefresh: _onRefresh,
+                  child: items.isEmpty
+                      ? ListView(
+                          controller: _listController,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
                           ),
+                          padding: const EdgeInsets.only(top: 8, bottom: 12),
+                          children: [
+                            Center(
+                              child: Text(
+                                'Aucun résultat',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : ListView.separated(
+                          controller: _listController,
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          padding: const EdgeInsets.only(top: 8, bottom: 12),
+                          itemBuilder: (context, index) {
+                            final p = items[index];
+                            return buildProductCard(
+                              context: context,
+                              produit: p,
+                              onCartUpdated: () => setState(() {}),
+                              updateCartCount: (qty) =>
+                                  setState(() => cartCount += qty),
+                            );
+                          },
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 8),
+                          itemCount: items.length,
                         ),
-                      )
-                    : ListView.separated(
-                        physics: const BouncingScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 8, bottom: 12),
-                        itemBuilder: (context, index) {
-                          final p = items[index];
-                          return buildProductCard(
-                            context: context,
-                            produit: p,
-                            onCartUpdated: () => setState(() {}),
-                            updateCartCount: (qty) =>
-                                setState(() => cartCount += qty),
-                          );
-                        },
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemCount: items.length,
-                      ),
+                ),
               ),
             ],
           ),

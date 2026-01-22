@@ -43,8 +43,10 @@ class CommandeValideePage extends StatelessWidget {
     // On injecte la commande validée dans le RunningOrderProvider
     if (!isHistory) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        final runningOrderProvider =
-            Provider.of<RunningOrderProvider>(context, listen: false);
+        final runningOrderProvider = Provider.of<RunningOrderProvider>(
+          context,
+          listen: false,
+        );
         runningOrderProvider.setRunningOrder(commande);
       });
     }
@@ -56,7 +58,8 @@ class CommandeValideePage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0.4,
         centerTitle: true,
-        automaticallyImplyLeading: isHistory, // Autoriser le retour si historique
+        automaticallyImplyLeading:
+            isHistory, // Autoriser le retour si historique
         leading: isHistory
             ? IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.black87),
@@ -92,10 +95,7 @@ class CommandeValideePage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               isHistory ? "Détails commande" : "Commande validée !",
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
@@ -125,10 +125,7 @@ class CommandeValideePage extends StatelessWidget {
               icon: Icons.access_time,
               title: "Temps estimé",
               value: "$estimatedTime minutes",
-              colors: const [
-                Color(0xFF5EA9FF),
-                Color(0xFF388BFF),
-              ],
+              colors: const [Color(0xFF5EA9FF), Color(0xFF388BFF)],
             ),
             const SizedBox(height: 16),
             _orderDetails(context),
@@ -162,8 +159,10 @@ class CommandeValideePage extends StatelessWidget {
 
                     if (confirm == true) {
                       final runningOrderProvider =
-                          Provider.of<RunningOrderProvider>(context,
-                              listen: false);
+                          Provider.of<RunningOrderProvider>(
+                            context,
+                            listen: false,
+                          );
                       await runningOrderProvider.clearRunningOrder();
 
                       Get.offAllNamed('/home');
@@ -210,10 +209,7 @@ class CommandeValideePage extends StatelessWidget {
             const SizedBox(width: 12),
             Text(label, style: const TextStyle(color: Colors.grey)),
             const Spacer(),
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
           ],
         ),
       ),
