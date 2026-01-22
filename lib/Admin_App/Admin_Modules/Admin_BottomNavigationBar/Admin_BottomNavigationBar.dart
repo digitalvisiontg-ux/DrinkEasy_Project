@@ -1,45 +1,22 @@
-// import 'package:drink_eazy/Admin_App/Admin_Modules/AdminOrdersPage.dart/AdminOrdersPage.dart';
-// import 'package:drink_eazy/Admin_App/Admin_Modules/AdminPromotionsPage/AdminPromotionsPage.dart';
-// import 'package:drink_eazy/Admin_App/Admin_Modules/AdminSettingsPage/AdminSettingsPage.dart';
-// import 'package:drink_eazy/Admin_App/Admin_Modules/AdminStatsPage/AdminStatsPage.dart';
-// import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
-// import 'package:drink_eazy/Utils/colors.dart';
-// import 'package:flutter/material.dart';
-
-// Widget bottomNav() {
-//   return BottomNavigationBar(
-//     currentIndex: 0,
-//     selectedItemColor: primary,
-//     unselectedItemColor: Colors.grey,
-//     items: const [
-//       BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Produits'),
-//       BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Commandes'),
-//       BottomNavigationBarItem(
-//         icon: Icon(Icons.local_offer),
-//         label: 'Promotions',
-//       ),
-//       BottomNavigationBarItem(
-//         icon: Icon(Icons.bar_chart),
-//         label: 'Statistiques',
-//       ),
-//       BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Paramètres'),
-//     ],
-//   );
-// }
 
 import 'package:drink_eazy/Admin_App/Admin_Modules/AdminOrdersPage.dart/View/AdminOrdersPage.dart';
+import 'package:drink_eazy/Admin_App/Admin_Modules/AdminOrdersPage.dart/Controller/OrdersController.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/AdminPromotionsPage/AdminPromotionsPage.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/AdminSettingsPage/AdminSettingsPage.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/AdminStatsPage/AdminStatsPage.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:drink_eazy/Utils/colors.dart';
 
 Widget bottomNav({required int currentIndex}) {
+  // S'assurer que le controller est initialisé
+  final ordersController = Get.isRegistered<AdminOrdersController>()
+      ? Get.find<AdminOrdersController>()
+      : null;
+
   return BottomNavigationBar(
     currentIndex: currentIndex,
-    selectedItemColor: primary,
+    selectedItemColor: const Color.fromARGB(255, 37, 99, 235),
     unselectedItemColor: Colors.grey,
     type: BottomNavigationBarType.fixed,
 
@@ -65,18 +42,74 @@ Widget bottomNav({required int currentIndex}) {
       }
     },
 
-    items: const [
-      BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Produits'),
-      BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Commandes'),
+    items: [
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.inventory_2_outlined),
+        label: 'Produits',
+      ),
       BottomNavigationBarItem(
-        icon: Icon(Icons.local_offer),
+        icon: _buildOrdersIconWithBadge(ordersController),
+        label: 'Commandes',
+      ),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.local_offer_outlined),
         label: 'Promotions',
       ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.bar_chart),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.bar_chart_outlined),
         label: 'Statistiques',
       ),
-      BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Paramètres'),
+      const BottomNavigationBarItem(
+        icon: Icon(Icons.settings_outlined),
+        label: 'Paramètres',
+      ),
     ],
   );
+}
+
+Widget _buildOrdersIconWithBadge(AdminOrdersController? controller) {
+  if (controller == null) {
+    return const Icon(Icons.receipt_outlined);
+  }
+
+  return Obx(() {
+    final pendingCount = controller.orders
+        .where((order) => order['status'] == 'pending')
+        .length;
+
+    if (pendingCount == 0) {
+      return const Icon(Icons.receipt_outlined);
+    }
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        const Icon(Icons.receipt_outlined),
+        Positioned(
+          right: -8,
+          top: -8,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: const BoxDecoration(
+              color: Colors.red,
+              shape: BoxShape.circle,
+            ),
+            constraints: const BoxConstraints(
+              minWidth: 16,
+              minHeight: 16,
+            ),
+            child: Text(
+              pendingCount > 99 ? '99+' : pendingCount.toString(),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ],
+    );
+  });
 }

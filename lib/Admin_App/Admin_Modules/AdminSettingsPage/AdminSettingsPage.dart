@@ -1,3 +1,5 @@
+import 'package:drink_eazy/Admin_App/Admin_Modules/AdminSettingsPage/AddStaffSheet.dart';
+import 'package:drink_eazy/Admin_App/Admin_Modules/AdminSettingsPage/ChangePasswordSheet.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/admin_Appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -332,8 +334,8 @@ class AdminSettingsPage extends StatelessWidget {
                     icon: const Icon(Icons.lock_outline, size: 18),
                     label: const Text('Changer le mot de passe'),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF475569),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      foregroundColor: Colors.black87,
+                      side: BorderSide(color: Colors.grey[300]!),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -639,7 +641,7 @@ class AdminSettingsPage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _ChangePasswordSheet(),
+      builder: (_) => ChangePasswordSheet(),
     );
   }
 
@@ -648,272 +650,9 @@ class AdminSettingsPage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _AddStaffSheet(),
+      builder: (_) => AddStaffSheet(),
     );
   }
 }
 
-/* =========================================================
-   BOTTOM SHEET – CHANGER MOT DE PASSE
-   ========================================================= */
 
-class _ChangePasswordSheet extends StatelessWidget {
-  _ChangePasswordSheet({super.key});
-
-  final primary = const Color(0xFF2F5BEA);
-  final currentPwdCtrl = TextEditingController();
-  final newPwdCtrl = TextEditingController();
-  final confirmPwdCtrl = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Changer le mot de passe',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                GestureDetector(
-                  onTap: Get.back,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close, size: 20),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            TextField(
-              controller: currentPwdCtrl,
-              obscureText: true,
-              decoration: _inputDecoration('Mot de passe actuel'),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: newPwdCtrl,
-              obscureText: true,
-              decoration: _inputDecoration('Nouveau mot de passe'),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: confirmPwdCtrl,
-              obscureText: true,
-              decoration: _inputDecoration('Confirmer le mot de passe'),
-            ),
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Get.back();
-                  Get.snackbar(
-                    'Succès',
-                    'Mot de passe modifié',
-                    backgroundColor: Colors.green.shade100,
-                    colorText: Colors.green.shade900,
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: const EdgeInsets.all(16),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primary,
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Enregistrer',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primary, width: 1.5),
-      ),
-    );
-  }
-}
-
-/* =========================================================
-   BOTTOM SHEET – AJOUTER PERSONNEL
-   ========================================================= */
-
-class _AddStaffSheet extends StatelessWidget {
-  _AddStaffSheet({super.key});
-
-  final controller = Get.find<AdminSettingsController>();
-  final primary = const Color(0xFF2F5BEA);
-
-  final nameCtrl = TextEditingController();
-  final emailCtrl = TextEditingController();
-  final roleCtrl = TextEditingController(text: 'Serveur');
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Ajouter un membre',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                GestureDetector(
-                  onTap: Get.back,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(Icons.close, size: 20),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            TextField(
-              controller: nameCtrl,
-              decoration: _inputDecoration('Nom complet'),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: emailCtrl,
-              decoration: _inputDecoration('Email'),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: roleCtrl,
-              decoration: _inputDecoration('Rôle'),
-            ),
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  if (nameCtrl.text.isNotEmpty && emailCtrl.text.isNotEmpty) {
-                    final parts = nameCtrl.text.split(' ');
-                    final initials = parts.length >= 2
-                        ? '${parts[0][0]}${parts[1][0]}'.toUpperCase()
-                        : nameCtrl.text[0].toUpperCase();
-
-                    controller.addStaff({
-                      'id': 'staff${DateTime.now().millisecondsSinceEpoch}',
-                      'name': nameCtrl.text,
-                      'email': emailCtrl.text,
-                      'role': roleCtrl.text,
-                      'status': 'active',
-                      'initials': initials,
-                    });
-                    Get.back();
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primary,
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
-                  'Ajouter',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: primary, width: 1.5),
-      ),
-    );
-  }
-}
