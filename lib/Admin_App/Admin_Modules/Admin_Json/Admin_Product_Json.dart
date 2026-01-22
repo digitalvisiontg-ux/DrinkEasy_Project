@@ -1,7 +1,3 @@
-/* =========================================================
-   JSON PRODUITS – STRICTEMENT INCHANGÉ
-   ========================================================= */
-
 final List<Map<String, dynamic>> productsJson = [
   {
     "id": "p1",

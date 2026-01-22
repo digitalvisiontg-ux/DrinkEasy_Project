@@ -1,24 +1,19 @@
 import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_BottomNavigationBar/Admin_BottomNavigationBar.dart';
-import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Json/Admin_Json.dart';
+import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Json/Admin_Product_Json.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AddProductBottomSheet.dart';
 import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/EditProductBottomSheet.dart';
+import 'package:drink_eazy/Admin_App/Admin_Modules/admin_Appbar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-/* =========================================================
-   CONTROLLER GETX – LOGIQUE MÉTIER COMPLÈTE
-   ========================================================= */
 
 class AdminProductsController extends GetxController {
   var products = <Map<String, dynamic>>[].obs;
   var search = ''.obs;
   var showFilters = false.obs;
 
-  // Filtres de base
+  // Filtres
   var statusFilter = 'Tous'.obs;
   var categoryFilter = 'Toutes'.obs;
-
-  // Nouveaux filtres selon la maquette
   var dateFilter = 'Toutes'.obs;
   var priceRangeFilter = 'Tous'.obs;
   var stockLevelFilter = 'Tous'.obs;
@@ -29,34 +24,25 @@ class AdminProductsController extends GetxController {
     super.onInit();
   }
 
+  // Getter pour le nombre de produits filtrés
+  int get filteredCount => filteredProducts.length;
+
   List<Map<String, dynamic>> get filteredProducts {
     return products.where((p) {
-      // Recherche par nom
       final matchSearch = p['name'].toLowerCase().contains(
         search.value.toLowerCase(),
       );
 
-      // Filtre Statut
       final matchStatus =
           statusFilter.value == 'Tous' ||
           (statusFilter.value == 'Disponible' && p['status'] == 'available') ||
           (statusFilter.value == 'Indisponible' &&
               p['status'] == 'unavailable');
 
-      // Filtre Catégorie
       final matchCategory =
           categoryFilter.value == 'Toutes' ||
           p['category'] == categoryFilter.value;
 
-      // Filtre Date d'ajout
-      bool matchDate = true;
-      if (dateFilter.value != 'Toutes') {
-        // Logique basée sur votre structure de données
-        // À adapter selon vos besoins
-        matchDate = true;
-      }
-
-      // Filtre Gamme de prix
       bool matchPrice = true;
       if (priceRangeFilter.value != 'Tous') {
         final price = p['priceCfa'] as int;
@@ -73,7 +59,6 @@ class AdminProductsController extends GetxController {
         }
       }
 
-      // Filtre Niveau de stock
       bool matchStock = true;
       if (stockLevelFilter.value != 'Tous') {
         final stock = p['stock'] as int;
@@ -93,7 +78,6 @@ class AdminProductsController extends GetxController {
       return matchSearch &&
           matchStatus &&
           matchCategory &&
-          matchDate &&
           matchPrice &&
           matchStock;
     }).toList();
@@ -109,6 +93,15 @@ class AdminProductsController extends GetxController {
 
   void deleteProduct(String id) {
     products.removeWhere((p) => p['id'] == id);
+    Get.snackbar(
+      'Succès',
+      'Produit supprimé',
+      backgroundColor: Colors.green.shade100,
+      colorText: Colors.green.shade900,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    );
   }
 
   void toggleProductStatus(String id) {
@@ -116,19 +109,52 @@ class AdminProductsController extends GetxController {
     if (index == -1) return;
 
     final current = products[index]['status'];
-    products[index]['status'] = current == 'available'
-        ? 'unavailable'
-        : 'available';
-
+    final newStatus = current == 'available' ? 'unavailable' : 'available';
+    products[index]['status'] = newStatus;
     products.refresh();
+
+    Get.snackbar(
+      'Statut modifié',
+      newStatus == 'available' ? 'Produit activé' : 'Produit désactivé',
+      backgroundColor: Colors.blue.shade100,
+      colorText: Colors.blue.shade900,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    );
   }
 
-  void updateProduct(product, Map<String, Object> map) {}
-}
+  void addProduct(Map<String, dynamic> product) {
+    products.add(product);
+    Get.snackbar(
+      'Succès',
+      'Produit ajouté avec succès',
+      backgroundColor: Colors.green.shade100,
+      colorText: Colors.green.shade900,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    );
+  }
 
-/* =========================================================
-   PAGE ADMIN PRODUITS
-   ========================================================= */
+  void updateProduct(String id, Map<String, dynamic> updates) {
+    final index = products.indexWhere((p) => p['id'] == id);
+    if (index == -1) return;
+
+    products[index].addAll(updates);
+    products.refresh();
+
+    Get.snackbar(
+      'Succès',
+      'Produit modifié avec succès',
+      backgroundColor: Colors.green.shade100,
+      colorText: Colors.green.shade900,
+      snackPosition: SnackPosition.BOTTOM,
+      margin: const EdgeInsets.all(16),
+      duration: const Duration(seconds: 2),
+    );
+  }
+}
 
 class AdminProductsPage extends StatelessWidget {
   AdminProductsPage({super.key});
@@ -138,68 +164,46 @@ class AdminProductsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F8FB),
-      appBar: _appBar(),
+      appBar: appBar(context, "Produits"),
       body: Column(
         children: [
-          _searchBar(),
+          _searchBar(context),
           Obx(
             () => AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return SizeTransition(
+                  sizeFactor: animation,
+                  child: FadeTransition(opacity: animation, child: child),
+                );
+              },
               child: controller.showFilters.value
-                  ? _filters()
-                  : const SizedBox(),
+                  ? _filters(context, isTablet)
+                  : const SizedBox.shrink(),
             ),
           ),
-          _addButton(),
-          Expanded(child: _productsList()),
+          _productCount(),
+          _addButton(context),
+          Expanded(child: _productsList(context, isTablet)),
         ],
       ),
-      bottomNavigationBar: bottomNav(),
+      bottomNavigationBar: bottomNav(currentIndex: 0),
     );
   }
 
-  /* ================= APP BAR ================= */
+  /* ================= SEARCH BAR - RESPONSIVE ================= */
 
-  PreferredSizeWidget _appBar() {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: Colors.white,
-      title: const Text(
-        'Produits',
-        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-      ),
-      actions: [
-        Stack(
-          children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_none, color: Colors.black),
-              onPressed: () {},
-            ),
-            Positioned(
-              right: 10,
-              top: 10,
-              child: CircleAvatar(
-                radius: 8,
-                backgroundColor: Colors.red,
-                child: const Text(
-                  '4',
-                  style: TextStyle(fontSize: 10, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  Widget _searchBar(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final horizontalPadding = size.width > 600 ? 24.0 : 16.0;
 
-  /* ================= SEARCH BAR ================= */
-
-  Widget _searchBar() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 8),
       child: Row(
         children: [
           Expanded(
@@ -207,36 +211,105 @@ class AdminProductsPage extends StatelessWidget {
               onChanged: (v) => controller.search.value = v,
               decoration: InputDecoration(
                 hintText: 'Rechercher un produit...',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13, ),
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
                 fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
                 ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: primary, width: 1.5),
+                ),
               ),
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            onPressed: () => controller.showFilters.toggle(),
+          const SizedBox(width: 12),
+          Obx(
+            () => Container(
+              decoration: BoxDecoration(
+                color: controller.showFilters.value ? primary : Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: controller.showFilters.value
+                    ? [
+                        BoxShadow(
+                          color: primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.tune,
+                  color: controller.showFilters.value
+                      ? Colors.white
+                      : Colors.black,
+                ),
+                onPressed: () => controller.showFilters.toggle(),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /* ================= FILTRES AVANCÉS (COMME LA MAQUETTE) ================= */
+  /* ================= COMPTEUR PRODUITS ================= */
 
-  Widget _filters() {
+  Widget _productCount() {
+    return Obx(
+      () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              '${controller.filteredCount} produit${controller.filteredCount > 1 ? 's' : ''}',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* ================= FILTRES - RESPONSIVE ================= */
+
+  Widget _filters(BuildContext context, bool isTablet) {
+    final horizontalPadding = isTablet ? 24.0 : 16.0;
+
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
+      padding: EdgeInsets.all(isTablet ? 20 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -247,70 +320,145 @@ class AdminProductsPage extends StatelessWidget {
               ),
               GestureDetector(
                 onTap: controller.resetFilters,
-                child: Text(
-                  'Réinitialiser',
-                  style: TextStyle(color: primary, fontWeight: FontWeight.w600),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Réinitialiser',
+                    style: TextStyle(
+                      color: primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Ligne 1 : Statut et Catégorie
-          Row(
-            children: [
-              Expanded(
-                child: _dropdown('Statut', [
+          if (isTablet)
+            // Layout tablette : 3 colonnes
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dropdown('Statut', [
+                        'Tous',
+                        'Disponible',
+                        'Indisponible',
+                      ], controller.statusFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dropdown('Catégorie', [
+                        'Toutes',
+                        'Bière',
+                        'Cocktail',
+                        'Vin',
+                        'Soft',
+                        'Promotion',
+                      ], controller.categoryFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dropdown('Date d\'ajout', [
+                        'Toutes',
+                        'Aujourd\'hui',
+                        'Cette semaine',
+                        'Ce mois',
+                        'Plus ancien',
+                      ], controller.dateFilter),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dropdown('Gamme de prix', [
+                        'Tous',
+                        'Moins de 1000',
+                        '1000 - 5000',
+                        'Plus de 5000',
+                      ], controller.priceRangeFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dropdown('Niveau de stock', [
+                        'Tous',
+                        'Faible (< 10)',
+                        'Moyen (10-50)',
+                        'Élevé (> 50)',
+                      ], controller.stockLevelFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(child: SizedBox()),
+                  ],
+                ),
+              ],
+            )
+          else
+            // Layout mobile : 2 colonnes
+            Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dropdown('Statut', [
+                        'Tous',
+                        'Disponible',
+                        'Indisponible',
+                      ], controller.statusFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dropdown('Catégorie', [
+                        'Toutes',
+                        'Bière',
+                        'Cocktail',
+                        'Vin',
+                        'Soft',
+                        'Promotion',
+                      ], controller.categoryFilter),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _dropdown('Date d\'ajout', [
+                        'Toutes',
+                        'Aujourd\'hui',
+                        'Cette semaine',
+                        'Ce mois',
+                        'Plus ancien',
+                      ], controller.dateFilter),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _dropdown('Gamme de prix', [
+                        'Tous',
+                        'Moins de 1000',
+                        '1000 - 5000',
+                        'Plus de 5000',
+                      ], controller.priceRangeFilter),
+                    ),
+                  ],
+                ),
+                _dropdown('Niveau de stock', [
                   'Tous',
-                  'Disponible',
-                  'Indisponible',
-                ], controller.statusFilter),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _dropdown('Catégorie', [
-                  'Toutes',
-                  'Bière',
-                  'Cocktail',
-                  'Vin',
-                  'Soft',
-                  'Promotion',
-                ], controller.categoryFilter),
-              ),
-            ],
-          ),
-
-          // Ligne 2 : Date d'ajout et Gamme de prix
-          Row(
-            children: [
-              Expanded(
-                child: _dropdown('Date d\'ajout', [
-                  'Toutes',
-                  'Aujourd\'hui',
-                  'Cette semaine',
-                  'Ce mois',
-                  'Plus ancien',
-                ], controller.dateFilter),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _dropdown('Gamme de prix', [
-                  'Tous',
-                  'Moins de 1000',
-                  '1000 - 5000',
-                  'Plus de 5000',
-                ], controller.priceRangeFilter),
-              ),
-            ],
-          ),
-
-          // Ligne 3 : Niveau de stock (pleine largeur)
-          _dropdown('Niveau de stock', [
-            'Tous',
-            'Faible (< 10)',
-            'Moyen (10-50)',
-            'Élevé (> 50)',
-          ], controller.stockLevelFilter),
+                  'Faible (< 10)',
+                  'Moyen (10-50)',
+                  'Élevé (> 50)',
+                ], controller.stockLevelFilter),
+              ],
+            ),
         ],
       ),
     );
@@ -321,40 +469,69 @@ class AdminProductsPage extends StatelessWidget {
       () => Padding(
         padding: const EdgeInsets.only(bottom: 12),
         child: DropdownButtonFormField<String>(
+          
+          borderRadius: BorderRadius.circular(12),
+          isDense: true,
+          isExpanded: true,
           value: value.value,
           items: items
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem(value: e, 
+              child: Text(e, style: TextStyle(fontSize: 15, ),)))
               .toList(),
           onChanged: (v) => value.value = v!,
           decoration: InputDecoration(
+
             labelText: label,
-            labelStyle: const TextStyle(fontSize: 14),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 14,
+            labelStyle: const TextStyle(fontSize: 13),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
             ),
+            
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: primary, width: 1.5),
+            ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 10, // réduit pour éviter les overflow verticaux
+          ),
+            filled: true,
+            fillColor: Colors.white,
           ),
         ),
       ),
     );
   }
 
-  /* ================= BOUTON AJOUTER ================= */
+  /* ================= BOUTON AJOUTER - RESPONSIVE ================= */
 
-  Widget _addButton() {
+  Widget _addButton(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final horizontalPadding = size.width > 600 ? 24.0 : 16.0;
+
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 8),
       child: ElevatedButton.icon(
-        onPressed: () => showAddProductBottomSheet(Get.context!),
+        onPressed: () => showAddProductBottomSheet(context),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Ajouter un produit',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 15,
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: primary,
-          minimumSize: const Size.fromHeight(48),
+          minimumSize: const Size.fromHeight(52),
+          elevation: 2,
+          shadowColor: primary.withOpacity(0.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
@@ -363,42 +540,86 @@ class AdminProductsPage extends StatelessWidget {
     );
   }
 
-  /* ================= LISTE DES PRODUITS ================= */
+  /* ================= LISTE PRODUITS - RESPONSIVE ================= */
 
-  Widget _productsList() {
-    return Obx(
-      () => ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+  Widget _productsList(BuildContext context, bool isTablet) {
+    final horizontalPadding = isTablet ? 24.0 : 16.0;
+
+    return Obx(() {
+      if (controller.filteredProducts.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                size: 64,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Aucun produit trouvé',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Essayez de modifier vos filtres',
+                style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+              ),
+            ],
+          ),
+        );
+      }
+
+      return ListView.builder(
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          8,
+          horizontalPadding,
+          16,
+        ),
         itemCount: controller.filteredProducts.length,
         itemBuilder: (_, i) {
           final p = controller.filteredProducts[i];
           return TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 400),
+            duration: Duration(milliseconds: 300 + (i * 50)),
             tween: Tween(begin: 0, end: 1),
             builder: (_, v, __) => Opacity(
               opacity: v,
               child: Transform.translate(
                 offset: Offset(0, 20 * (1 - v)),
-                child: _productCard(p),
+                child: _productCard(p, isTablet),
               ),
             ),
           );
         },
-      ),
-    );
+      );
+    });
   }
 
-  /* ================= CARTE PRODUIT ================= */
+  /* ================= CARTE PRODUIT - RESPONSIVE ================= */
 
-  Widget _productCard(Map<String, dynamic> p) {
+  Widget _productCard(Map<String, dynamic> p, bool isTablet) {
     final available = p['status'] == 'available';
+    final imageSize = isTablet ? 80.0 : 60.0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
+      padding: EdgeInsets.all(isTablet ? 16 : 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
@@ -406,35 +627,55 @@ class AdminProductsPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: Image.asset(
               p['image'],
-              width: 60,
-              height: 60,
+              width: imageSize,
+              height: imageSize,
               fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: imageSize,
+                height: imageSize,
+                color: Colors.grey[200],
+                child: const Icon(
+                  Icons.image_not_supported,
+                  color: Colors.grey,
+                ),
+              ),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: isTablet ? 16 : 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   p['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: isTablet ? 16 : 15,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${p['priceCfa']} CFA',
+                  style: TextStyle(
+                    fontSize: isTablet ? 15 : 14,
+                    fontWeight: FontWeight.w600,
+                    color: primary,
                   ),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${p['priceCfa']} CFA',
-                  style: const TextStyle(fontSize: 14),
-                ),
-                Text(
                   'Stock : ${p['stock']}',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: p['stock'] < 10 ? Colors.orange : Colors.grey[600],
+                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
+                  runSpacing: 4,
                   children: [
                     _chip(
                       p['category'],
@@ -457,15 +698,21 @@ class AdminProductsPage extends StatelessWidget {
           ),
           PopupMenuButton(
             color: Colors.white,
-            icon: const Icon(Icons.more_vert),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            icon: Icon(Icons.more_vert, color: Colors.grey[700]),
             itemBuilder: (_) => [
               PopupMenuItem(
-                onTap: () => showEditProductBottomSheet(Get.context!, p),
-                child: Row(
+                onTap: () => Future.delayed(
+                  const Duration(milliseconds: 100),
+                  () => showEditProductBottomSheet(Get.context!, p),
+                ),
+                child: const Row(
                   children: [
-                    const Icon(Icons.edit_outlined, size: 16),
-                    const SizedBox(width: 8),
-                    const Text('Modifier'),
+                    Icon(Icons.edit_outlined, size: 18, color: Colors.blue),
+                    SizedBox(width: 12),
+                    Text('Modifier'),
                   ],
                 ),
               ),
@@ -477,27 +724,21 @@ class AdminProductsPage extends StatelessWidget {
                       available
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      size: 16,
+                      size: 18,
+                      color: Colors.orange,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
                     Text(available ? 'Désactiver' : 'Activer'),
                   ],
                 ),
               ),
               PopupMenuItem(
                 onTap: () => controller.deleteProduct(p['id']),
-                child: Row(
+                child: const Row(
                   children: [
-                    const Icon(
-                      Icons.delete_outline_outlined,
-                      size: 16,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Supprimer',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                    SizedBox(width: 12),
+                    Text('Supprimer', style: TextStyle(color: Colors.red)),
                   ],
                 ),
               ),
@@ -508,7 +749,7 @@ class AdminProductsPage extends StatelessWidget {
     );
   }
 
-  /* ================= CHIP (BADGE) ================= */
+  /* ================= CHIP ================= */
 
   Widget _chip(String text, Color bgColor, {Color textColor = Colors.black}) {
     return Container(
@@ -520,8 +761,8 @@ class AdminProductsPage extends StatelessWidget {
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
           color: textColor,
         ),
       ),

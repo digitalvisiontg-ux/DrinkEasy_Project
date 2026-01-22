@@ -1,3 +1,4 @@
+import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/App/Modules/Account/View/accountPage.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/connexion.dart';
@@ -154,8 +155,8 @@ class MyApp extends StatelessWidget {
       ],
       // Toujours démarrer sur la Splash. La Splash va rediriger vers Home
       // si l'utilisateur est déjà connecté (comportement souhaité).
-      home: const SplashPage(),
-      // home: AdminProductsPage(),
+      // home: const SplashPage(),
+      home: AdminProductsPage(),
       // home: BarTestPage(),
       // home: HomePage(),
     );
