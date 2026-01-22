@@ -5,47 +5,70 @@ import 'package:drink_eazy/Api/services/api_service.dart';
 class CommandeService {
   final ApiService _api = ApiService();
 
-  /// Création d'une commande (user ou invité)
-Future<Map<String, dynamic>> createCommande({
-required int tableId,
+  /* ============================================================
+   * CREATE COMMANDE
+   * - USER : POST /commandes (Authorization auto)
+   * - GUEST: POST /commandes/guest + X-Guest-Token
+   * ============================================================ */
+  Future<Map<String, dynamic>> createCommande({
+    required int tableId,
     required List<Map<String, dynamic>> items,
     String? commentaire,
-}) async {
+    String? guestToken,
+  }) async {
+    final bool isGuest = guestToken != null;
 
-final response = await _api.dio.post(
-ApiConstants.commandes,
-data: {
-'table_id': tableId,
-'commentaire': commentaire,
-'items': items,
-},
-);
-
-return response.data;
-}
-
-
-
-  /// Récupération d'une commande par ID
-  Future<Map<String, dynamic>> getCommandeById(int id) async {
-    final response = await _api.get(
-      ApiConstants.commandeById(id),
+    final response = await _api.dio.post(
+      isGuest ? ApiConstants.commandesGuest : ApiConstants.commandes,
+      data: {'table_id': tableId, 'commentaire': commentaire, 'items': items},
+      options: isGuest ? Options(headers: {'X-Guest-Token': guestToken}) : null,
     );
 
-    return response.data as Map<String, dynamic>;
+    return Map<String, dynamic>.from(response.data);
   }
 
-  /// Récupération des commandes d'un invité
-  Future<Map<String, dynamic>> getCommandesByGuest(String guestToken) async {
+  /* ============================================================
+   * SHOW COMMANDE
+   * ============================================================ */
+  Future<Map<String, dynamic>> getCommandeById(int id) async {
+    final response = await _api.get(ApiConstants.commandeById(id));
+
+    return Map<String, dynamic>.from(response.data);
+  }
+
+  /* ============================================================
+   * LIST COMMANDES USER
+   * GET /commandes (auth:sanctum)
+   * ============================================================ */
+  Future<List<Map<String, dynamic>>> getUserCommandes() async {
+    final response = await _api.get(ApiConstants.commandes);
+    final data = response.data;
+
+    if (data is Map && data['commandes'] is List) {
+      return List<Map<String, dynamic>>.from(data['commandes']);
+    }
+
+    return [];
+  }
+
+  /* ============================================================
+   * LIST COMMANDES GUEST
+   * GET /commandes/guest/{token}
+   * ============================================================ */
+  Future<List<Map<String, dynamic>>> getGuestCommandes(
+    String guestToken,
+  ) async {
     final response = await _api.dio.get(
       ApiConstants.commandeByGuest(guestToken),
-      options: Options(
-        headers: {
-          'X-Guest-Token': guestToken,
-        },
-      ),
+      options: Options(headers: {'X-Guest-Token': guestToken}),
     );
 
-    return response.data as Map<String, dynamic>;
+    final data = response.data;
+
+    if (data is Map && data['commandes'] is List) {
+      return List<Map<String, dynamic>>.from(data['commandes']);
+    }
+
+    return [];
   }
 }

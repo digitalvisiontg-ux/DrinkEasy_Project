@@ -30,9 +30,12 @@ class ApiConstants {
   static String get produitsParCategorie => "$baseUrl/produits/categorie";
   static String get produitsEnPromotion => "$baseUrl/produits/promotion";
 
-  // ---- Commandes ----
+    // ---- Commandes USER ----
   static String get commandes => "$baseUrl/commandes";
   static String commandeById(int id) => "$baseUrl/commandes/$id";
+
+  // ---- Commandes GUEST ----
+  static String get commandesGuest => "$baseUrl/commandes/guest";
   static String commandeByGuest(String token) =>
       "$baseUrl/commandes/guest/$token";
 }

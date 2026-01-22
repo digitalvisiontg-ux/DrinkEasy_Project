@@ -44,44 +44,46 @@ class TableProvider with ChangeNotifier {
       return false;
     }
   }
+
   /// --- Vérification manuelle ---
   Future<bool> verifyByManual(String numeroTable) async {
-  _loading = true;
-  _error = null;
-  notifyListeners();
+    _loading = true;
+    _error = null;
+    notifyListeners();
 
-  try {
-    final data = await _service.verifyByManual(numeroTable);
+    try {
+      final data = await _service.verifyByManual(numeroTable);
 
-    // Si le JSON contient success=false → table invalide
-    if (data['success'] == true) {
-      _table = TableModel.fromJson(data);
-      _loading = false;
-      notifyListeners();
-      return true;
-    } else if (data['success'] == false) {
+      // Si le JSON contient success=false → table invalide
+      if (data['success'] == true) {
+        _table = TableModel.fromJson(data);
+        _loading = false;
+        notifyListeners();
+        return true;
+      } else if (data['success'] == false) {
+        _table = null;
+        _error = data['message'] ?? 'Numéro de table invalide';
+        _loading = false;
+        notifyListeners();
+        return false;
+      } else {
+        // Cas où le JSON est incomplet ou inattendu
+        _table = null;
+        _error = 'Numéro de table invalide';
+        _loading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      // Catch = problème serveur ou réseau
       _table = null;
-      _error = data['message'] ?? 'Numéro de table invalide';
-      _loading = false;
-      notifyListeners();
-      return false;
-    } else {
-      // Cas où le JSON est incomplet ou inattendu
-      _table = null;
-      _error = 'Numéro de table invalide';
+      _error = 'Erreur serveur, réessayez';
       _loading = false;
       notifyListeners();
       return false;
     }
-  } catch (e) {
-    // Catch = problème serveur ou réseau
-    _table = null;
-    _error = 'Erreur serveur, réessayez';
-    _loading = false;
-    notifyListeners();
-    return false;
   }
-}
+
   void clearTable() {
     _table = null;
     notifyListeners();

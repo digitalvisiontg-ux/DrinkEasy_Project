@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:drink_eazy/Api/models/commande_model.dart';
 import 'package:drink_eazy/Api/provider/OrderProvider.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/table_provider.dart';
 import 'package:drink_eazy/Api/services/commande_service.dart';
@@ -9,9 +10,14 @@ import 'package:drink_eazy/App/Modules/Home/View/QrScanner.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class PasserCommandePage extends StatefulWidget {
-  const PasserCommandePage({super.key, required List<Map<String, dynamic>> cartItems});
+  const PasserCommandePage({
+    super.key,
+    required List<Map<String, dynamic>> cartItems,
+  });
 
   @override
   State<PasserCommandePage> createState() => _PasserCommandePageState();
@@ -23,7 +29,8 @@ class _PasserCommandePageState extends State<PasserCommandePage>
 
   int _currentStep = 1;
   bool _isScanning = false;
-  bool _showExampleText = true; // Variable pour contrôler l'affichage du texte d'exemple
+  bool _showExampleText =
+      true; // Variable pour contrôler l'affichage du texte d'exemple
 
   late AnimationController _scanController;
   late Animation<double> _scanAnim;
@@ -31,10 +38,14 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   @override
   void initState() {
     super.initState();
-    _scanController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 2));
-    _scanAnim =
-        CurvedAnimation(parent: _scanController, curve: Curves.easeInOut);
+    _scanController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+    _scanAnim = CurvedAnimation(
+      parent: _scanController,
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -74,11 +85,11 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     Navigator.pop(context);
 
     if (!success || tableProvider.table == null) {
-  _showBusinessError(
-    "QR code invalide. Veuillez réessayer ou saisir la table manuellement.",
-  );
-  return;
-}
+      _showBusinessError(
+        "QR code invalide. Veuillez réessayer ou saisir la table manuellement.",
+      );
+      return;
+    }
 
     _finalizeStep1();
   }
@@ -97,16 +108,14 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     final tableProvider = context.read<TableProvider>();
 
     _showLoading();
-final success = await tableProvider.verifyByManual(value);
-Navigator.pop(context);
+    final success = await tableProvider.verifyByManual(value);
+    Navigator.pop(context);
 
-if (!success || tableProvider.table == null) {
-  _showBusinessError(
-    "Numéro de table invalide. Vérifiez et réessayez.",
-  );
-  return;
-}
-_finalizeStep1();
+    if (!success || tableProvider.table == null) {
+      _showBusinessError("Numéro de table invalide. Vérifiez et réessayez.");
+      return;
+    }
+    _finalizeStep1();
   }
 
   /// ===============================
@@ -122,127 +131,127 @@ _finalizeStep1();
     final orderProvider = context.read<OrderProvider>();
     final cartProvider = context.read<CartProvider>();
 
-    orderProvider.setTableRaw(table.numeroTable);
-    orderProvider.setTableLabel(table.libelle);
+    orderProvider.setTable(
+      tableId: table.id,
+      numeroTable: table.numeroTable,
+      libelle: table.libelle,
+    );
     orderProvider.setItems(cartProvider.itemsList);
 
     setState(() => _currentStep = 2);
   }
 
   void _showBusinessError(String message) {
-  ScaffoldMessenger.of(context).clearSnackBars();
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      behavior: SnackBarBehavior.floating,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      backgroundColor: Colors.red.shade600,
-      duration: const Duration(seconds: 3),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      content: Row(
-        children: [
-          const Icon(Icons.error_outline, color: Colors.white),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        backgroundColor: Colors.red.shade600,
+        duration: const Duration(seconds: 3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   /// ===============================
   /// CONFIRM ORDER
   /// ===============================
   Future<void> _confirmOrder() async {
-  final order = context.read<OrderProvider>();
-  final table = context.read<TableProvider>().table;
-  final cart = context.read<CartProvider>();
-  print("1");
-  if (table == null || order.items.isEmpty) {
-    _showBusinessError("Commande invalide");
-    return;
-  }
-  print("2");
-  final commandeService = CommandeService();
-
-  // Payload attendu par Laravel
-  final itemsPayload = order.items.map((e) => {
-        'produit_id': e.produit.id,
-        'quantite': e.quantite,
-      }).toList();
-
-  _showLoading();
-  print("3");
-  try {
-    print("4");
-    final response = await commandeService.createCommande(
-      tableId: table.id,
-      items: itemsPayload,
-      commentaire: null, // ou ton champ si tu l’ajoutes plus tard
-    );
-    print("5");
-    Navigator.pop(context); // close loader
-    print("6");
-    if (response['success'] == true) {
-      print("7");
-      final itemsSnapshot = order.items
-      .map((e) => {
-            'product': e.produit,
-            'quantity': e.quantite,
-          })
-      .toList();
-
-  final totalSnapshot = order.totalPrice.toInt();
-  final tableLabelSnapshot = order.tableLabel;
-  
-  final commande = CommandeModel.fromJson(response['commande']);
-
-      // Nettoyage état
-      cart.clearCart();
-      order.clearOrder();
-      print("8");
-      // Navigation succès
-        await Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => CommandeValideePage(
-        cartItems: itemsSnapshot,
-        totalPrice: totalSnapshot,
-        tableNumber: tableLabelSnapshot,
-        commande: commande, 
-
-      ),
-    ),
-  );
-
-  Navigator.pop(context, true);
-    } else {
-      _showBusinessError(
-        response['message'] ?? "Échec de la commande",
-      );
+    final order = context.read<OrderProvider>();
+    final table = context.read<TableProvider>().table;
+    final cart = context.read<CartProvider>();
+    print("1");
+    if (table == null || order.items.isEmpty) {
+      _showBusinessError("Commande invalide");
+      return;
     }
-  } catch (e) {
-  print("9");
-  if (e is DioException) {
-    print("STATUS: ${e.response?.statusCode}");
-    print("DATA: ${e.response?.data}");
-  } else {
-    print(e.toString());
-  }
-  Navigator.pop(context);
-  _showBusinessError("Erreur serveur. Réessayez.");
-}
-}
+    print("2");
+    final commandeService = CommandeService();
 
+    // Payload attendu par Laravel
+    final itemsPayload = order.items
+        .map((e) => {'produit_id': e.produit.id, 'quantite': e.quantite})
+        .toList();
+
+    _showLoading();
+    print("3");
+    try {
+      print("4");
+      final auth = context.read<AuthProvider>();
+      String? guestToken;
+      if (!auth.isAuthenticated) {
+        guestToken = await _getGuestToken();
+      }
+
+      final response = await commandeService.createCommande(
+        tableId: table.id,
+        items: itemsPayload,
+        commentaire: null,
+        guestToken: guestToken,
+      );
+      print("5");
+      Navigator.pop(context); // close loader
+      print("6");
+      if (response['success'] == true) {
+        print("7");
+        final itemsSnapshot = order.items
+            .map((e) => {'product': e.produit, 'quantity': e.quantite})
+            .toList();
+
+        final totalSnapshot = order.totalPrice.toInt();
+        final tableLabelSnapshot = order.tableLabel;
+
+        final commande = CommandeModel.fromJson(response['commande']);
+
+        // Nettoyage état
+        cart.clearCart();
+        order.clearOrder();
+        print("8");
+        // Navigation succès
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CommandeValideePage(
+              cartItems: itemsSnapshot,
+              totalPrice: totalSnapshot,
+              tableNumber: tableLabelSnapshot,
+              commande: commande,
+            ),
+          ),
+        );
+
+        Navigator.pop(context, true);
+      } else {
+        _showBusinessError(response['message'] ?? "Échec de la commande");
+      }
+    } catch (e) {
+      print("9");
+      if (e is DioException) {
+        print("STATUS: ${e.response?.statusCode}");
+        print("DATA: ${e.response?.data}");
+      } else {
+        print(e.toString());
+      }
+      Navigator.pop(context);
+      _showBusinessError("Erreur serveur. Réessayez.");
+    }
+  }
 
   /// ===============================
   /// UI HELPERS
@@ -259,7 +268,7 @@ _finalizeStep1();
   /// ===============================
   /// BUILD
   /// ===============================
-@override
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB), // Couleur du Front
@@ -394,7 +403,7 @@ _finalizeStep1();
         children: [
           _buildHeader(step2: false),
           const SizedBox(height: 22),
-          
+
           // Carte Scanner
           Container(
             padding: const EdgeInsets.all(20),
@@ -454,14 +463,16 @@ _finalizeStep1();
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                             const Icon(
-                               Icons.camera_alt_outlined,
-                               color: Colors.black,
-                               size: 18,
-                             ),
+                            const Icon(
+                              Icons.camera_alt_outlined,
+                              color: Colors.black,
+                              size: 18,
+                            ),
                             const SizedBox(width: 10),
                             Text(
-                              _isScanning ? "Scan en cours..." : "Scanner le QR code",
+                              _isScanning
+                                  ? "Scan en cours..."
+                                  : "Scanner le QR code",
                               style: const TextStyle(
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black,
@@ -478,7 +489,7 @@ _finalizeStep1();
           ),
 
           const SizedBox(height: 22),
-          
+
           // Divider "ou"
           Row(
             children: [
@@ -527,9 +538,12 @@ _finalizeStep1();
                           controller: _tableController, // Variable Back
                           textAlign: TextAlign.center,
                           textCapitalization: TextCapitalization.characters,
-                          maxLength: 4, // Back : 4 chars, Front : 2 (Back prioritaire)
+                          maxLength:
+                              4, // Back : 4 chars, Front : 2 (Back prioritaire)
                           inputFormatters: [
-                             FilteringTextInputFormatter.allow(RegExp('[A-Z0-9]')),
+                            FilteringTextInputFormatter.allow(
+                              RegExp('[A-Z0-9]'),
+                            ),
                           ],
                           style: const TextStyle(
                             fontSize: 25,
@@ -563,7 +577,7 @@ _finalizeStep1();
                   ),
                 ),
                 const SizedBox(height: 20),
-                
+
                 // Bouton Confirmer Manuelle
                 GestureDetector(
                   onTap: _confirmManual, // Logique du Back
@@ -614,7 +628,7 @@ _finalizeStep1();
         children: [
           _buildHeader(step2: true),
           const SizedBox(height: 22),
-          
+
           // Carte Info Table (Gradient)
           Container(
             padding: const EdgeInsets.all(18),
@@ -706,7 +720,7 @@ _finalizeStep1();
                   ],
                 ),
                 const SizedBox(height: 18),
-                
+
                 // Génération de la liste basée sur les items du Back
                 Column(
                   children: List.generate(order.items.length, (i) {
@@ -837,4 +851,14 @@ _finalizeStep1();
       ),
     );
   }
+}
+
+Future<String> _getGuestToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('guest_token');
+  if (token == null) {
+    token = const Uuid().v4();
+    await prefs.setString('guest_token', token);
   }
+  return token;
+}

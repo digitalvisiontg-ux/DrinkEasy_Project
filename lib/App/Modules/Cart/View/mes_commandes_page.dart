@@ -1,5 +1,15 @@
+import 'dart:async';
+import 'package:drink_eazy/Api/models/commande_model.dart';
+import 'package:drink_eazy/Api/models/commande_produit_model.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/Api/services/commande_service.dart';
+import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class MesCommandesPage extends StatefulWidget {
   const MesCommandesPage({super.key});
@@ -11,48 +21,133 @@ class MesCommandesPage extends StatefulWidget {
 class _MesCommandesPageState extends State<MesCommandesPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  final List<Map<String, dynamic>> orders = [
-    {
-      "id": "#7012",
-      "table": 3,
-      "total": 5200,
-      "items": 4,
-      "status": "en_cours",
-      "date": DateTime.now(),
-    },
-    {
-      "id": "#7009",
-      "table": 1,
-      "total": 3100,
-      "items": 2,
-      "status": "terminee",
-      "date": DateTime.now().subtract(const Duration(hours: 3)),
-    },
-    {
-      "id": "#7001",
-      "table": 6,
-      "total": 6400,
-      "items": 6,
-      "status": "annulee",
-      "date": DateTime.now().subtract(const Duration(days: 1)),
-    },
-  ];
+  final CommandeService _commandeService = CommandeService();
+  List<CommandeModel> _orders = [];
+  bool _isLoading = true;
+  Timer? _pollTimer;
+  bool _isRefreshing = false;
+  static const Duration _pollInterval = Duration(seconds: 30);
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _fetchOrders();
+    _startPolling();
+  }
+
+  Future<String> getGuestToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('guest_token');
+    if (token == null) {
+      token = const Uuid().v4();
+      await prefs.setString('guest_token', token);
+    }
+    return token;
+  }
+
+  Future<void> _fetchOrders() async {
+    try {
+      final auth = context.read<AuthProvider>();
+
+      List<Map<String, dynamic>> rawOrders;
+      if (auth.isAuthenticated) {
+        rawOrders = await _commandeService.getUserCommandes();
+      } else {
+        final guestToken = await getGuestToken();
+        rawOrders = await _commandeService.getGuestCommandes(guestToken);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _orders = rawOrders.map((e) => CommandeModel.fromJson(e)).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint("Erreur récupération commandes: $e");
+      if (!mounted) return;
+      setState(() {
+        _orders = [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _refreshOrdersSilently() async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      final auth = context.read<AuthProvider>();
+      List<Map<String, dynamic>> rawOrders;
+      if (auth.isAuthenticated) {
+        rawOrders = await _commandeService.getUserCommandes();
+      } else {
+        final guestToken = await getGuestToken();
+        rawOrders = await _commandeService.getGuestCommandes(guestToken);
+      }
+      if (!mounted) return;
+      setState(() {
+        _orders = rawOrders.map((e) => CommandeModel.fromJson(e)).toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      });
+    } catch (_) {} finally {
+      _isRefreshing = false;
+    }
+  }
+
+  void _startPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(_pollInterval, (_) => _refreshOrdersSilently());
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
-  List<Map<String, dynamic>> _filter(String status) {
-    return orders.where((o) => o["status"] == status).toList();
+  List<CommandeModel> _filter(String category) {
+    return _orders.where((o) {
+      final s = o.status.toLowerCase().trim();
+      switch (category) {
+        case "en_cours":
+          return [
+            'in_progress',
+            'pending',
+            'en_cours',
+            'en_attente',
+            'confirmed',
+            'started',
+            'ready',
+            'validée',
+            'validee',
+          ].contains(s);
+        case "terminee":
+          return [
+            'completed',
+            'paid',
+            'servi',
+            'terminee',
+            'livrée',
+            'livree',
+            'delivered',
+            'served',
+          ].contains(s);
+        case "annulee":
+          return [
+            'cancelled',
+            'annulee',
+            'refusee',
+            'rejetée',
+            'rejetee',
+            'rejected',
+          ].contains(s);
+        default:
+          return false;
+      }
+    }).toList();
   }
 
   @override
@@ -75,6 +170,17 @@ class _MesCommandesPageState extends State<MesCommandesPage>
             fontWeight: FontWeight.w700,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: () async {
+              setState(() {
+                _isLoading = true;
+              });
+              await _fetchOrders();
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
@@ -124,36 +230,45 @@ class _MesCommandesPageState extends State<MesCommandesPage>
         ),
       ),
 
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildList(
-            _filter("en_cours"),
-            emptyText: "Aucune commande en cours",
-          ),
-          _buildList(
-            _filter("terminee"),
-            emptyText: "Aucune commande terminée",
-          ),
-          _buildList(_filter("annulee"), emptyText: "Aucune commande annulée"),
-        ],
-      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
+          : RefreshIndicator(
+              onRefresh: _fetchOrders,
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildList(
+                    _filter("en_cours"),
+                    emptyText: "Aucune commande en cours",
+                  ),
+                  _buildList(
+                    _filter("terminee"),
+                    emptyText: "Aucune commande terminée",
+                  ),
+                  _buildList(
+                    _filter("annulee"),
+                    emptyText: "Aucune commande annulée",
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
   // --------------------------------------------------
   // 🧾 LISTE DES COMMANDES
   // --------------------------------------------------
-  Widget _buildList(
-    List<Map<String, dynamic>> data, {
-    required String emptyText,
-  }) {
+  Widget _buildList(List<CommandeModel> data, {required String emptyText}) {
     if (data.isEmpty) {
-      return _emptyState(emptyText);
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [_emptyState(emptyText)],
+      );
     }
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
+      physics: const AlwaysScrollableScrollPhysics(),
       itemCount: data.length,
       itemBuilder: (context, index) {
         return _orderCard(data[index]);
@@ -164,28 +279,35 @@ class _MesCommandesPageState extends State<MesCommandesPage>
   // --------------------------------------------------
   // 📦 CARD COMMANDE
   // --------------------------------------------------
-  Widget _orderCard(Map<String, dynamic> order) {
-    final status = order["status"];
-
+  Widget _orderCard(CommandeModel order) {
     Color statusColor;
     String statusText;
     IconData statusIcon;
 
-    switch (status) {
-      case "en_cours":
+    switch (order.status) {
+      case 'in_progress':
         statusColor = Colors.orange;
-        statusText = "En cours";
+        statusText = 'En cours';
         statusIcon = Icons.timelapse;
         break;
-      case "terminee":
+
+      case 'completed':
+      case 'paid':
         statusColor = Colors.green;
-        statusText = "Terminée";
+        statusText = order.status == 'paid' ? 'Payée' : 'Terminée';
         statusIcon = Icons.check_circle_outline;
         break;
-      default:
+
+      case 'cancelled':
         statusColor = Colors.red;
-        statusText = "Annulée";
+        statusText = 'Annulée';
         statusIcon = Icons.cancel_outlined;
+        break;
+
+      default:
+        statusColor = Colors.grey;
+        statusText = order.status;
+        statusIcon = Icons.help_outline;
     }
 
     return Container(
@@ -204,10 +326,21 @@ class _MesCommandesPageState extends State<MesCommandesPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          Get.snackbar(
-            "Commande ${order["id"]}",
-            "Ouverture des détails...",
-            snackPosition: SnackPosition.BOTTOM,
+          // Navigation vers la page de détails (réutilisation de CommandeValideePage)
+          // On adapte les données pour qu'elles correspondent à ce que attend la page
+          final itemsSnapshot = order.produits
+              .map(
+                (e) => {'product': ProduitAdapter(e), 'quantity': e.quantite},
+              )
+              .toList();
+
+          Get.to(
+            () => CommandeValideePage(
+              cartItems: itemsSnapshot,
+              totalPrice: order.total.toInt(),
+              tableNumber: order.tableLibelle,
+              commande: order,
+            ),
           );
         },
         child: Padding(
@@ -230,7 +363,7 @@ class _MesCommandesPageState extends State<MesCommandesPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Commande ${order["id"]}",
+                          "Commande ${order.numeroCommande}",
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             fontSize: 15,
@@ -238,10 +371,20 @@ class _MesCommandesPageState extends State<MesCommandesPage>
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Table ${order["table"]}",
+                          "Table ${order.tableLibelle}",
                           style: const TextStyle(
                             fontSize: 13,
                             color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          DateFormat(
+                            'dd/MM/yyyy HH:mm',
+                          ).format(order.createdAt),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                       ],
@@ -260,12 +403,12 @@ class _MesCommandesPageState extends State<MesCommandesPage>
                 children: [
                   _info(
                     "Articles",
-                    "${order["items"]}",
+                    "${order.produits.length}",
                     Icons.shopping_bag_outlined,
                   ),
                   _info(
                     "Total",
-                    "${order["total"]} CFA",
+                    "${order.total.toInt()} CFA",
                     Icons.payments_outlined,
                     bold: true,
                   ),
@@ -344,4 +487,11 @@ class _MesCommandesPageState extends State<MesCommandesPage>
       ),
     );
   }
+}
+
+class ProduitAdapter {
+  final CommandeProduit _cp;
+  ProduitAdapter(this._cp);
+  String get nomProd => _cp.nomProduit;
+  double get prixFinal => _cp.prixUnitaire;
 }

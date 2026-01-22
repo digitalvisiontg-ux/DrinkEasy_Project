@@ -1,8 +1,17 @@
 class CommandeProduit {
+  /// ID du produit
   final int produitId;
+
+  /// Nom du produit (depuis relation produit)
   final String nomProduit;
+
+  /// Taille éventuelle (ex: 33cl, 50cl)
   final String? taille;
+
+  /// Quantité commandée
   final int quantite;
+
+  /// Prix unitaire réellement facturé
   final double prixUnitaire;
 
   CommandeProduit({
@@ -13,29 +22,40 @@ class CommandeProduit {
     required this.prixUnitaire,
   });
 
+  /* =======================
+   * JSON → MODEL
+   * ======================= */
   factory CommandeProduit.fromJson(Map<String, dynamic> json) {
-    final produit = json['produit'] ?? {};
+    final produit = json['produit'] as Map<String, dynamic>?;
 
-    double parseDouble(dynamic v) =>
-        v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0;
+    double parseDouble(dynamic v) {
+      if (v == null) return 0.0;
+      if (v is num) return v.toDouble();
+      return double.tryParse(v.toString()) ?? 0.0;
+    }
 
     return CommandeProduit(
-      produitId: json['produit_id'],
-      nomProduit: produit['nomProd'] ?? '',
-      taille: produit['taille'],
-      quantite: json['quantite'],
+      produitId: json['produit_id'] ?? 0,
+      nomProduit: produit?['nomProd']?.toString() ?? '',
+      taille: produit?['taille'],
+      quantite: json['quantite'] ?? 0,
       prixUnitaire: parseDouble(json['prix_unitaire']),
     );
   }
 
-  /// ✅ AJOUT OBLIGATOIRE
+  /* =======================
+   * MODEL → JSON
+   * (usage local uniquement)
+   * ======================= */
   Map<String, dynamic> toJson() {
     return {
       "produit_id": produitId,
-      "nomProduit": nomProduit,
-      "taille": taille,
       "quantite": quantite,
       "prix_unitaire": prixUnitaire,
+      "produit": {
+        "nomProd": nomProduit,
+        "taille": taille,
+      }
     };
   }
 }
