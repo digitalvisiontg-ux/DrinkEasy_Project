@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:drink_eazy/App/Component/button_component.dart';
 import 'package:drink_eazy/App/Modules/Authentification/View/nouveauMotDePasse.dart';
@@ -20,6 +21,68 @@ class OtpPage extends StatefulWidget {
 class _OtpPageState extends State<OtpPage> {
   final _otpController = TextEditingController();
   bool loading = false;
+  
+  // Timer related variables
+  Timer? _timer;
+  int _start = 90; // 1m30s = 90 seconds
+  bool _isResendEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    setState(() {
+      _start = 90;
+      _isResendEnabled = false;
+    });
+    _timer = Timer.periodic(
+      const Duration(seconds: 1),
+      (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+            _isResendEnabled = true;
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  String get timerText {
+    int minutes = _start ~/ 60;
+    int seconds = _start % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _resendOtp() async {
+    if (!_isResendEnabled) return;
+
+    setState(() => loading = true);
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final success = await auth.forgotPassword(widget.login);
+    setState(() => loading = false);
+
+    if (success == true) {
+      showSuccessToast("Un nouveau code OTP a été envoyé.");
+      _startTimer();
+    } else {
+      _showErrorPopup(auth.errorMessage ?? "Erreur lors du renvoi du code.");
+    }
+  }
 
   /// ✅ Toast de succès stylé
   void showSuccessToast(String message) {
@@ -140,28 +203,34 @@ class _OtpPageState extends State<OtpPage> {
   /// 🧠 Vérification du code OTP
   Future<void> _verifyOtp() async {
     if (_otpController.text.length != 6) {
-      _showErrorPopup("Veuillez entrer un code OTP valide à 6 chiffres.");
+      _showErrorPopup("Veuillez entrer un code complet à 6 chiffres.");
+      return;
+    }
+
+    String actualLogin = widget.login;
+    if (actualLogin.isEmpty && Get.arguments != null && Get.arguments is Map) {
+      actualLogin = Get.arguments['login']?.toString() ?? '';
+    }
+
+    if (actualLogin.isEmpty) {
+      _showErrorPopup("Erreur interne : compte introuvable. Veuillez réessayer depuis le début.");
       return;
     }
 
     setState(() => loading = true);
     final auth = Provider.of<AuthProvider>(context, listen: false);
     final success = await auth.verifyOtp(
-      widget.login,
+      actualLogin,
       _otpController.text.trim(),
     );
     setState(() => loading = false);
 
     if (success == true) {
-      showSuccessToast(
-        auth.errorMessage == null || auth.errorMessage!.isEmpty
-            ? "OTP vérifié avec succès ✅"
-            : auth.errorMessage!,
-      );
-      await Future.delayed(const Duration(seconds: 1));
+      showSuccessToast("Code vérifié avec succès.");
+      await Future.delayed(const Duration(milliseconds: 1000));
       Get.to(
         () => NouveauMotDePassePage(
-          login: widget.login,
+          login: actualLogin,
           otp: _otpController.text.trim(),
         ),
       );
@@ -294,11 +363,45 @@ class _OtpPageState extends State<OtpPage> {
                                 AbsorbPointer(
                                   absorbing: loading,
                                   child: ButtonComponent(
-                                    textButton: loading
-                                        ? "Vérification en cours..."
-                                        : "Vérifier le code",
+                                    textButton: "Suivant",
                                     onPressed: loading ? null : _verifyOtp,
                                   ),
+                                ),
+                                const SizedBox(height: 20),
+                                /// --- Minuteur et Renvoyer le code
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      _isResendEnabled
+                                          ? "Vous n'avez pas reçu de code ? "
+                                          : "Renvoyer le code dans ",
+                                      style: TextStyle(
+                                        color: Colors.grey.shade600,
+                                        fontSize: size.width * 0.035,
+                                      ),
+                                    ),
+                                    _isResendEnabled
+                                        ? GestureDetector(
+                                            onTap: loading ? null : _resendOtp,
+                                            child: Text(
+                                              "Renvoyer",
+                                              style: TextStyle(
+                                                color: Colors.red.shade700,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: size.width * 0.035,
+                                              ),
+                                            ),
+                                          )
+                                        : Text(
+                                            timerText,
+                                            style: TextStyle(
+                                              color: Colors.red.shade700,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: size.width * 0.035,
+                                            ),
+                                          ),
+                                  ],
                                 ),
                               ],
                             ),

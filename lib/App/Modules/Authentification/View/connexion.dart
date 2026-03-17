@@ -37,7 +37,7 @@ class _ConnexionPageState extends State<ConnexionPage> {
     if (success == true) {
       // Affiche le showMessageComponent
       showMessageComponent(context, "Connexion réussie 🎉", "Succès", false);
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(microseconds: 100));
       Get.offAll(() => const Home());
     } else {
       // Affiche le popup d'erreur

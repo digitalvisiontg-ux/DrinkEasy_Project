@@ -1,5 +1,7 @@
 import 'package:drink_eazy/App/Component/showMessage_component.dart';
+import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
 class ChangerMotDePassePage extends StatefulWidget {
@@ -18,14 +20,16 @@ class _ChangerMotDePassePageState extends State<ChangerMotDePassePage> {
   bool _hideNew = true;
   bool _hideConfirm = true;
 
-  void _savePassword() {
+  bool _isLoading = false;
+
+  void _savePassword() async {
     if (_currentPasswordController.text.isEmpty ||
         _newPasswordController.text.isEmpty ||
         _confirmPasswordController.text.isEmpty) {
       showMessageComponent(
         context,
-        "Erreur",
         "Veuillez remplir tous les champs",
+        "Erreur",
         true,
       );
       return;
@@ -34,8 +38,8 @@ class _ChangerMotDePassePageState extends State<ChangerMotDePassePage> {
     if (_newPasswordController.text.length < 6) {
       showMessageComponent(
         context,
-        "Mot de passe faible",
         "Le mot de passe doit contenir au moins 6 caractères",
+        "Mot de passe faible",
         true,
       );
       return;
@@ -44,21 +48,48 @@ class _ChangerMotDePassePageState extends State<ChangerMotDePassePage> {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       showMessageComponent(
         context,
-        "Erreur",
         "Les mots de passe ne correspondent pas",
+        "Erreur",
         true,
       );
       return;
     }
 
-    showMessageComponent(
-      context,
-      "Succès",
-      "Votre mot de passe a été modifié avec succès",
-      false,
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final success = await authProvider.changePassword(
+      _currentPasswordController.text,
+      _newPasswordController.text,
+      _confirmPasswordController.text,
     );
 
-    Get.back();
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (success) {
+        Get.back(); // Retour en arrière d'abord
+        Future.delayed(const Duration(milliseconds: 300), () {
+          showMessageComponent(
+            Get.context ?? context,
+            "Votre mot de passe a été modifié avec succès",
+            "Succès",
+            false,
+          );
+        });
+      } else {
+        showMessageComponent(
+          context,
+          authProvider.errorMessage ?? "Erreur lors du changement de mot de passe",
+          "Erreur",
+          true,
+        );
+      }
+    }
   }
 
   @override
@@ -152,20 +183,47 @@ class _ChangerMotDePassePageState extends State<ChangerMotDePassePage> {
               toggle: () => setState(() => _hideConfirm = !_hideConfirm),
             ),
 
+            const SizedBox(height: 14),
+
+            Align(
+              alignment: Alignment.centerRight,
+              child: GestureDetector(
+                onTap: () => Get.toNamed('/mot_de_passe_oublie'),
+                child: Text(
+                  "Mot de passe oublié ?",
+                  style: TextStyle(
+                    color: Colors.amber.shade800,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 30),
 
             // --------------------------------------------------
             // 💾 BOUTON SAUVEGARDE
             // --------------------------------------------------
             ElevatedButton.icon(
-              onPressed: _savePassword,
-              icon: const Icon(Icons.save, color: Colors.black),
-              label: const Text(
-                "Enregistrer le nouveau mot de passe",
-                style: TextStyle(color: Colors.black),
+              onPressed: _isLoading ? null : _savePassword,
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.save, color: Colors.black),
+              label: Text(
+                _isLoading ? "Enregistrement..." : "Enregistrer le nouveau mot de passe",
+                style: TextStyle(color: _isLoading ? Colors.white : Colors.black),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
+                backgroundColor: _isLoading ? Colors.grey : Colors.amber,
+                foregroundColor: Colors.black, // Effet clic
                 elevation: 0.1,
                 minimumSize: const Size.fromHeight(50),
                 shape: RoundedRectangleBorder(

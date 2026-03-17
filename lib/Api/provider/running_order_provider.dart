@@ -368,4 +368,72 @@ class RunningOrderProvider extends ChangeNotifier {
     _bannerHideTimer?.cancel();
     super.dispose();
   }
+
+  /* ============================================================
+ * UPDATE COMMANDE (guest ou user)
+ * ============================================================ */
+Future<void> updateCommande({
+  required CommandeModel commande,
+  required List<Map<String, dynamic>> items,
+  String? commentaire,
+}) async {
+  try {
+    final res = await _service.updateCommande(
+      commandeId: commande.id,
+      items: items,
+      commentaire: commentaire,
+      guestToken: commande.isGuest ? commande.guestToken : null,
+    );
+
+    final updated =
+        CommandeModel.fromJson(res['commande']);
+
+    // Si c’est la runningOrder (guest)
+    if (_runningOrder?.id == updated.id) {
+      _runningOrder = updated;
+      await _persist();
+    }
+
+    // Si user actif
+    if (_userCurrentActiveOrder?.id == updated.id) {
+      _userCurrentActiveOrder = updated;
+      _userLastOrderSnapshot = updated;
+      await _persistUserBannerState();
+    }
+
+    notifyListeners();
+  } catch (e) {
+    rethrow;
+  }
+}
+
+/* ============================================================
+ * DELETE COMMANDE
+ * ============================================================ */
+Future<void> deleteCommande(CommandeModel commande) async {
+  try {
+    await _service.deleteCommande(
+      commandeId: commande.id,
+      guestToken: commande.isGuest ? commande.guestToken : null,
+    );
+
+    // Si guest running order
+    if (_runningOrder?.id == commande.id) {
+      await clearRunningOrder();
+    }
+
+    // Si user active
+    if (_userCurrentActiveOrder?.id == commande.id) {
+      _userCurrentActiveOrder = null;
+      _userHasActiveOrders = false;
+      _userAllTerminalAt = DateTime.now();
+      _scheduleUserHide(const Duration(minutes: 15));
+      await _persistUserBannerState();
+    }
+
+    notifyListeners();
+  } catch (e) {
+    rethrow;
+  }
+}
 }

@@ -45,6 +45,8 @@ class _InscriptionEmailPageState extends State<InscriptionEmailPage> {
       'password_confirmation': _confirmCtrl.text,
     };
     final result = await auth.register(userData);
+    
+    if (!mounted) return;
     setState(() => loading = false);
 
     if (result['success'] == true) {

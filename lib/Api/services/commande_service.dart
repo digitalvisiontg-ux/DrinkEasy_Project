@@ -71,4 +71,43 @@ class CommandeService {
 
     return [];
   }
+
+  Future<Map<String, dynamic>> updateCommande({
+  required int commandeId,
+  required List<Map<String, dynamic>> items,
+  String? commentaire,
+  String? guestToken,
+}) async {
+  final bool isGuest = guestToken != null;
+
+  final response = await _api.dio.post(
+    ApiConstants.commandeUpdate(commandeId),
+    data: {
+      'commentaire': commentaire,
+      'items': items,
+    },
+    options: isGuest
+        ? Options(headers: {'X-Guest-Token': guestToken})
+        : null,
+  );
+
+  return Map<String, dynamic>.from(response.data);
+}
+
+Future<Map<String, dynamic>> deleteCommande({
+  required int commandeId,
+  String? guestToken,
+}) async {
+  final bool isGuest = guestToken != null;
+
+  final response = await _api.dio.delete(
+    ApiConstants.commandeDelete(commandeId),
+    options: isGuest
+        ? Options(headers: {'X-Guest-Token': guestToken})
+        : null,
+  );
+
+  return Map<String, dynamic>.from(response.data);
+}
+
 }

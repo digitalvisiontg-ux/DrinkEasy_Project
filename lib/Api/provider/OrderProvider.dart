@@ -61,10 +61,26 @@ class OrderProvider extends ChangeNotifier {
   }
 
   /* ============================================================
-   * TOTAL
+   * TOTAL ET OFFERTS
    * ============================================================ */
 
   double get totalPrice => _items.fold(0.0, (sum, e) => sum + e.subtotal);
+
+  int get totalOfferedProducts {
+    int total = 0;
+    for (final item in _items) {
+      final promos = item.produit.promotionsDetails;
+      for (final promo in promos) {
+        if (promo.type.toLowerCase() == 'achat_offert' &&
+            promo.quantiteAchat != null &&
+            promo.quantiteOfferte != null) {
+          total += (item.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+          break;
+        }
+      }
+    }
+    return total;
+  }
 
   /* ============================================================
    * PAYLOAD API

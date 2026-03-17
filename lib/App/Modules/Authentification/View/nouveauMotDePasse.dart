@@ -86,134 +86,127 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
             child: Container(color: Colors.black.withOpacity(0.55)),
           ),
 
-          /// --- Bouton retour
-          Positioned(
-            top: size.height * 0.05,
-            left: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                onPressed: () => Get.back(),
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                  size: size.width * 0.06,
-                ),
-              ),
-            ),
-          ),
-
           /// --- Contenu principal
           SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                children: [
-                  SizedBox(height: size.height * 0.1),
-                  Text(
-                    'Nouveau mot de passe',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: size.width * 0.08,
-                      fontFamily: 'Agbalumo',
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Définissez votre nouveau mot de passe',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: size.width * 0.04,
-                    ),
-                  ),
-
-                  SizedBox(height: size.height * 0.1),
-
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: size.width * 0.06,
-                      vertical: 28,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(32),
-                      ),
-                    ),
-                    child: Form(
-                      key: _formKey,
+                    child: IntrinsicHeight(
                       child: Column(
                         children: [
-                          FormWidget(
-                            controller: _passwordCtrl,
-                            prefixIcon: const Icon(
-                              Icons.lock_outline,
-                              color: Colors.black54,
+                          SizedBox(height: size.height * 0.15),
+                          Text(
+                            'Nouveau mot de passe',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: size.width * 0.08,
+                              fontFamily: 'Agbalumo',
                             ),
-                            hintText: "Nouveau mot de passe",
-                            obscureText: true,
-                            validator: validatePassword,
                           ),
-                          const SizedBox(height: 16),
-                          FormWidget(
-                            controller: _confirmPasswordCtrl,
-                            prefixIcon: const Icon(
-                              Icons.lock_reset_outlined,
-                              color: Colors.black54,
-                            ),
-                            hintText: "Confirmer le mot de passe",
-                            obscureText: true,
-                            validator: (v) {
-                              if (v == null || v.isEmpty) {
-                                return 'Veuillez confirmer le mot de passe';
-                              }
-                              if (v != _passwordCtrl.text) {
-                                return 'Les mots de passe ne correspondent pas';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 28),
-
-                          AbsorbPointer(
-                            absorbing: loading,
-                            child: ButtonComponent(
-                              textButton: loading
-                                  ? "Réinitialisation en cours..."
-                                  : "Réinitialiser le mot de passe",
-                              onPressed: loading ? null : _handleResetPassword,
+                          const SizedBox(height: 8),
+                          Text(
+                            'Définissez votre nouveau mot de passe',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: size.width * 0.04,
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const Spacer(),
 
-                          GestureDetector(
-                            onTap: () =>
-                                Get.offAll(() => const ConnexionPage()),
-                            child: Center(
-                              child: Text.rich(
-                                TextSpan(
-                                  text: "Revenir à la ",
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: size.width * 0.036,
+                          Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: size.width * 0.06,
+                              vertical: 28,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(32),
+                              ),
+                            ),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  FormWidget(
+                                    controller: _passwordCtrl,
+                                    prefixIcon: const Icon(
+                                      Icons.lock_outline,
+                                      color: Colors.black54,
+                                    ),
+                                    hintText: "Nouveau mot de passe",
+                                    obscureText: true,
+                                    validator: validatePassword,
                                   ),
-                                  children: [
-                                    TextSpan(
-                                      text: "connexion",
-                                      style: TextStyle(
-                                        color: Colors.red.shade800,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: size.width * 0.038,
+                                  const SizedBox(height: 16),
+                                  FormWidget(
+                                    controller: _confirmPasswordCtrl,
+                                    prefixIcon: const Icon(
+                                      Icons.lock_reset_outlined,
+                                      color: Colors.black54,
+                                    ),
+                                    hintText: "Confirmer le mot de passe",
+                                    obscureText: true,
+                                    validator: (v) {
+                                      if (v == null || v.isEmpty) {
+                                        return 'Veuillez confirmer le mot de passe';
+                                      }
+                                      if (v != _passwordCtrl.text) {
+                                        return 'Les mots de passe ne correspondent pas';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 28),
+
+                                  AbsorbPointer(
+                                    absorbing: loading,
+                                    child: ButtonComponent(
+                                      textButton: loading
+                                          ? "Réinitialisation en cours..."
+                                          : "Réinitialiser le mot de passe",
+                                      onPressed: loading ? null : _handleResetPassword,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  GestureDetector(
+                                    onTap: () =>
+                                        Get.offAll(() => const ConnexionPage()),
+                                    child: Center(
+                                      child: Text.rich(
+                                        TextSpan(
+                                          text: "Revenir à la ",
+                                          style: TextStyle(
+                                            color: Colors.grey.shade600,
+                                            fontSize: size.width * 0.036,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text: "connexion",
+                                              style: TextStyle(
+                                                color: Colors.red.shade800,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: size.width * 0.038,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -221,7 +214,31 @@ class _NouveauMotDePassePageState extends State<NouveauMotDePassePage> {
                       ),
                     ),
                   ),
-                ],
+                );
+              },
+            ),
+          ),
+
+          /// --- Bouton retour
+          Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 8.0,
+              left: MediaQuery.of(context).padding.left + 16.0,
+            ),
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: () => Get.back(),
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ),

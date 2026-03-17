@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:drink_eazy/Api/models/commande_model.dart';
-import 'package:drink_eazy/Api/models/commande_produit_model.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/services/commande_service.dart';
 import 'package:drink_eazy/App/Modules/Cart/View/CommandeValideePage.dart';
@@ -9,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:drink_eazy/Api/provider/running_order_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class MesCommandesPage extends StatefulWidget {
@@ -108,8 +108,8 @@ class _MesCommandesPageState extends State<MesCommandesPage>
     super.dispose();
   }
 
-  List<CommandeModel> _filter(String category) {
-    return _orders.where((o) {
+  List<CommandeModel> _filter(List<CommandeModel> sourceOrders, String category) {
+    return sourceOrders.where((o) {
       final s = o.status.toLowerCase().trim();
       switch (category) {
         case "en_cours":
@@ -152,6 +152,32 @@ class _MesCommandesPageState extends State<MesCommandesPage>
 
   @override
   Widget build(BuildContext context) {
+    // 🚨 Synchronisation forte de la liste locale avec My Provider
+    final provider = context.watch<RunningOrderProvider>();
+    List<CommandeModel> displayOrders = List.from(_orders);
+
+    // Mettre à jour l'affichage instantané avec l'état global courant (Guest)
+    if (provider.runningOrder != null) {
+      final idx = displayOrders.indexWhere((o) => o.id == provider.runningOrder!.id);
+      if (idx != -1) {
+        displayOrders[idx] = provider.runningOrder!;
+      } else {
+        // Nouvelle commande qui n'était pas dans la liste initiale de fetch
+        displayOrders.insert(0, provider.runningOrder!);
+      }
+    }
+
+    // Mettre à jour l'affichage instantané avec l'état global courant (User)
+    if (provider.userCurrentActiveOrder != null) {
+      final idx = displayOrders.indexWhere((o) => o.id == provider.userCurrentActiveOrder!.id);
+      if (idx != -1) {
+        displayOrders[idx] = provider.userCurrentActiveOrder!;
+      }
+    }
+    
+    // Si la commande a été supprimée ou n'y est plus on peut l'ignorer tant qu'un _fetch() n'a pas été lancé, 
+    // l'important est de voir les mises à jours de prix/quantité immédiatement
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
@@ -238,15 +264,15 @@ class _MesCommandesPageState extends State<MesCommandesPage>
                 controller: _tabController,
                 children: [
                   _buildList(
-                    _filter("en_cours"),
+                    _filter(displayOrders, "en_cours"),
                     emptyText: "Aucune commande en cours",
                   ),
                   _buildList(
-                    _filter("terminee"),
+                    _filter(displayOrders, "terminee"),
                     emptyText: "Aucune commande terminée",
                   ),
                   _buildList(
-                    _filter("annulee"),
+                    _filter(displayOrders, "annulee"),
                     emptyText: "Aucune commande annulée",
                   ),
                 ],
@@ -326,20 +352,16 @@ class _MesCommandesPageState extends State<MesCommandesPage>
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: () {
-          // Navigation vers la page de détails (réutilisation de CommandeValideePage)
-          // On adapte les données pour qu'elles correspondent à ce que attend la page
-          final itemsSnapshot = order.produits
-              .map(
-                (e) => {'product': ProduitAdapter(e), 'quantity': e.quantite},
-              )
-              .toList();
-
+          // Navigation vers la page de détails
+          // Assurez-vous que isHistory est placé à 'true' de sorte à ne pas ecraser le provider courant sans le vouloir
+          // et à avoir le bouton "Retour".
           Get.to(
             () => CommandeValideePage(
-              cartItems: itemsSnapshot,
+              cartItems: const [], // CommandeValideePage recalcule ça lui-même avec displayCommande
               totalPrice: order.total.toInt(),
               tableNumber: order.tableLibelle,
               commande: order,
+              isHistory: true, 
             ),
           );
         },
@@ -487,11 +509,4 @@ class _MesCommandesPageState extends State<MesCommandesPage>
       ),
     );
   }
-}
-
-class ProduitAdapter {
-  final CommandeProduit _cp;
-  ProduitAdapter(this._cp);
-  String get nomProd => _cp.nomProduit;
-  double get prixFinal => _cp.prixUnitaire;
 }

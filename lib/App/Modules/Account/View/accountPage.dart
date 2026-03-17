@@ -275,11 +275,6 @@ class _AccountPageState extends State<AccountPage> {
 
             const SizedBox(height: 16),
             listTileComponent(
-              icon: Icons.history,
-              title: "Historique des commandes",
-              onTap: () => Get.toNamed('/historique_commandes'),
-            ),
-            listTileComponent(
               icon: Icons.receipt_long_outlined,
               title: "Mes commandes",
               onTap: () => Get.toNamed('/mesCommandes'),

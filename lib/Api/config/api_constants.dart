@@ -12,6 +12,7 @@ class ApiConstants {
   static String get authLogout => "$authBase/logout";
   static String get authForgotPassword => "$authBase/forgot-password";
   static String get authResetPassword => "$authBase/reset-password";
+  static String get authDeleteContact => "$authBase/delete-contact";
   static String get authDeleteAccount => "$authBase/delete-account";
   static String get authVerifyOtp => "$authBase/verify-otp";
   static String get authMe => "$authBase/me";
@@ -38,4 +39,7 @@ class ApiConstants {
   static String get commandesGuest => "$baseUrl/commandes/guest";
   static String commandeByGuest(String token) =>
       "$baseUrl/commandes/guest/$token";
+
+  static String commandeUpdate(int id) => "$baseUrl/commandes/$id";
+  static String commandeDelete(int id) => "$baseUrl/commandes/$id";
 }

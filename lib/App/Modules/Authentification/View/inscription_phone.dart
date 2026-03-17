@@ -10,7 +10,7 @@ import 'package:drink_eazy/Api/provider/auth_provider.dart';
 
 class InscriptionPhonePage extends StatefulWidget {
   final Future<void> Function(String phone, String password, String username)?
-  onRegister;
+      onRegister;
 
   const InscriptionPhonePage({Key? key, this.onRegister}) : super(key: key);
 
@@ -47,6 +47,8 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
       'password_confirmation': _confirmCtrl.text,
     };
     final result = await auth.register(userData);
+    
+    if (!mounted) return;
     setState(() => loading = false);
 
     if (result['success'] == true) {
@@ -56,7 +58,7 @@ class _InscriptionPhonePageState extends State<InscriptionPhonePage> {
         'Succès',
         false,
       );
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 100));
       Get.offAll(() => const Home());
     } else {
       showErrorPopupComponent(

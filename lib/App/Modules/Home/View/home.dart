@@ -6,6 +6,7 @@ import 'package:drink_eazy/App/Modules/Home/View/buildProductCard.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
+import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:get/get.dart';
@@ -21,7 +22,6 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   String _selectedCategory = 'Tous';
-  int cartCount = 0;
   bool _isSearching = false;
   final ScrollController _listController = ScrollController();
   final GlobalKey<RefreshIndicatorState> _refreshKey =
@@ -30,6 +30,7 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
   bool _isRefreshing = false;
   static const Duration _autoInterval = Duration(seconds: 30);
   static const Duration _refreshTimeout = Duration(seconds: 12);
+  bool _errorDialogOpen = false;
 
   late RunningOrderProvider _runningOrderProvider;
 
@@ -64,6 +65,10 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
         ro.stopUserOrdersPolling();
       }
       _startAutoRefresh();
+      final pp = Provider.of<ProduitProvider>(context, listen: false);
+      if (pp.error != null) {
+        _showErrorPopup(pp.error!);
+      }
     });
   }
 
@@ -109,18 +114,105 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     } else {
       final err = provider.error;
       if (err != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(err),
-            duration: const Duration(seconds: 2),
-          ),
-        );
+        _showErrorPopup(err);
       }
     }
     if (mounted && _listController.hasClients) {
       _listController.jumpTo(oldOffset);
     }
     _isRefreshing = false;
+  }
+
+  void _showErrorPopup(String message) {
+    if (_errorDialogOpen) return;
+    _errorDialogOpen = true;
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Erreur',
+      barrierColor: Colors.black.withOpacity(0.2),
+      pageBuilder: (ctx, a1, a2) {
+        final size = MediaQuery.of(ctx).size;
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+            Center(
+              child: Material(
+                color: Colors.transparent,
+                child: Container(
+                  width: size.width * 0.84,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.wifi_off, color: Colors.redAccent, size: 36),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Problème de connexion",
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        message,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.black54, fontSize: 13),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.amber,
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () async {
+                            Navigator.of(ctx).pop();
+                            _errorDialogOpen = false;
+                            await _onRefresh();
+                          },
+                          child: const Text(
+                            "Réessayer",
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+      transitionBuilder: (ctx, anim, _, child) {
+        return FadeTransition(
+          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+          child: child,
+        );
+      },
+    ).then((_) {
+      _errorDialogOpen = false;
+    });
   }
 
   // ------------------------------
@@ -309,9 +401,9 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
     final media = MediaQuery.of(context);
     final double horizontalPadding = media.size.width * 0.04;
     final double iconSize = media.size.width < 360 ? 20 : 22;
+    final double iconBoxSize = media.size.width < 360 ? 36 : 40;
 
     return Positioned(
-      left: horizontalPadding,
       right: horizontalPadding,
       bottom: media.padding.bottom + 12,
       child: SafeArea(
@@ -321,80 +413,43 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
           builder: (context, value, child) => Opacity(opacity: value, child: child!),
-          child: Material(
-            elevation: 5,
-            borderRadius: BorderRadius.circular(18),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () {
-                Get.toNamed("/MesCommandesPage");
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: media.size.width * 0.04,
-                  vertical: media.size.height * 0.018,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: media.size.width * 0.11,
-                      height: media.size.width * 0.11,
-                      constraints: const BoxConstraints(
-                        minWidth: 38,
-                        maxWidth: 44,
-                        minHeight: 38,
-                        maxHeight: 44,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFC8FFD4),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        Icons.restaurant_menu,
-                        color: Colors.green,
-                        size: iconSize,
-                      ),
+          child: Align(
+            alignment: Alignment.centerRight,
+            widthFactor: 1,
+            heightFactor: 1,
+            child: Material(
+              elevation: 5,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Get.toNamed("/MesCommandesPage");
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Container(
+                    width: iconBoxSize,
+                    height: iconBoxSize,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      maxWidth: 44,
+                      minHeight: 32,
+                      maxHeight: 44,
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Text(
-                            "Status de votre commande",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "Table #${cmd.tableLibelle} • ${cmd.numeroCommande}",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFC8FFD4),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    const SizedBox(width: 10),
-                    Icon(
-                      Icons.arrow_forward_ios,
-                      size: media.size.width < 360 ? 16 : 18,
-                      color: Colors.black45,
+                    child: Icon(
+                      Icons.restaurant_menu,
+                      color: Colors.green,
+                      size: iconSize,
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -403,6 +458,108 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
       ),
     );
   }
+  // Widget _buildRunningOrderBottomCard() {
+  //   final ro = Provider.of<RunningOrderProvider>(context);
+  //   final cmd = ro.currentBannerOrder;
+  //   if (!ro.shouldShowBanner || cmd == null) return const SizedBox.shrink();
+
+  //   final media = MediaQuery.of(context);
+  //   final double horizontalPadding = media.size.width * 0.04;
+  //   final double iconSize = media.size.width < 360 ? 20 : 22;
+
+  //   return Positioned(
+  //     left: horizontalPadding,
+  //     right: horizontalPadding,
+  //     bottom: media.padding.bottom + 12,
+  //     child: SafeArea(
+  //       top: false,
+  //       child: TweenAnimationBuilder<double>(
+  //         tween: Tween(begin: 0, end: 1),
+  //         duration: const Duration(milliseconds: 250),
+  //         curve: Curves.easeOut,
+  //         builder: (context, value, child) => Opacity(opacity: value, child: child!),
+  //         child: Material(
+  //           elevation: 5,
+  //           borderRadius: BorderRadius.circular(18),
+  //           child: InkWell(
+  //             borderRadius: BorderRadius.circular(18),
+  //             onTap: () {
+  //               Get.toNamed("/MesCommandesPage");
+  //             },
+  //             child: Container(
+  //               padding: EdgeInsets.symmetric(
+  //                 horizontal: media.size.width * 0.04,
+  //                 vertical: media.size.height * 0.018,
+  //               ),
+  //               decoration: BoxDecoration(
+  //                 color: Colors.white,
+  //                 borderRadius: BorderRadius.circular(18),
+  //               ),
+  //               child: Row(
+  //                 children: [
+  //                   Container(
+  //                     width: media.size.width * 0.11,
+  //                     height: media.size.width * 0.11,
+  //                     constraints: const BoxConstraints(
+  //                       minWidth: 38,
+  //                       maxWidth: 44,
+  //                       minHeight: 38,
+  //                       maxHeight: 44,
+  //                     ),
+  //                     decoration: BoxDecoration(
+  //                       color: const Color(0xFFC8FFD4),
+  //                       borderRadius: BorderRadius.circular(12),
+  //                     ),
+  //                     child: Icon(
+  //                       Icons.restaurant_menu,
+  //                       color: Colors.green,
+  //                       size: iconSize,
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 14),
+  //                   Expanded(
+  //                     child: Column(
+  //                       crossAxisAlignment: CrossAxisAlignment.start,
+  //                       mainAxisSize: MainAxisSize.min,
+  //                       children: [
+  //                         const Text(
+  //                           "Status de votre commande",
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           style: TextStyle(
+  //                             fontWeight: FontWeight.w700,
+  //                             fontSize: 14,
+  //                           ),
+  //                         ),
+  //                         const SizedBox(height: 4),
+  //                         Text(
+  //                           "Table #${cmd.tableLibelle} • ${cmd.numeroCommande}",
+  //                           maxLines: 1,
+  //                           overflow: TextOverflow.ellipsis,
+  //                           style: const TextStyle(
+  //                             fontSize: 13,
+  //                             color: Colors.black54,
+  //                             fontWeight: FontWeight.w500,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 10),
+  //                   Icon(
+  //                     Icons.arrow_forward_ios,
+  //                     size: media.size.width < 360 ? 16 : 18,
+  //                     color: Colors.black45,
+  //                   ),
+  //                 ],
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   void dispose() {
@@ -429,6 +586,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    // Écoute dynamique du nombre d'articles global via le CartProvider
+    final cartCount = context.watch<CartProvider>().totalItems;
     final items = _filteredProducts;
     return Scaffold(
       appBar: PreferredSize(
@@ -480,8 +639,8 @@ class _HomeState extends State<Home> with WidgetsBindingObserver {
                               context: context,
                               produit: p,
                               onCartUpdated: () => setState(() {}),
-                              updateCartCount: (qty) =>
-                                  setState(() => cartCount += qty),
+                              // On ne gère plus le compteur local, le Provider s'occupe de la réactivité
+                              updateCartCount: (qty) {},
                             );
                           },
                           separatorBuilder: (_, __) =>

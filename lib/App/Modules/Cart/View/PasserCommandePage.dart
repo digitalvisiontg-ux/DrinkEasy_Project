@@ -122,6 +122,9 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   /// FINALISER ÉTAPE 1
   /// ===============================
   void _finalizeStep1() {
+    // 1 - FERMER le clavier avant le rendu de l'étape 2
+    FocusScope.of(context).unfocus();
+
     final table = context.read<TableProvider>().table;
     if (table == null) {
       _showBusinessError("Table non trouvée. Veuillez réessayer.");
@@ -185,9 +188,22 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     final commandeService = CommandeService();
 
     // Payload attendu par Laravel
-    final itemsPayload = order.items
-        .map((e) => {'produit_id': e.produit.id, 'quantite': e.quantite})
-        .toList();
+    final itemsPayload = order.items.map((e) {
+      int offeredCount = 0;
+      for (final promo in e.produit.promotionsDetails) {
+        if (promo.type.toLowerCase() == 'achat_offert' &&
+            promo.quantiteAchat != null &&
+            promo.quantiteOfferte != null) {
+          offeredCount += (e.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+          break;
+        }
+      }
+      return {
+        'produit_id': e.produit.id,
+        'quantite': e.quantite,
+        if (offeredCount > 0) 'quantite_offerte': offeredCount,
+      };
+    }).toList();
 
     _showLoading();
     print("3");
@@ -655,23 +671,28 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                   ),
                 ),
                 const SizedBox(width: 14),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Votre table",
-                      style: TextStyle(color: Colors.black, fontSize: 14),
-                    ),
-                    const SizedBox(height: 3),
-                    Text(
-                      "Table : ${order.tableLabel}", // Donnée Back
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
+                // 2 - ENVELOPPER le texte dans un Expanded pour éviter le débordement horizontal (overflow)
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Votre table",
+                        style: TextStyle(color: Colors.black, fontSize: 14),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 3),
+                      Text(
+                        "Table : ${order.tableLabel}", // Donnée Back
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w800,
+                        ),
+                        maxLines: 2, // Autoriser le retour à la ligne ou limiter à la taille de la carte
+                        overflow: TextOverflow.ellipsis, // Afficher "..." si le nom est excessivement long
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -725,6 +746,17 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                 Column(
                   children: List.generate(order.items.length, (i) {
                     final item = order.items[i]; // Item du Back
+                    
+                    int offeredCount = 0;
+                    for (final promo in item.produit.promotionsDetails) {
+                      if (promo.type.toLowerCase() == 'achat_offert' &&
+                          promo.quantiteAchat != null &&
+                          promo.quantiteOfferte != null) {
+                        offeredCount += (item.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+                        break;
+                      }
+                    }
+                    
                     return Column(
                       children: [
                         Row(
@@ -765,6 +797,18 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                                       color: Colors.grey.shade600,
                                     ),
                                   ),
+                                  if (offeredCount > 0)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 2.0),
+                                      child: Text(
+                                        "Offert : $offeredCount",
+                                        style: TextStyle(
+                                          color: Colors.green.shade700,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
                                 ],
                               ),
                             ),
@@ -812,6 +856,23 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                     ),
                   ],
                 ),
+                if (order.totalOfferedProducts > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        Text(
+                          'Total Offert : ${order.totalOfferedProducts}',
+                          style: TextStyle(
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        const Spacer(),
+                      ],
+                    ),
+                  ),
               ],
             ),
           ),

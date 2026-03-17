@@ -22,7 +22,10 @@ class AuthApi {
         ApiConstants.authRegister,
         userData,
       );
-      return response.data;
+      if (response.data is Map<String, dynamic>) {
+        return response.data;
+      }
+      return {'success': true, 'message': 'Inscription réussie'};
     } on DioException catch (e) {
       throw Exception(_extractError(e));
     }
@@ -80,6 +83,18 @@ class AuthApi {
     }
   }
 
+  Future<Map<String, dynamic>> deleteContact(String type) async {
+    try {
+      final response = await _apiService.post(
+        ApiConstants.authDeleteContact,
+        {'type': type},
+      );
+      return response.data;
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
+    }
+  }
+
   /// Delete account (requires token — ApiService injecte Authorization)
   Future<Map<String, dynamic>> deleteAccount() async {
     try {
@@ -87,6 +102,27 @@ class AuthApi {
       return response.data;
     } on DioException catch (e) {
       throw Exception('Erreur deleteAccount: ${_extractError(e)}');
+    }
+  }
+
+  /// Changer de mot de passe (requires token)
+  Future<Map<String, dynamic>> changePassword(String currentPassword, String newPassword, String confirmPassword) async {
+    try {
+      final response = await _apiService.post(
+        '${ApiConstants.authBase}/change-password',
+        {
+          'current_password': currentPassword,
+          'password': newPassword,
+          'password_confirmation': confirmPassword,
+        },
+      );
+      
+      if (response.data is Map<String, dynamic>) {
+        return response.data;
+      }
+      return {'success': true, 'message': 'Mot de passe modifié avec succès'};
+    } on DioException catch (e) {
+      throw Exception(_extractError(e));
     }
   }
 

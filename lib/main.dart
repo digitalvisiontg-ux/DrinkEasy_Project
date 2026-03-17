@@ -1,6 +1,5 @@
 import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
 import 'package:drink_eazy/Api/provider/OrderProvider.dart';
-import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
 import 'package:drink_eazy/Api/provider/cartProvider.dart';
 import 'package:drink_eazy/Api/provider/produit_provider.dart';
@@ -34,6 +33,8 @@ import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:provider/provider.dart';
@@ -134,7 +135,13 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(
           name: '/otp',
-          page: () => const OtpPage(login: ''),
+          page: () {
+            String logId = '';
+            if (Get.arguments != null && Get.arguments is Map) {
+              logId = Get.arguments['login']?.toString() ?? '';
+            }
+            return OtpPage(login: logId);
+          },
         ),
         GetPage(name: '/account', page: () => const AccountPage()),
         GetPage(name: "/orderDetails", page: () => const OrderDetailsPage()),
@@ -158,7 +165,7 @@ class MyApp extends StatelessWidget {
           page: () => const SignalerProblemePage(),
         ),
         GetPage(name: "/contact", page: () => const NousContacterPage()),
-        GetPage(
+        GetPage(  
           name: "/changer_mot_de_passe",
           page: () => const ChangerMotDePassePage(),
         ),
@@ -176,7 +183,7 @@ class MyApp extends StatelessWidget {
         ),
 
         // Provide an empty list or appropriate cart items
-        
+          
       ],
       
     );
