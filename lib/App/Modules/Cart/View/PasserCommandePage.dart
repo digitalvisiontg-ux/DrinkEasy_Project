@@ -26,6 +26,7 @@ class PasserCommandePage extends StatefulWidget {
 class _PasserCommandePageState extends State<PasserCommandePage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _tableController = TextEditingController();
+  final TextEditingController _commentController = TextEditingController();
 
   int _currentStep = 1;
   bool _isScanning = false;
@@ -52,6 +53,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   void dispose() {
     _scanController.dispose();
     _tableController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -194,7 +196,8 @@ class _PasserCommandePageState extends State<PasserCommandePage>
         if (promo.type.toLowerCase() == 'achat_offert' &&
             promo.quantiteAchat != null &&
             promo.quantiteOfferte != null) {
-          offeredCount += (e.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+          offeredCount +=
+              (e.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
           break;
         }
       }
@@ -218,7 +221,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
       final response = await commandeService.createCommande(
         tableId: table.id,
         items: itemsPayload,
-        commentaire: null,
+        commentaireClient: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
         guestToken: guestToken,
       );
       print("5");
@@ -254,18 +257,40 @@ class _PasserCommandePageState extends State<PasserCommandePage>
 
         Navigator.pop(context, true);
       } else {
+        print("8.1");
         _showBusinessError(response['message'] ?? "Échec de la commande");
       }
     } catch (e) {
-      print("9");
+      print('9');
+      String errorMessage = "Erreur serveur. Réessayez.";
+      print("9.2");
       if (e is DioException) {
-        print("STATUS: ${e.response?.statusCode}");
-        print("DATA: ${e.response?.data}");
-      } else {
-        print(e.toString());
+        print("9.1");
+        final data = e.response?.data;
+        if (data is Map) {
+          if (data['message'] != null) {
+            errorMessage = data['message'].toString();
+          }
+          print("10");
+          if (data['errors'] != null && data['errors'] is Map) {
+            final errors = data['errors'] as Map;
+            if (errors.isNotEmpty) {
+              final firstError = errors.values.first;
+              if (firstError is List && firstError.isNotEmpty) {
+                errorMessage = firstError.first.toString();
+              } else if (firstError is String) {
+                errorMessage = firstError;
+              }
+            }
+          }
+        } else if (e.response?.statusCode != null) {
+          print("11");
+          errorMessage = "Erreur serveur (${e.response?.statusCode})";
+        }
       }
+      print("12");
       Navigator.pop(context);
-      _showBusinessError("Erreur serveur. Réessayez.");
+      _showBusinessError(errorMessage);
     }
   }
 
@@ -305,14 +330,16 @@ class _PasserCommandePageState extends State<PasserCommandePage>
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
-          ),
-          // Affichage du bouton uniquement à l'étape 2
-          if (_currentStep == 2) _buildBottomCTA(),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: _currentStep == 1 ? _buildStep1() : _buildStep2(),
+            ),
+            // Affichage du bouton uniquement à l'étape 2
+            if (_currentStep == 2) _buildBottomCTA(),
+          ],
+        ),
       ),
     );
   }
@@ -413,7 +440,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   /// ===============================
   Widget _buildStep1() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 140),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -638,7 +665,7 @@ class _PasserCommandePageState extends State<PasserCommandePage>
     final order = context.watch<OrderProvider>();
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 100),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -688,8 +715,10 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                           fontSize: 19,
                           fontWeight: FontWeight.w800,
                         ),
-                        maxLines: 2, // Autoriser le retour à la ligne ou limiter à la taille de la carte
-                        overflow: TextOverflow.ellipsis, // Afficher "..." si le nom est excessivement long
+                        maxLines:
+                            2, // Autoriser le retour à la ligne ou limiter à la taille de la carte
+                        overflow: TextOverflow
+                            .ellipsis, // Afficher "..." si le nom est excessivement long
                       ),
                     ],
                   ),
@@ -746,17 +775,19 @@ class _PasserCommandePageState extends State<PasserCommandePage>
                 Column(
                   children: List.generate(order.items.length, (i) {
                     final item = order.items[i]; // Item du Back
-                    
+
                     int offeredCount = 0;
                     for (final promo in item.produit.promotionsDetails) {
                       if (promo.type.toLowerCase() == 'achat_offert' &&
                           promo.quantiteAchat != null &&
                           promo.quantiteOfferte != null) {
-                        offeredCount += (item.quantite ~/ promo.quantiteAchat!) * promo.quantiteOfferte!;
+                        offeredCount +=
+                            (item.quantite ~/ promo.quantiteAchat!) *
+                            promo.quantiteOfferte!;
                         break;
                       }
                     }
-                    
+
                     return Column(
                       children: [
                         Row(
@@ -877,6 +908,51 @@ class _PasserCommandePageState extends State<PasserCommandePage>
             ),
           ),
           const SizedBox(height: 22),
+          
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.edit_note, color: Colors.amber),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        "Commentaire pour le restaurant (Optionnel)",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _commentController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: "Ex : Sans oignons, bien cuit...",
+                    hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                    filled: true,
+                    fillColor: const Color(0xFFF7F8FA),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 22),
         ],
       ),
     );
@@ -886,11 +962,12 @@ class _PasserCommandePageState extends State<PasserCommandePage>
   /// CTA BOTTOM (Step 2 Only)
   /// ===============================
   Widget _buildBottomCTA() {
-    return Positioned(
-      // Ajout du viewInsets du Front pour éviter le clavier si besoin, bien que rare à l'étape 2
-      bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      left: 18,
-      right: 18,
+    // Si le clavier est ouvert, on cache le bouton pour éviter de bloquer la vue
+    final bool isKeyboardOpen = MediaQuery.of(context).viewInsets.bottom > 0;
+    if (isKeyboardOpen) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 10, 18, 20),
       child: ElevatedButton.icon(
         onPressed: _confirmOrder, // Logique du Back
         icon: const Icon(

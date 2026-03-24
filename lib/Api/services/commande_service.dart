@@ -13,14 +13,14 @@ class CommandeService {
   Future<Map<String, dynamic>> createCommande({
     required int tableId,
     required List<Map<String, dynamic>> items,
-    String? commentaire,
+    String? commentaireClient,
     String? guestToken,
   }) async {
     final bool isGuest = guestToken != null;
 
     final response = await _api.dio.post(
       isGuest ? ApiConstants.commandesGuest : ApiConstants.commandes,
-      data: {'table_id': tableId, 'commentaire': commentaire, 'items': items},
+      data: {'table_id': tableId, 'commentaire_client': commentaireClient, 'items': items},
       options: isGuest ? Options(headers: {'X-Guest-Token': guestToken}) : null,
     );
 
@@ -73,41 +73,37 @@ class CommandeService {
   }
 
   Future<Map<String, dynamic>> updateCommande({
-  required int commandeId,
-  required List<Map<String, dynamic>> items,
-  String? commentaire,
-  String? guestToken,
-}) async {
-  final bool isGuest = guestToken != null;
+    required int commandeId,
+    required List<Map<String, dynamic>> items,
+    String? commentaireClient,
+    String? guestToken,
+  }) async {
+    final bool isGuest = guestToken != null;
 
-  final response = await _api.dio.post(
-    ApiConstants.commandeUpdate(commandeId),
-    data: {
-      'commentaire': commentaire,
-      'items': items,
-    },
-    options: isGuest
-        ? Options(headers: {'X-Guest-Token': guestToken})
-        : null,
-  );
+    final response = await _api.dio.post(
+      isGuest
+          ? ApiConstants.commandeUpdateGuest(commandeId)
+          : ApiConstants.commandeUpdate(commandeId),
+      data: {'commentaire_client': commentaireClient, 'items': items},
+      options: isGuest ? Options(headers: {'X-Guest-Token': guestToken}) : null,
+    );
 
-  return Map<String, dynamic>.from(response.data);
-}
+    return Map<String, dynamic>.from(response.data);
+  }
 
-Future<Map<String, dynamic>> deleteCommande({
-  required int commandeId,
-  String? guestToken,
-}) async {
-  final bool isGuest = guestToken != null;
+  Future<Map<String, dynamic>> deleteCommande({
+    required int commandeId,
+    String? guestToken,
+  }) async {
+    final bool isGuest = guestToken != null;
 
-  final response = await _api.dio.delete(
-    ApiConstants.commandeDelete(commandeId),
-    options: isGuest
-        ? Options(headers: {'X-Guest-Token': guestToken})
-        : null,
-  );
+    final response = await _api.dio.delete(
+      isGuest
+          ? ApiConstants.commandeDeleteGuest(commandeId)
+          : ApiConstants.commandeDelete(commandeId),
+      options: isGuest ? Options(headers: {'X-Guest-Token': guestToken}) : null,
+    );
 
-  return Map<String, dynamic>.from(response.data);
-}
-
+    return Map<String, dynamic>.from(response.data);
+  }
 }

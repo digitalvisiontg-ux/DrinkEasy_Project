@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:drink_eazy/Api/provider/auth_provider.dart';
+import 'package:drink_eazy/Admin_App/Admin_Modules/Admin_Products/AdminProductsPage.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -272,6 +273,41 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                 ],
               ),
+
+            const SizedBox(height: 16),
+
+            // ==== BOUTON TEMPORAIRE - ADMIN DASHBOARD ====
+            GestureDetector(
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => AdminProductsPage()),
+              ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A1A2E),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.amber.shade700, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.admin_panel_settings, color: Colors.amber),
+                    const SizedBox(width: 10),
+                    const Text(
+                      "[DEV] Admin Dashboard",
+                      style: TextStyle(
+                        color: Colors.amber,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // =============================================
 
             const SizedBox(height: 16),
             listTileComponent(

@@ -20,13 +20,13 @@ import 'package:drink_eazy/App/Modules/Home/View/OrderDetailsPag.dart';
 import 'package:drink_eazy/App/Modules/Home/View/home.dart';
 import 'package:drink_eazy/App/Modules/Offres_speciales/View/offres_speciales.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/AboutPage.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Confidentiality.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Help_center.dart';
-import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Parametres_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/Information_compte.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/changer_mot_de_passe_page.dart';
-import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/confidentiality.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/contacter_personnel_page.dart';
-import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/information_compte.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/nous_contacter_page.dart';
+import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/parametres_page.dart';
 import 'package:drink_eazy/App/Modules/Param%C3%A8tre/View/signaler_probleme_page.dart';
 import 'package:drink_eazy/App/Modules/Splash/View/splash.dart';
 import 'package:drink_eazy/App/Modules/Support_Client/View/support_client_page.dart';
@@ -114,10 +114,7 @@ class MyApp extends StatelessWidget {
         ),
         GetPage(name: '/parametres', page: () => const ParametresPage()),
         GetPage(name: '/account', page: () => const AccountPage()),
-        GetPage(
-          name: '/cart',
-          page: () => CartPage(),
-        ),
+        GetPage(name: '/cart', page: () => CartPage()),
         GetPage(name: '/Gerer_compte', page: () => const GererComptePage()),
         GetPage(
           name: '/historique_commandes',
@@ -165,7 +162,7 @@ class MyApp extends StatelessWidget {
           page: () => const SignalerProblemePage(),
         ),
         GetPage(name: "/contact", page: () => const NousContacterPage()),
-        GetPage(  
+        GetPage(
           name: "/changer_mot_de_passe",
           page: () => const ChangerMotDePassePage(),
         ),
@@ -173,19 +170,11 @@ class MyApp extends StatelessWidget {
           name: "/MesCommandesPage",
           page: () => const MesCommandesPage(),
         ),
-        GetPage(
-          name: '/splash',
-          page: () => const SplashPage(),
-        ),
-        GetPage(
-          name: '/admin_products',
-          page: () => AdminProductsPage(),
-        ),
+        GetPage(name: '/splash', page: () => const SplashPage()),
+        GetPage(name: '/admin_products', page: () => AdminProductsPage()),
 
         // Provide an empty list or appropriate cart items
-          
       ],
-      
     );
   }
 }

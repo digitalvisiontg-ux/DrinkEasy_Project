@@ -24,16 +24,23 @@ OutlinedButton Deconnexion_component(BuildContext context) {
       );
 
       if (confirm == true) {
+        if (!context.mounted) return;
         try {
           final auth = Provider.of<AuthProvider>(context, listen: false);
           await auth.logout();
-          Get.offAll(const Home());
-          showMessageComponent(
-            context,
-            'Déconnexion réussie',
-            'Vous avez été déconnecté avec succès.',
-            false,
-          );
+          if (!context.mounted) return;
+          Get.offAll(() => const Home());
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            final navContext = Get.context;
+            if (navContext != null && navContext.mounted) {
+              showMessageComponent(
+                navContext,
+                'Déconnexion réussie',
+                'Vous avez été déconnecté avec succès.',
+                false,
+              );
+            }
+          });
         } catch (e) {
           debugPrint('Erreur de déconnexion : $e');
           showErrorPopupComponent(

@@ -3,7 +3,9 @@ import 'package:drink_eazy/Api/config/env.dart';
 class ApiConstants {
   // ---- Base ----
   static String get baseUrl => Env.apiBaseUrl;
-  static String get baseStorageUrl => "$baseUrl/storage";
+  // On enlève '/api' de la baseUrl pour que le chemin vers le storage pointe au bon endroit
+  // au lieu de pointer vers http://.../api/storage/
+  static String get baseStorageUrl => baseUrl.replaceAll(RegExp(r'/api$'), '') + "/storage";
 
   // ---- Auth ----
   static String get authBase => "$baseUrl/auth";
@@ -31,7 +33,7 @@ class ApiConstants {
   static String get produitsParCategorie => "$baseUrl/produits/categorie";
   static String get produitsEnPromotion => "$baseUrl/produits/promotion";
 
-    // ---- Commandes USER ----
+  // ---- Commandes USER ----
   static String get commandes => "$baseUrl/commandes";
   static String commandeById(int id) => "$baseUrl/commandes/$id";
 
@@ -39,6 +41,8 @@ class ApiConstants {
   static String get commandesGuest => "$baseUrl/commandes/guest";
   static String commandeByGuest(String token) =>
       "$baseUrl/commandes/guest/$token";
+  static String commandeUpdateGuest(int id) => "$baseUrl/commandes/$id/guest";
+  static String commandeDeleteGuest(int id) => "$baseUrl/commandes/$id/guest";
 
   static String commandeUpdate(int id) => "$baseUrl/commandes/$id";
   static String commandeDelete(int id) => "$baseUrl/commandes/$id";

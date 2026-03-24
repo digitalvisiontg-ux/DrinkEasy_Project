@@ -9,7 +9,8 @@ class ProductDetailBottomSheet extends StatefulWidget {
   const ProductDetailBottomSheet({super.key, required this.produit});
 
   @override
-  State<ProductDetailBottomSheet> createState() => _ProductDetailBottomSheetState();
+  State<ProductDetailBottomSheet> createState() =>
+      _ProductDetailBottomSheetState();
 }
 
 class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
@@ -47,7 +48,9 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
   /// Retourne la promotion active en excluant certains types si nécessaire
   Promotion? getActivePromotion(Produit produit) {
     final filtered = produit.promotionsDetails
-        .where((promo) => !promo.texteBadge.toLowerCase().contains('happy house'))
+        .where(
+          (promo) => !promo.texteBadge.toLowerCase().contains('happy house'),
+        )
         .toList();
     return filtered.isNotEmpty ? filtered.first : null;
   }
@@ -57,28 +60,29 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     final activePromotion = getActivePromotion(widget.produit);
     double prixUnitaire = widget.produit.prixFinal;
     double total = prixUnitaire * quantity;
-  int freeCount = 0;
+    int freeCount = 0;
     String? congratulationMessage;
 
-  // (offerThreshold not needed here; debug helper uses its own parsing)
+    // (offerThreshold not needed here; debug helper uses its own parsing)
 
-  // Normaliser le type de réduction pour comparaisons insensibles à la casse
-  final promoType = activePromotion?.typeReduction?.toLowerCase();
-  final isNAchatNOffert = activePromotion?.type == "achat_offert";
-  // Quantité déjà présente dans le panier pour ce produit (mise à jour automatique via Provider)
-  // Quantité déjà présente dans le panier pour ce produit (mise à jour automatique via Provider)
+    // Normaliser le type de réduction pour comparaisons insensibles à la casse
+    final promoType = activePromotion?.typeReduction?.toLowerCase();
+    final isNAchatNOffert = activePromotion?.type == "achat_offert";
+    // Quantité déjà présente dans le panier pour ce produit (mise à jour automatique via Provider)
+    // Quantité déjà présente dans le panier pour ce produit (mise à jour automatique via Provider)
 
     // Calcul du prix selon type de promotion
     if (activePromotion != null && promoType != null) {
       switch (promoType) {
         case 'pourcentage':
           if (activePromotion.valeurReduction != null) {
-            final reduction = prixUnitaire * (activePromotion.valeurReduction! / 100);
+            final reduction =
+                prixUnitaire * (activePromotion.valeurReduction! / 100);
             prixUnitaire -= reduction;
             total = prixUnitaire * quantity;
           }
           break;
-  case 'montantfixe':
+        case 'montantfixe':
           if (activePromotion.valeurReduction != null) {
             prixUnitaire -= activePromotion.valeurReduction!;
             total = prixUnitaire * quantity;
@@ -93,7 +97,6 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
     if (isNAchatNOffert &&
         activePromotion?.quantiteAchat != null &&
         activePromotion?.quantiteOfferte != null) {
-
       final n = activePromotion!.quantiteAchat!;
       final offert = activePromotion.quantiteOfferte!;
 
@@ -118,7 +121,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                 // --- Contenu scrollable ---
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -145,21 +151,29 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                               : widget.produit.nomProd,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         const SizedBox(height: 10),
 
                         // --- Catégorie ---
                         if (widget.produit.categorie?.nomCat != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.amber.shade100,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               widget.produit.categorie!.nomCat,
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         const SizedBox(height: 16),
@@ -176,7 +190,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                               Text(
                                 widget.produit.descProd!,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontSize: 14,
+                                ),
                               ),
                               const SizedBox(height: 15),
                             ],
@@ -200,7 +217,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text("Quantité", style: TextStyle(fontWeight: FontWeight.w600)),
+                                const Text(
+                                  "Quantité",
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
                                 Row(
                                   children: [
                                     _qtyButton(Icons.remove, () {
@@ -212,8 +232,16 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                                       }
                                     }),
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                      child: Text('$quantity', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                      ),
+                                      child: Text(
+                                        '$quantity',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ),
                                     _qtyButton(Icons.add, () {
                                       setState(() {
@@ -228,31 +256,51 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                             // Quantité déjà dans le panier (mise à jour automatique) - affichée sous le sélecteur
                             Builder(
                               builder: (ctx) {
-                                final inCartLocal = Provider.of<CartProvider>(ctx).getItemByProductId(widget.produit.id)?.quantite ?? 0;
+                                final inCartLocal =
+                                    Provider.of<CartProvider>(ctx)
+                                        .getItemByProductId(widget.produit.id)
+                                        ?.quantite ??
+                                    0;
                                 return inCartLocal > 0
                                     ? Padding(
-                                        padding: const EdgeInsets.only(top: 5.0),
+                                        padding: const EdgeInsets.only(
+                                          top: 5.0,
+                                        ),
                                         child: Text(
                                           'Quantité totale dans le panier : $inCartLocal',
-                                          style: TextStyle(color: Colors.grey.shade700, fontSize: 12, fontWeight: FontWeight.w600),
+                                          style: TextStyle(
+                                            color: Colors.grey.shade700,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       )
                                     : const SizedBox.shrink();
                               },
                             ),
-                            
+
                             if (isNAchatNOffert)
                               Builder(
                                 builder: (ctx) {
                                   // Re-lire la quantité en panier localement pour réagir aux changements du provider
-                                  final inCartLocal = Provider.of<CartProvider>(ctx).getItemByProductId(widget.produit.id)?.quantite ?? 0;
-                                  if (activePromotion?.quantiteAchat != null && activePromotion?.quantiteOfferte != null) {
+                                  final inCartLocal =
+                                      Provider.of<CartProvider>(ctx)
+                                          .getItemByProductId(widget.produit.id)
+                                          ?.quantite ??
+                                      0;
+                                  if (activePromotion?.quantiteAchat != null &&
+                                      activePromotion?.quantiteOfferte !=
+                                          null) {
                                     final n = activePromotion!.quantiteAchat!;
-                                    final offert = activePromotion.quantiteOfferte!;
-                                    final freeFromCart = (inCartLocal ~/ n) * offert;
+                                    final offert =
+                                        activePromotion.quantiteOfferte!;
+                                    final freeFromCart =
+                                        (inCartLocal ~/ n) * offert;
                                     return freeFromCart > 0
                                         ? Padding(
-                                            padding: const EdgeInsets.only(top: 6),
+                                            padding: const EdgeInsets.only(
+                                              top: 6,
+                                            ),
                                             child: Text(
                                               "🎉 Vous aurez $freeFromCart produit${freeFromCart > 1 ? 's' : ''} offert${freeFromCart > 1 ? 's' : ''} !",
                                               style: TextStyle(
@@ -278,8 +326,13 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text("Total", style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextComponent(text: "${total.toStringAsFixed(0)} CFA"),
+                            const Text(
+                              "Total",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                            TextComponent(
+                              text: "${total.toStringAsFixed(0)} CFA",
+                            ),
                           ],
                         ),
                       ],
@@ -292,7 +345,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   top: false,
                   child: Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       boxShadow: [
@@ -306,18 +362,28 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                     child: ElevatedButton.icon(
                       onPressed: () {
                         // Ajoute au panier via le provider puis renvoie la quantité au caller
-                        context.read<CartProvider>().addToCart(widget.produit, quantity);
+                        context.read<CartProvider>().addToCart(
+                          widget.produit,
+                          quantity,
+                        );
                         Navigator.pop(context, quantity);
                       },
-                      icon: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
+                      icon: const Icon(
+                        Icons.shopping_cart_outlined,
+                        color: Colors.black,
+                      ),
                       label: Text(
-                        quantity > 1 ? 'Ajouter ($quantity)' : 'Ajouter au panier',
+                        quantity > 1
+                            ? 'Ajouter ($quantity)'
+                            : 'Ajouter au panier',
                         style: const TextStyle(color: Colors.black),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.amber,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
                     ),
                   ),
@@ -349,6 +415,11 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                         child: Image.network(
                           widget.produit.imageUrl!,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
+                            child: Icon(Icons.broken_image,
+                                size: 50, color: Colors.white54),
+                          ),
                         ),
                       ),
                     ),
@@ -380,6 +451,8 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
                   height: 160,
                   width: 160,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, size: 40, color: Colors.grey),
                 )
               : Container(height: 160, width: 160, color: Colors.grey.shade200),
         ),
@@ -420,7 +493,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       child: Text(
         promo,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87),
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
       ),
     );
   }
@@ -437,7 +513,10 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       child: Text(
         msg,
         textAlign: TextAlign.center,
-        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+        style: const TextStyle(
+          color: Colors.green,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -467,11 +546,19 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
       final threshold = _getOfferThreshold(promo?.texteBadge);
       int free = 0;
       final promoType = promo?.typeReduction?.toLowerCase();
-      final promoIsNAchat = promoType == 'nachatnoffert' || (promoType?.contains('achat') == true && promoType?.contains('offert') == true);
-      if (promo != null && promoIsNAchat && threshold != null && promo.quantiteOfferte != null) {
+      final promoIsNAchat =
+          promoType == 'nachatnoffert' ||
+          (promoType?.contains('achat') == true &&
+              promoType?.contains('offert') == true);
+      if (promo != null &&
+          promoIsNAchat &&
+          threshold != null &&
+          promo.quantiteOfferte != null) {
         free = (quantity ~/ threshold) * promo.quantiteOfferte!;
       }
-      debugPrint('DEBUG Produit: id=${p.id}, qty=$quantity, promo=${promo?.typeReduction}, threshold=$threshold, quantiteOfferte=${promo?.quantiteOfferte}, free=$free');
+      debugPrint(
+        'DEBUG Produit: id=${p.id}, qty=$quantity, promo=${promo?.typeReduction}, threshold=$threshold, quantiteOfferte=${promo?.quantiteOfferte}, free=$free',
+      );
     } catch (e) {
       debugPrint('DEBUG log error: $e');
     }
@@ -479,7 +566,7 @@ class _ProductDetailBottomSheetState extends State<ProductDetailBottomSheet>
 
   int? _getOfferThreshold(String? promotionText) {
     if (promotionText == null) return null;
-  final regex = RegExp(r"Achetez\s*(\d+)", caseSensitive: false);
+    final regex = RegExp(r"Achetez\s*(\d+)", caseSensitive: false);
     final match = regex.firstMatch(promotionText);
     return match != null ? int.tryParse(match.group(1)!) : null;
   }

@@ -375,13 +375,13 @@ class RunningOrderProvider extends ChangeNotifier {
 Future<void> updateCommande({
   required CommandeModel commande,
   required List<Map<String, dynamic>> items,
-  String? commentaire,
+  String? commentaireClient,
 }) async {
   try {
     final res = await _service.updateCommande(
       commandeId: commande.id,
       items: items,
-      commentaire: commentaire,
+      commentaireClient: commentaireClient,
       guestToken: commande.isGuest ? commande.guestToken : null,
     );
 

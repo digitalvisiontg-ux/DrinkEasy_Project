@@ -87,10 +87,13 @@ Widget _buildProductImage(BuildContext ctx, Produit produit, double imageSize) {
                       child: Container(
                         width: MediaQuery.of(ctx).size.width * 0.8,
                         height: MediaQuery.of(ctx).size.height * 0.6,
-                        decoration: BoxDecoration(
-                          image: DecorationImage(
-                            image: NetworkImage(produit.imageUrl ?? ''),
-                            fit: BoxFit.cover,
+                        child: Image.network(
+                          produit.imageUrl ?? '',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
+                            child: Icon(Icons.broken_image,
+                                size: 50, color: Colors.white54),
                           ),
                         ),
                       ),
@@ -129,7 +132,12 @@ Widget _buildProductImage(BuildContext ctx, Produit produit, double imageSize) {
           height: imageSize,
           child: (produit.imageUrl?.isEmpty ?? true)
               ? Container(color: Colors.grey.shade200)
-              : Image.network(produit.imageUrl!, fit: BoxFit.cover),
+              : Image.network(
+                  produit.imageUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Icon(Icons.broken_image, color: Colors.grey),
+                ),
         ),
       ),
     ),
@@ -143,21 +151,20 @@ Widget _buildProductDetails(Produit produit) {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          produit.taille != null ? '${produit.nomProd} (${produit.taille})' : produit.nomProd,
+          produit.taille != null
+              ? '${produit.nomProd} (${produit.taille})'
+              : produit.nomProd,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 4),
         if (produit.categorie?.nomCat != null)
-         Text(
-              produit.categorie!.nomCat,
-              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 13,
-                              ),
-            ),
+          Text(
+            produit.categorie!.nomCat,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          ),
         const SizedBox(height: 6),
         // --- Badge promotion design A ---
         if (produit.promotionActive && produit.promotionsDetails.isNotEmpty)
@@ -216,16 +223,26 @@ Widget _buildCartBadge(BuildContext context, int productId) {
     right: 0,
     child: Container(
       padding: const EdgeInsets.all(6),
-      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        shape: BoxShape.circle,
+      ),
       child: Text(
         '$qty',
-        style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     ),
   );
 }
 
-Future<int?> showProductDetailBottomSheet(BuildContext context, Produit produit) {
+Future<int?> showProductDetailBottomSheet(
+  BuildContext context,
+  Produit produit,
+) {
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,

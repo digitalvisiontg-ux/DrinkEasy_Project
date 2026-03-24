@@ -21,10 +21,12 @@ class ModifierCommandePage extends StatefulWidget {
 class _ModifierCommandePageState extends State<ModifierCommandePage> {
   late List<Map<String, dynamic>> _modifiedItems;
   bool _isLoading = false;
+  late TextEditingController _commentController;
 
   @override
   void initState() {
     super.initState();
+    _commentController = TextEditingController(text: widget.commande.commentaireClient ?? '');
     // Initialiser les articles à partir de la commande
     _modifiedItems = widget.commande.produits.map((item) {
       return {
@@ -40,6 +42,12 @@ class _ModifierCommandePageState extends State<ModifierCommandePage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _refreshData();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   void _refreshData() {
@@ -164,6 +172,7 @@ class _ModifierCommandePageState extends State<ModifierCommandePage> {
       await provider.updateCommande(
         commande: widget.commande,
         items: apiItems,
+        commentaireClient: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
       );
 
       showToastComponent(context, "Commande mise à jour avec succès");
@@ -172,9 +181,22 @@ class _ModifierCommandePageState extends State<ModifierCommandePage> {
       String errorMsg = "Erreur lors de la mise à jour";
       if (e is DioException) {
         final data = e.response?.data;
-        if (data is Map && data['message'] != null) {
-          errorMsg = data['message'];
-        } else {
+        if (data is Map) {
+          if (data['message'] != null) {
+            errorMsg = data['message'].toString();
+          }
+          if (data['errors'] != null && data['errors'] is Map) {
+            final errors = data['errors'] as Map;
+            if (errors.isNotEmpty) {
+              final firstError = errors.values.first;
+              if (firstError is List && firstError.isNotEmpty) {
+                errorMsg = firstError.first.toString();
+              } else if (firstError is String) {
+                errorMsg = firstError;
+              }
+            }
+          }
+        } else if (e.response?.statusCode != null) {
           errorMsg = "Erreur serveur (${e.response?.statusCode})";
         }
       } else {
@@ -250,6 +272,60 @@ class _ModifierCommandePageState extends State<ModifierCommandePage> {
                     itemBuilder: (context, index) {
                       return _buildItemCard(index);
                     },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(Icons.edit_note_rounded, color: Colors.orange),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              child: Text(
+                                "Commentaire (Optionnel)",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _commentController,
+                          maxLines: 2,
+                          decoration: InputDecoration(
+                            hintText: "Ex : Sans oignons, bien cuit...",
+                            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                            filled: true,
+                            fillColor: const Color(0xFFF7F8FA),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 _buildSummaryBar(),

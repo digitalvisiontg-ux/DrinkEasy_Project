@@ -73,7 +73,9 @@ class Categorie {
     }
 
     return Categorie(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
       nomCat: json['nomCat']?.toString() ?? '',
       descCat: json['descCat']?.toString(),
       actif: parseActif(json['actif']),
@@ -127,27 +129,45 @@ class Produit {
       return s == '1' || s == 'true' || s == 'on';
     }
 
-    String? imagePath = json['imageUrl']?.toString() ?? json['image_url']?.toString();
+    String? imagePath =
+        json['imageUrl']?.toString() ?? json['image_url']?.toString();
     String? fullImageUrl;
     if (imagePath != null && imagePath.isNotEmpty) {
       fullImageUrl = imagePath.startsWith('http')
           ? imagePath
           : "${ApiConstants.baseStorageUrl}/$imagePath";
+
+      // Remplacement dynamique de localhost pour l'émulateur Android
+      if (fullImageUrl.contains('localhost')) {
+        fullImageUrl = fullImageUrl.replaceAll('localhost', '10.0.2.2');
+      } else if (fullImageUrl.contains('127.0.0.1')) {
+        fullImageUrl = fullImageUrl.replaceAll('127.0.0.1', '10.0.2.2');
+      }
+      
+      print("===== DEBUG IMAGE URL =====");
+      print("URL finale tentée par Flutter: $fullImageUrl");
+      print("===========================");
     }
 
     List<Promotion> promotions = [];
-    if (json['promotions_details'] != null && json['promotions_details'] is List) {
+    if (json['promotions_details'] != null &&
+        json['promotions_details'] is List) {
       promotions = (json['promotions_details'] as List)
           .map((p) => Promotion.fromJson(Map<String, dynamic>.from(p)))
           .toList();
     }
 
-    bool promoActive = json['promotion_active'] == true || json['promotion_active'] == 1;
+    bool promoActive =
+        json['promotion_active'] == true || json['promotion_active'] == 1;
 
-    double prixFinal = parsePrix(json['prixFinal'] ?? json['prix_final'] ?? json['prixBase']);
+    double prixFinal = parsePrix(
+      json['prixFinal'] ?? json['prix_final'] ?? json['prixBase'],
+    );
 
     return Produit(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id'].toString()) ?? 0,
       nomProd: json['nomProd']?.toString() ?? '',
       taille: json['taille']?.toString(),
       prixBase: parsePrix(json['prixBase'] ?? json['prix_base']),
@@ -157,7 +177,9 @@ class Produit {
           : int.tryParse(json['qteStock']?.toString() ?? '0') ?? 0,
       actif: parseActif(json['actif']),
       imageUrl: fullImageUrl,
-      categorieId: json['categorieId'] is int ? json['categorieId'] : int.tryParse(json['categorieId'].toString()) ?? 0,
+      categorieId: json['categorieId'] is int
+          ? json['categorieId']
+          : int.tryParse(json['categorieId'].toString()) ?? 0,
       categorie: json['categorie'] != null
           ? Categorie.fromJson(Map<String, dynamic>.from(json['categorie']))
           : null,

@@ -31,6 +31,9 @@ class CommandeModel {
   /// Lignes de commande
   final List<CommandeProduit> produits;
 
+  /// Commentaire client
+  final String? commentaireClient;
+
   CommandeModel({
     required this.id,
     required this.numeroCommande,
@@ -42,6 +45,7 @@ class CommandeModel {
     this.userId,
     this.guestToken,
     this.completedAt,
+    this.commentaireClient,
   });
 
   /* =======================
@@ -79,6 +83,7 @@ class CommandeModel {
               )
               .toList()
           : <CommandeProduit>[],
+      commentaireClient: json['commentaire_client']?.toString(),
     );
   }
 
@@ -98,6 +103,7 @@ class CommandeModel {
       "created_at": createdAt.toIso8601String(),
       "completed_at": completedAt?.toIso8601String(),
       "produits": produits.map((e) => e.toJson()).toList(),
+      "commentaire_client": commentaireClient,
     };
   }
 
@@ -109,6 +115,7 @@ class CommandeModel {
     double? total,
     List<CommandeProduit>? produits,
     DateTime? completedAt,
+    String? commentaireClient,
   }) {
     return CommandeModel(
       id: id,
@@ -121,6 +128,7 @@ class CommandeModel {
       createdAt: createdAt,
       produits: produits ?? this.produits,
       completedAt: completedAt ?? this.completedAt,
+      commentaireClient: commentaireClient ?? this.commentaireClient,
     );
   }
 
